@@ -26,6 +26,7 @@ typedef void  (*pfn_STSetOnComplete)(void* transaction, void* context,
 typedef void  (*pfn_STReparent)(void*, void*, void*);
 typedef void  (*pfn_STSetDesiredPresentTime)(void*, int64_t);
 typedef void  (*pfn_STSetBackPressure)(void*, void*, bool);
+typedef int64_t (*pfn_StatsGetLatchTime)(void* stats);
 
 #define SC_CREATE(win, name)   ((pfn_SCCreateFromWindow)fnSCCreateFromWin)((win),(name))
 #define SC_RELEASE(sc)         ((pfn_SCRelease)fnSCRelease)((sc))
@@ -299,27 +300,15 @@ void ASurfaceRendererContext::setWindowBuffer(int64_t contentId, AHardwareBuffer
     ST_SETBACKPRESSURE(tx, sc, paceNs > 0);
     if (paceNs > 0 && fnSTSetDesiredPresentTime) {
         int64_t now = scanoutNowNs();
-        if (scanoutPaceLastNs != 0 && now - scanoutPaceLastNs > paceNs * 8) {
-            scanoutPaceRingCount = 0;
-            scanoutNextPresentNs = 0;
-        }
-        scanoutPaceLastNs = now;
-        scanoutPaceRing[scanoutPaceRingIdx] = now;
-        scanoutPaceRingIdx = (scanoutPaceRingIdx + 1) % kScanoutPaceWindow;
-        if (scanoutPaceRingCount < kScanoutPaceWindow) scanoutPaceRingCount++;
-        int64_t interval = paceNs;
-        if (scanoutPaceRingCount == kScanoutPaceWindow) {
-            int64_t span = now - scanoutPaceRing[scanoutPaceRingIdx];
-            if (span > 0) {
-                interval = span / (kScanoutPaceWindow - 1);
-                if (interval < paceNs) interval = paceNs;
-                if (interval > paceNs * 3) interval = paceNs * 3;
-            }
-        }
-        int64_t target = scanoutNextPresentNs;
-        if (target < now || target > now + interval * 4) target = now;
+        int64_t latch = scanoutLastLatchNs.load(std::memory_order_relaxed);
+        int64_t grid = now;
+        if (latch > 0 && now >= latch && now - latch < paceNs * 32)
+            grid = latch + ((now - latch) / paceNs + 1) * paceNs;
+        int64_t target = grid;
+        if (target <= scanoutNextPresentNs && scanoutNextPresentNs < now + paceNs * 4)
+            target = scanoutNextPresentNs + paceNs;
+        scanoutNextPresentNs = target;
         ST_SETPRESENTTIME(tx, target);
-        scanoutNextPresentNs = target + interval;
     }
 
     ST_APPLY(tx);
@@ -336,6 +325,7 @@ void ASurfaceRendererContext::loadSfCallbackApi() {
     if (!lib) lib = dlopen("libandroid.so", RTLD_NOW);
     if (!lib) return;
     fnSTSetOnComplete     = dlsym(lib, "ASurfaceTransaction_setOnCompleteCallback");
+    fnSTStatsGetLatchTime = dlsym(lib, "ASurfaceTransactionStats_getLatchTime");
     sfCallbackSupported = (fnSTSetOnComplete != nullptr);
 }
 
@@ -359,11 +349,17 @@ struct ScanoutCallbackCtx {
     std::shared_ptr<CallbackTarget> target;
     int64_t serial;
     int64_t windowId;
+    ASurfaceRendererContext* self;
 };
 
 void ASurfaceRendererContext::scanoutFrameCompleteCallback(void* ctxPtr, void* stats) {
     auto* pCtx = reinterpret_cast<ScanoutCallbackCtx*>(ctxPtr);
     if (!pCtx) return;
+
+    if (pCtx->self && pCtx->self->fnSTStatsGetLatchTime && stats) {
+        int64_t latch = ((pfn_StatsGetLatchTime)pCtx->self->fnSTStatsGetLatchTime)(stats);
+        if (latch > 0) pCtx->self->scanoutLastLatchNs.store(latch, std::memory_order_relaxed);
+    }
 
     auto target = pCtx->target;
     if (target && target->globalRef && target->methodId) {
@@ -382,7 +378,7 @@ void ASurfaceRendererContext::scanoutFrameCompleteCallback(void* ctxPtr, void* s
 
 void ASurfaceRendererContext::attachOnCompleteCallback(void* transaction, int64_t windowId, int64_t serial) {
     if (!sfCallbackSupported || !fnSTSetOnComplete || !callbackTarget) return;
-    auto* ctx = new ScanoutCallbackCtx{ callbackTarget, serial, windowId };
+    auto* ctx = new ScanoutCallbackCtx{ callbackTarget, serial, windowId, this };
     ((pfn_STSetOnComplete)fnSTSetOnComplete)(transaction, ctx, scanoutFrameCompleteCallback);
 }
 

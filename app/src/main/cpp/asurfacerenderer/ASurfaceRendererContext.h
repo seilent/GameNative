@@ -119,6 +119,7 @@ private:
     int64_t scanoutPaceRing[kScanoutPaceWindow] = {};
     int scanoutPaceRingIdx = 0;
     int scanoutPaceRingCount = 0;
+    std::atomic<int64_t> scanoutLastLatchNs{0};
     void oneShot(std::function<void(void*)> fill);
 
     // SurfaceFlinger Callbacks
@@ -128,6 +129,7 @@ private:
 
     bool  sfCallbackSupported   = false;
     void* fnSTSetOnComplete     = nullptr;
+    void* fnSTStatsGetLatchTime = nullptr;
 
     std::shared_ptr<CallbackTarget> callbackTarget;
 };
