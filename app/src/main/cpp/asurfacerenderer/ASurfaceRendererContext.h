@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <functional>
 
+#include "VsyncClock.h"
+
 #define WLOG_TAG "asr_renderer"
 #define RLOG(...) __android_log_print(ANDROID_LOG_INFO, WLOG_TAG, __VA_ARGS__)
 #define RLOG_E(...) __android_log_print(ANDROID_LOG_ERROR, WLOG_TAG, __VA_ARGS__)
@@ -114,11 +116,7 @@ private:
     void* fnSTSetBackPressure = nullptr;
     std::atomic<int64_t> scanoutPaceIntervalNs{0};
     int64_t scanoutNextPresentNs = 0;
-    int64_t scanoutPaceLastNs = 0;
-    static constexpr int kScanoutPaceWindow = 16;
-    int64_t scanoutPaceRing[kScanoutPaceWindow] = {};
-    int scanoutPaceRingIdx = 0;
-    int scanoutPaceRingCount = 0;
+    VsyncClock vsyncClock;
     void oneShot(std::function<void(void*)> fill);
 
     // SurfaceFlinger Callbacks

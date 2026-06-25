@@ -163,6 +163,7 @@ void ASurfaceRendererContext::initScanout() {
 void ASurfaceRendererContext::destroyScanout() {
     if (!scanoutActive.load()) return;
     scanoutActive.store(false);
+    vsyncClock.stop();
 
     if (scanoutCursorSC) {
         oneShot([&](void* tx) {
@@ -298,28 +299,28 @@ void ASurfaceRendererContext::setWindowBuffer(int64_t contentId, AHardwareBuffer
     int64_t paceNs = scanoutPaceIntervalNs.load(std::memory_order_relaxed);
     ST_SETBACKPRESSURE(tx, sc, paceNs > 0);
     if (paceNs > 0 && fnSTSetDesiredPresentTime) {
-        int64_t now = scanoutNowNs();
-        if (scanoutPaceLastNs != 0 && now - scanoutPaceLastNs > paceNs * 8) {
-            scanoutPaceRingCount = 0;
-            scanoutNextPresentNs = 0;
+        const int64_t now = scanoutNowNs();
+        const int64_t vsync = vsyncClock.lastVsyncNs();
+        const int64_t period = vsyncClock.periodNs();
+        int64_t target;
+        if (vsync > 0 && period > 0) {
+            int64_t slot = vsync + ((now - vsync) / period) * period;
+            while (slot <= now) slot += period;
+            target = scanoutNextPresentNs + period;
+            if (target < slot || target > now + period * 2)
+                target = slot;
+        } else {
+            target = scanoutNextPresentNs + paceNs;
+            if (scanoutNextPresentNs == 0 || target < now || target > now + paceNs * 2)
+                target = now;
         }
-        scanoutPaceLastNs = now;
-        scanoutPaceRing[scanoutPaceRingIdx] = now;
-        scanoutPaceRingIdx = (scanoutPaceRingIdx + 1) % kScanoutPaceWindow;
-        if (scanoutPaceRingCount < kScanoutPaceWindow) scanoutPaceRingCount++;
-        int64_t interval = paceNs;
-        if (scanoutPaceRingCount == kScanoutPaceWindow) {
-            int64_t span = now - scanoutPaceRing[scanoutPaceRingIdx];
-            if (span > 0) {
-                interval = span / (kScanoutPaceWindow - 1);
-                if (interval < paceNs) interval = paceNs;
-                if (interval > paceNs * 3) interval = paceNs * 3;
-            }
-        }
-        int64_t target = scanoutNextPresentNs;
-        if (target < now || target > now + interval * 4) target = now;
+        static int64_t s_paceLog = 0;
+        if ((++s_paceLog % 120) == 1)
+            SCANOUT_LOG("pace now=%lld vsync=%lld period=%lld tgt=%lld d=%lld",
+                (long long)now, (long long)vsync, (long long)period,
+                (long long)target, (long long)(target - now));
+        scanoutNextPresentNs = target;
         ST_SETPRESENTTIME(tx, target);
-        scanoutNextPresentNs = target + interval;
     }
 
     ST_APPLY(tx);
@@ -327,7 +328,10 @@ void ASurfaceRendererContext::setWindowBuffer(int64_t contentId, AHardwareBuffer
 }
 
 void ASurfaceRendererContext::setScanoutPacing(int64_t intervalNs) {
-    scanoutPaceIntervalNs.store(intervalNs < 0 ? 0 : intervalNs, std::memory_order_relaxed);
+    const int64_t v = intervalNs < 0 ? 0 : intervalNs;
+    scanoutPaceIntervalNs.store(v, std::memory_order_relaxed);
+    if (v > 0) vsyncClock.start();
+    else vsyncClock.stop();
 }
 
 void ASurfaceRendererContext::loadSfCallbackApi() {

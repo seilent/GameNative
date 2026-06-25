@@ -25,6 +25,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 add_library(asurface_renderer SHARED
         asurface_jni.cpp
         ASurfaceRendererContext.cpp
+        VsyncClock.cpp
 )
 
 target_compile_options(asurface_renderer PRIVATE
