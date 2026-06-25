@@ -112,9 +112,9 @@ object LsfgVkManager {
         return if (raw == 0) 0 else raw.coerceIn(2, 4)
     }
 
-    /** Get the flow scale (0.25-1.0, default 0.80). */
+    /** Get the flow scale (0.25-1.0, default 0.30). */
     fun flowScale(container: Container): Float =
-        container.getExtra(EXTRA_FLOW_SCALE, "0.80").toFloatOrNull()?.coerceIn(0.25f, 1.0f) ?: 0.80f
+        container.getExtra(EXTRA_FLOW_SCALE, "0.30").toFloatOrNull()?.coerceIn(0.25f, 1.0f) ?: 0.30f
 
     /** Get whether performance mode is enabled (default true). */
     fun performanceMode(container: Container): Boolean =

@@ -260,7 +260,7 @@ fun QuickMenu(
     // LSFG hot-reload state (tab only visible when isLsfgAvailable)
     isLsfgAvailable: Boolean = false,
     lsfgMultiplier: Int = 2,
-    lsfgFlowScale: Float = 0.80f,
+    lsfgFlowScale: Float = 0.30f,
     lsfgPerformanceMode: Boolean = true,
     onLsfgMultiplierChanged: (Int) -> Unit = {},
     onLsfgFlowScaleChanged: (Float) -> Unit = {},
