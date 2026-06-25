@@ -108,6 +108,7 @@ import app.gamenative.utils.downloader.CoreDriverDownloader
 import app.gamenative.utils.CustomGameScanner
 import app.gamenative.utils.ExecutableSelectionUtils
 import app.gamenative.utils.LsfgQuickMenuHelper
+import app.gamenative.utils.LsfgVkManager
 import app.gamenative.utils.ManifestComponentHelper
 import app.gamenative.utils.downloader.DXWrapperDownloader
 import app.gamenative.utils.downloader.GraphicsDriverDownloader
@@ -556,6 +557,17 @@ fun XServerScreen(
             ?.setFrameRateLimit(limit)
     }
 
+    fun scanoutPacingIntervalNs(): Long {
+        if (!isLsfgAvailable || lsfgMultiplier < 2) return 0L
+        val refresh = if (detectedMaxRefreshRateHz > 0) detectedMaxRefreshRateHz else 60
+        val outputFps = (LsfgVkManager.LSFG_BASE_FPS_CAP * lsfgMultiplier).coerceAtMost(refresh)
+        return if (outputFps > 0) 1_000_000_000L / outputFps else 0L
+    }
+
+    fun applyScanoutPacing() {
+        xServerView?.setScanoutPacing(scanoutPacingIntervalNs())
+    }
+
     fun effectiveFpsLimit(): Int =
         if (isLsfgAvailable && lsfgMultiplier >= 2) 0
         else if (fpsLimiterEnabled) fpsLimiterTarget
@@ -564,6 +576,7 @@ fun XServerScreen(
     fun applyFpsLimiterEnabled(enabled: Boolean) {
         fpsLimiterEnabled = enabled
         applyFpsLimiterToEngines(effectiveFpsLimit())
+        applyScanoutPacing()
         persistFpsLimiterState()
     }
 
@@ -573,6 +586,7 @@ fun XServerScreen(
         if (fpsLimiterEnabled) {
             applyFpsLimiterToEngines(effectiveFpsLimit())
         }
+        applyScanoutPacing()
         persistFpsLimiterState()
     }
 
@@ -587,6 +601,7 @@ fun XServerScreen(
         lsfgMultiplier = LsfgQuickMenuHelper.sanitizeMultiplier(mult)
         applyLsfgSettings()
         applyFpsLimiterToEngines(effectiveFpsLimit())
+        applyScanoutPacing()
     }
 
     fun applyLsfgFlowScale(scale: Float) {
@@ -607,6 +622,7 @@ fun XServerScreen(
             fpsLimiterTarget = clampedTarget
         }
         applyFpsLimiterToEngines(effectiveFpsLimit())
+        applyScanoutPacing()
     }
 
     fun restorePerformanceHudPosition() {
@@ -680,9 +696,7 @@ fun XServerScreen(
         val hud = PerformanceHudView(
             context = context,
             fpsProvider = {
-                val raw = frameRating?.currentFPS ?: 0f
-                val mult = if (isLsfgAvailable && lsfgMultiplier >= 2) lsfgMultiplier else 1
-                raw * mult
+                frameRating?.currentFPS ?: 0f
             },
             initialConfig = performanceHudConfig,
             initialCompactMode = PrefManager.performanceHudCompactMode,

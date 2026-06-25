@@ -15,6 +15,7 @@ public interface XServerRendererView {
     void queueEvent(Runnable r);
     void requestRender();
     void setFrameRateLimit(int limit);
+    default void setScanoutPacing(long intervalNs) {}
     void onResume();
     void onPause();
     XServer getxServer();

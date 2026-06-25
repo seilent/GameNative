@@ -117,6 +117,7 @@ public class VulkanRenderer implements WindowManager.OnWindowModificationListene
     private native boolean nativeReattachSurface(long handle, android.view.Surface surface);
     private native void nativeDestroyScanout(long handle);
     private native void nativeScanoutSetBuffer(long handle, long ahbPtr, int x, int y, int w, int h, int fenceFd);
+    private native void nativeSetScanoutPacing(long handle, long intervalNs);
     private native void nativeScanoutSetCursorImage(long handle, java.nio.ByteBuffer pixels, short w, short h, short stride);
     private native void nativeScanoutSetCursorPos(long handle, short x, short y, short hotX, short hotY);
     private native boolean nativeIsScanoutActive(long handle);
@@ -772,6 +773,10 @@ public class VulkanRenderer implements WindowManager.OnWindowModificationListene
     @Override
     public void setFrameRating(FrameRating fr) {
         hudRef = fr;
+    }
+
+    public void setScanoutPacing(long intervalNs) {
+        if (nativeHandle != 0) nativeSetScanoutPacing(nativeHandle, intervalNs);
     }
 
     @Override

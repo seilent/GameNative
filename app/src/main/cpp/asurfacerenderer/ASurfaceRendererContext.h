@@ -48,6 +48,7 @@ public:
     void unregisterWindowSC(int64_t contentId);
     void setWindowBuffer(int64_t contentId, AHardwareBuffer* ahb, int fenceFd,
                          int64_t windowId = 0, int64_t serial = 0);
+    void setScanoutPacing(int64_t intervalNs);
 
     void scanoutSetCursorVisibility(bool visible);
     void applyCursorGeometry(short x, short y, short hotX, short hotY, bool cursorVisible);
@@ -109,6 +110,10 @@ private:
     void* fnSTSetBufferTransparency = nullptr;
     void* fnSTSetBufferTransform  = nullptr;
     void* fnSTReparent  = nullptr;
+    void* fnSTSetDesiredPresentTime = nullptr;
+    void* fnSTSetBackPressure = nullptr;
+    std::atomic<int64_t> scanoutPaceIntervalNs{0};
+    int64_t scanoutNextPresentNs = 0;
     void oneShot(std::function<void(void*)> fill);
 
     // SurfaceFlinger Callbacks

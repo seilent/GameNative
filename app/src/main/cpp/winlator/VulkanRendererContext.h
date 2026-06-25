@@ -149,6 +149,7 @@ public:
     void initScanoutFromWindows(ANativeWindow* gameWin, ANativeWindow* cursorWin);
     void scanoutSetDst(int x, int y, int w, int h);
     void scanoutSetBuffer(AHardwareBuffer* ahb, int x, int y, int w, int h, int fenceFd = -1);
+    void setScanoutPacing(int64_t intervalNs);
     void scanoutSetCursorImage(void* pixels, short w, short h, short stride);
     void scanoutSetCursorPos(short x, short y, short hotX, short hotY);
     std::atomic<bool> scanoutActive{false};
@@ -261,7 +262,11 @@ private:
     void*  fnSTSetVisibility  = nullptr;
     void*  fnSTSetGeometry    = nullptr;
     void*  fnSTSetBackPressure = nullptr;
+    void*  fnSTSetDesiredPresentTime = nullptr;
     bool   loadScanoutApi();
+
+    std::atomic<int64_t> scanoutPaceIntervalNs{0};
+    int64_t scanoutNextPresentNs = 0;
 
     int32_t scanoutDstX=0, scanoutDstY=0, scanoutDstW=0, scanoutDstH=0;
 

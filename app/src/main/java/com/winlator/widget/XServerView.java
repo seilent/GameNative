@@ -94,6 +94,15 @@ public class XServerView extends SurfaceView implements SurfaceHolder.Callback, 
         }
     }
 
+    public void setScanoutPacing(long intervalNs) {
+        if (renderer instanceof VulkanRenderer vkRenderer) {
+            vkRenderer.setScanoutPacing(intervalNs);
+        }
+        if (renderer instanceof ASurfaceRenderer aRenderer) {
+            aRenderer.setScanoutPacing(intervalNs);
+        }
+    }
+
     public void requestRender() {
         if (renderer instanceof VulkanRenderer vkRenderer) {
             vkRenderer.queueSceneUpdate();

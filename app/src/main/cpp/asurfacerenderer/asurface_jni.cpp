@@ -58,6 +58,12 @@ Java_com_winlator_renderer_ASurfaceRenderer_nativeDestroyScanout(JNIEnv*, jobjec
 }
 
 extern "C" JNIEXPORT void JNICALL
+Java_com_winlator_renderer_ASurfaceRenderer_nativeSetScanoutPacing(JNIEnv*, jobject, jlong intervalNs) {
+    std::shared_lock lk(g_ctxMutex);
+    if (auto* r = g_ctx) r->setScanoutPacing((int64_t)intervalNs);
+}
+
+extern "C" JNIEXPORT void JNICALL
 Java_com_winlator_renderer_ASurfaceRenderer_nativeSetSfCallbackTarget(
         JNIEnv* env, jobject, jobject rendererRef)
 {

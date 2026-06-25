@@ -134,6 +134,7 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     private native boolean nativeReattachSurface(Surface surface);
     private native void nativeDestroyScanout();
     private native void nativeSetWindowBuffer(long contentId, long ahbPtr, int fenceFd, long windowId, long serial);
+    private native void nativeSetScanoutPacing(long intervalNs);
     private native void nativeScanoutSetCursorVisibility(boolean visible);
     private native void nativeRegisterWindowSC(long contentId, String debugName);
     private native void nativeUnregisterWindowSC(long contentId);
@@ -648,6 +649,8 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     private FrameRating hudRef = null;
     @Override
     public void setFrameRating(FrameRating fr) { hudRef = fr; }
+
+    public void setScanoutPacing(long intervalNs) { nativeSetScanoutPacing(intervalNs); }
     @Override
     public String getForceFullscreenWMClass() { return forceFullscreenWMClass; }
     @Override

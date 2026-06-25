@@ -5,6 +5,7 @@
 #include <cstring>
 #include <dlfcn.h>
 #include <unistd.h>
+#include <time.h>
 #include <android/api-level.h>
 #include <android/log.h>
 
@@ -17,6 +18,8 @@ typedef void  (*pfn_STSetBuffer)(void*, void*, AHardwareBuffer*, int);
 typedef void  (*pfn_STSetZOrder)(void*, void*, int32_t);
 typedef void  (*pfn_STSetVisibility)(void*, void*, int8_t);
 typedef void  (*pfn_STSetGeometry)(void*, void*, const ARect*, const ARect*, int32_t);
+typedef void  (*pfn_STSetDesiredPresentTime)(void*, int64_t);
+typedef void  (*pfn_STSetBackPressure)(void*, void*, bool);
 
 bool VulkanRendererContext::loadScanoutApi() {
     if (scanoutApiLoaded) return fnSCCreateFromWin != nullptr;
@@ -37,6 +40,8 @@ bool VulkanRendererContext::loadScanoutApi() {
     fnSTSetZOrder     = dlsym(lib, "ASurfaceTransaction_setZOrder");
     fnSTSetVisibility = dlsym(lib, "ASurfaceTransaction_setVisibility");
     fnSTSetGeometry   = dlsym(lib, "ASurfaceTransaction_setGeometry");
+    fnSTSetDesiredPresentTime = dlsym(lib, "ASurfaceTransaction_setDesiredPresentTime");
+    fnSTSetBackPressure       = dlsym(lib, "ASurfaceTransaction_setEnableBackPressure");
 
     bool coreOk = fnSCCreateFromWin && fnSCRelease &&
                   fnSTCreate && fnSTDelete && fnSTApply &&
@@ -60,6 +65,14 @@ bool VulkanRendererContext::loadScanoutApi() {
 #define ST_SETZORDER(t,sc,z)   if(fnSTSetZOrder) ((pfn_STSetZOrder)fnSTSetZOrder)((t),(sc),(z))
 #define ST_SETVIS(t,sc,v)      ((pfn_STSetVisibility)fnSTSetVisibility)((t),(sc),(v))
 #define ST_SETGEO(t,sc,s,d,r)  ((pfn_STSetGeometry)fnSTSetGeometry)((t),(sc),(s),(d),(r))
+#define ST_SETPRESENTTIME(t,ns)    if(fnSTSetDesiredPresentTime) ((pfn_STSetDesiredPresentTime)fnSTSetDesiredPresentTime)((t),(ns))
+#define ST_SETBACKPRESSURE(t,sc,e) if(fnSTSetBackPressure) ((pfn_STSetBackPressure)fnSTSetBackPressure)((t),(sc),(e))
+
+static inline int64_t scanoutNowNs() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+}
 
 static inline bool arectEq(const ARect& a, const ARect& b) {
     return a.left==b.left && a.top==b.top && a.right==b.right && a.bottom==b.bottom;
@@ -195,10 +208,24 @@ void VulkanRendererContext::scanoutSetBuffer(AHardwareBuffer* ahb, int x, int y,
       }
     }
 
+    int64_t paceNs = scanoutPaceIntervalNs.load(std::memory_order_relaxed);
+    ST_SETBACKPRESSURE(t, scanoutGameSC, paceNs > 0);
+    if (paceNs > 0 && fnSTSetDesiredPresentTime) {
+        int64_t now = scanoutNowNs();
+        int64_t target = scanoutNextPresentNs;
+        if (target < now || target > now + paceNs * 4) target = now;
+        ST_SETPRESENTTIME(t, target);
+        scanoutNextPresentNs = target + paceNs;
+    }
+
     ST_APPLY(t);
 
     gameFrameDelivered.store(true, std::memory_order_release);
     AHardwareBuffer_release(ahb);
+}
+
+void VulkanRendererContext::setScanoutPacing(int64_t intervalNs) {
+    scanoutPaceIntervalNs.store(intervalNs < 0 ? 0 : intervalNs, std::memory_order_relaxed);
 }
 
 void VulkanRendererContext::applyScanoutBuffer() {

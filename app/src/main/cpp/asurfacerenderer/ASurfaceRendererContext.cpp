@@ -3,6 +3,7 @@
 #include <cstring>
 #include <dlfcn.h>
 #include <unistd.h>
+#include <time.h>
 #include <android/api-level.h>
 #include <android/log.h>
 #include <unordered_map>
@@ -23,6 +24,8 @@ typedef void  (*pfn_STSetBufferTransform)(void*, void*, int32_t);
 typedef void  (*pfn_STSetOnComplete)(void* transaction, void* context,
                                     void (*callback)(void* context, void* stats));
 typedef void  (*pfn_STReparent)(void*, void*, void*);
+typedef void  (*pfn_STSetDesiredPresentTime)(void*, int64_t);
+typedef void  (*pfn_STSetBackPressure)(void*, void*, bool);
 
 #define SC_CREATE(win, name)   ((pfn_SCCreateFromWindow)fnSCCreateFromWin)((win),(name))
 #define SC_RELEASE(sc)         ((pfn_SCRelease)fnSCRelease)((sc))
@@ -35,6 +38,14 @@ typedef void  (*pfn_STReparent)(void*, void*, void*);
 #define ST_SETGEO(t,sc,s,d,r)  ((pfn_STSetGeometry)fnSTSetGeometry)((t),(sc),(s),(d),(r))
 #define ST_SET_TRANSPARENCY(t,sc,tr) if(fnSTSetBufferTransparency) ((pfn_STSetBufferTransparency)fnSTSetBufferTransparency)((t),(sc),(tr))
 #define ST_REPARENT(t,sc,p)    if(fnSTReparent) ((pfn_STReparent)fnSTReparent)((t),(sc),(p))
+#define ST_SETPRESENTTIME(t,ns)    if(fnSTSetDesiredPresentTime) ((pfn_STSetDesiredPresentTime)fnSTSetDesiredPresentTime)((t),(ns))
+#define ST_SETBACKPRESSURE(t,sc,e) if(fnSTSetBackPressure) ((pfn_STSetBackPressure)fnSTSetBackPressure)((t),(sc),(e))
+
+static inline int64_t scanoutNowNs() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+}
 
 void ASurfaceRendererContext::oneShot(std::function<void(void*)> fill) {
     void* tx = ST_CREATE();
@@ -119,6 +130,8 @@ bool ASurfaceRendererContext::loadScanoutApi() {
     fnSTSetBufferTransparency = dlsym(lib, "ASurfaceTransaction_setBufferTransparency");
     fnSTSetBufferTransform = dlsym(lib, "ASurfaceTransaction_setBufferTransform");
     fnSTReparent      = dlsym(lib, "ASurfaceTransaction_reparent");
+    fnSTSetDesiredPresentTime = dlsym(lib, "ASurfaceTransaction_setDesiredPresentTime");
+    fnSTSetBackPressure       = dlsym(lib, "ASurfaceTransaction_setEnableBackPressure");
     sfCallbackSupported = fnSTSetOnComplete != nullptr;
     bool coreOk = fnSCCreateFromWin && fnSCRelease && fnSTCreate && fnSTDelete && fnSTSetOnComplete && fnSTReparent &&
                   fnSTApply && fnSTSetBuffer && fnSTSetVisibility && fnSTSetGeometry && fnSTSetBufferTransparency && fnSTSetBufferTransform;
@@ -281,8 +294,23 @@ void ASurfaceRendererContext::setWindowBuffer(int64_t contentId, AHardwareBuffer
     if (windowId != 0 || serial != 0) {
         attachOnCompleteCallback(tx, windowId, serial);
     }
+
+    int64_t paceNs = scanoutPaceIntervalNs.load(std::memory_order_relaxed);
+    ST_SETBACKPRESSURE(tx, sc, paceNs > 0);
+    if (paceNs > 0 && fnSTSetDesiredPresentTime) {
+        int64_t now = scanoutNowNs();
+        int64_t target = scanoutNextPresentNs;
+        if (target < now || target > now + paceNs * 4) target = now;
+        ST_SETPRESENTTIME(tx, target);
+        scanoutNextPresentNs = target + paceNs;
+    }
+
     ST_APPLY(tx);
     ST_DELETE(tx);
+}
+
+void ASurfaceRendererContext::setScanoutPacing(int64_t intervalNs) {
+    scanoutPaceIntervalNs.store(intervalNs < 0 ? 0 : intervalNs, std::memory_order_relaxed);
 }
 
 void ASurfaceRendererContext::loadSfCallbackApi() {

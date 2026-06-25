@@ -164,6 +164,14 @@ Java_com_winlator_renderer_VulkanRenderer_nativeScanoutSetBuffer(
 }
 
 extern "C" JNIEXPORT void JNICALL
+Java_com_winlator_renderer_VulkanRenderer_nativeSetScanoutPacing(
+    JNIEnv*, jobject, jlong handle, jlong intervalNs)
+{
+    auto* r = reinterpret_cast<VulkanRendererContext*>(handle);
+    if (r) r->setScanoutPacing((int64_t)intervalNs);
+}
+
+extern "C" JNIEXPORT void JNICALL
 Java_com_winlator_renderer_VulkanRenderer_nativeScanoutSetCursorImage(
     JNIEnv* env, jobject, jlong handle, jobject buf, jshort w, jshort h, jshort stride)
 {
