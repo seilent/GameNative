@@ -267,6 +267,11 @@ private:
 
     std::atomic<int64_t> scanoutPaceIntervalNs{0};
     int64_t scanoutNextPresentNs = 0;
+    int64_t scanoutPaceLastNs = 0;
+    static constexpr int kScanoutPaceWindow = 16;
+    int64_t scanoutPaceRing[kScanoutPaceWindow] = {};
+    int scanoutPaceRingIdx = 0;
+    int scanoutPaceRingCount = 0;
 
     int32_t scanoutDstX=0, scanoutDstY=0, scanoutDstW=0, scanoutDstH=0;
 

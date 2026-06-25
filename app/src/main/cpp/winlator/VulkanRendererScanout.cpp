@@ -212,10 +212,27 @@ void VulkanRendererContext::scanoutSetBuffer(AHardwareBuffer* ahb, int x, int y,
     ST_SETBACKPRESSURE(t, scanoutGameSC, paceNs > 0);
     if (paceNs > 0 && fnSTSetDesiredPresentTime) {
         int64_t now = scanoutNowNs();
+        if (scanoutPaceLastNs != 0 && now - scanoutPaceLastNs > paceNs * 8) {
+            scanoutPaceRingCount = 0;
+            scanoutNextPresentNs = 0;
+        }
+        scanoutPaceLastNs = now;
+        scanoutPaceRing[scanoutPaceRingIdx] = now;
+        scanoutPaceRingIdx = (scanoutPaceRingIdx + 1) % kScanoutPaceWindow;
+        if (scanoutPaceRingCount < kScanoutPaceWindow) scanoutPaceRingCount++;
+        int64_t interval = paceNs;
+        if (scanoutPaceRingCount == kScanoutPaceWindow) {
+            int64_t span = now - scanoutPaceRing[scanoutPaceRingIdx];
+            if (span > 0) {
+                interval = span / (kScanoutPaceWindow - 1);
+                if (interval < paceNs) interval = paceNs;
+                if (interval > paceNs * 3) interval = paceNs * 3;
+            }
+        }
         int64_t target = scanoutNextPresentNs;
-        if (target < now || target > now + paceNs * 4) target = now;
+        if (target < now || target > now + interval * 4) target = now;
         ST_SETPRESENTTIME(t, target);
-        scanoutNextPresentNs = target + paceNs;
+        scanoutNextPresentNs = target + interval;
     }
 
     ST_APPLY(t);
