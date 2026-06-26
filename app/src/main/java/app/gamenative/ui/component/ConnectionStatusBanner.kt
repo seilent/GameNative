@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.ui.enums.ConnectionState
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 // shared with SteamUtils.awaitSteamLogin so banner UI and intent-launch await fall back to offline together.
@@ -77,12 +77,7 @@ fun ConnectionStatusBanner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.surfaceVariant,
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-                            )
-                        )
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     )
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
@@ -130,7 +125,7 @@ fun ConnectionStatusBanner(
                                         text = stringResource(R.string.continue_offline),
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = LocalGameAccent.current
                                     )
                                 }
                             }
@@ -144,7 +139,7 @@ fun ConnectionStatusBanner(
                                     text = stringResource(R.string.connection_retry),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = LocalGameAccent.current
                                 )
                             }
                         }
@@ -189,13 +184,13 @@ private fun ConnectionIcon(connectionState: ConnectionState) {
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    .background(LocalGameAccent.current.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = LocalGameAccent.current,
                     modifier = Modifier
                         .size(18.dp)
                         .rotate(rotation)

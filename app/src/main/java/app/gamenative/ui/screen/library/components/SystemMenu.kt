@@ -3,10 +3,7 @@ package app.gamenative.ui.screen.library.components
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -82,8 +79,14 @@ import app.gamenative.R
 import app.gamenative.data.SteamFriend
 import app.gamenative.events.SteamEvent
 import app.gamenative.service.SteamService
+import app.gamenative.ui.component.BlurredBackdrop
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.dialog.SupportersDialog
 import app.gamenative.ui.screen.PluviaScreen
+import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalGameBackdrop
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.SteamIconImage
 import app.gamenative.ui.util.adaptivePanelWidth
@@ -110,22 +113,19 @@ private fun SystemMenuItem(
 
     val scale by animateFloatAsState(
         targetValue = if (isFocused) 1.02f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.FocusScale,
         label = "menuItemScale",
     )
 
     val backgroundColor = when {
-        isFocused -> MaterialTheme.colorScheme.primaryContainer
+        isFocused -> LocalGameAccent.current.copy(alpha = 0.18f)
         else -> Color.Transparent
     }
 
     val contentColor = when {
         isDestructive && isFocused -> MaterialTheme.colorScheme.error
         isDestructive -> MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
-        isFocused -> MaterialTheme.colorScheme.onPrimaryContainer
+        isFocused -> LocalGameAccent.current
         else -> MaterialTheme.colorScheme.onSurface
     }
 
@@ -179,16 +179,13 @@ private fun StatusOption(
 
     val scale by animateFloatAsState(
         targetValue = if (isFocused) 1.02f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.FocusScale,
         label = "statusOptionScale",
     )
 
     val backgroundColor = when {
-        isFocused -> MaterialTheme.colorScheme.primaryContainer
-        isSelected -> MaterialTheme.colorScheme.surfaceContainerHighest
+        isFocused -> LocalGameAccent.current.copy(alpha = 0.18f)
+        isSelected -> GlassFill
         else -> Color.Transparent
     }
 
@@ -217,7 +214,7 @@ private fun StatusOption(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
             color = if (isFocused) {
-                MaterialTheme.colorScheme.onPrimaryContainer
+                LocalGameAccent.current
             } else {
                 MaterialTheme.colorScheme.onSurface
             },
@@ -228,7 +225,7 @@ private fun StatusOption(
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = LocalGameAccent.current,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -323,8 +320,8 @@ fun SystemMenu(
         // Backdrop
         AnimatedVisibility(
             visible = isOpen,
-            enter = fadeIn(animationSpec = tween(200)),
-            exit = fadeOut(animationSpec = tween(150)),
+            enter = fadeIn(animationSpec = Motion.Fade),
+            exit = fadeOut(animationSpec = Motion.Fade),
         ) {
             Box(
                 modifier = Modifier
@@ -343,29 +340,35 @@ fun SystemMenu(
             visible = isOpen,
             enter = slideInHorizontally(
                 initialOffsetX = { fullWidth -> fullWidth },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
+                animationSpec = Motion.PanelSlide,
             ),
             exit = slideOutHorizontally(
                 targetOffsetX = { fullWidth -> fullWidth },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMedium,
-                ),
+                animationSpec = Motion.PanelSlide,
             ),
             modifier = Modifier.align(Alignment.CenterEnd),
         ) {
-            Surface(
+            val panelShape = RoundedCornerShape(topStart = 32.dp, bottomStart = 32.dp)
+            Box(
                 modifier = Modifier
                     .width(adaptivePanelWidth(380.dp))
-                    .fillMaxHeight(),
-                shape = RoundedCornerShape(topStart = 32.dp, bottomStart = 32.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
-                shadowElevation = 24.dp,
+                    .fillMaxHeight()
+                    .clip(panelShape),
             ) {
+                val backdrop = LocalGameBackdrop.current
+                if (backdrop.isNotBlank()) {
+                    BlurredBackdrop(
+                        imageModel = backdrop,
+                        accentKey = null,
+                        blurRadius = 28,
+                        onAccent = {},
+                        modifier = Modifier.matchParentSize(),
+                    )
+                }
+                GlassSurface(
+                    modifier = Modifier.matchParentSize(),
+                    shape = panelShape,
+                ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -401,10 +404,7 @@ fun SystemMenu(
                     val isProfileFocused by profileInteractionSource.collectIsFocusedAsState()
                     val profileScale by animateFloatAsState(
                         targetValue = if (isProfileFocused) 1.02f else 1f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMedium,
-                        ),
+                        animationSpec = Motion.FocusScale,
                         label = "profileScale",
                     )
 
@@ -416,16 +416,16 @@ fun SystemMenu(
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
                                     if (isProfileFocused) {
-                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                        LocalGameAccent.current.copy(alpha = 0.18f)
                                     } else {
-                                        MaterialTheme.colorScheme.surfaceContainerHigh
+                                        GlassFill
                                     },
                                 )
                                 .then(
                                     if (isProfileFocused) {
                                         Modifier.border(
                                             2.dp,
-                                            MaterialTheme.colorScheme.primary,
+                                            LocalGameAccent.current,
                                             RoundedCornerShape(16.dp),
                                         )
                                     } else {
@@ -518,7 +518,7 @@ fun SystemMenu(
                             onDismissRequest = { showStatusPicker = false },
                             modifier = Modifier
                                 .width(280.dp)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                .background(GlassFill),
                         ) {
                             Column(
                                 modifier = Modifier
@@ -725,6 +725,7 @@ fun SystemMenu(
                         }
                     }
                 }
+            }
             }
         }
     }

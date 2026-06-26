@@ -53,6 +53,8 @@ import kotlinx.coroutines.withContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.Surface
 import app.gamenative.ui.theme.PluviaTheme
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.GlassFillStrong
 import android.content.res.Configuration
 import app.gamenative.ui.util.SnackbarManager
 import app.gamenative.service.SteamService
@@ -261,6 +263,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = GlassFillStrong,
         title = { Text(text = stringResource(R.string.driver_manager), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(
@@ -513,7 +516,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
             TextButton(onClick = onDismiss) {
                 Text(
                     text = "Close",
-                    color = MaterialTheme.colorScheme.primary
+                    color = LocalGameAccent.current
                 )
             }
         },

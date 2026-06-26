@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 @Composable
@@ -41,7 +42,7 @@ fun FlowFilterChip(
             onClick = onClick,
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = LocalGameAccent.current,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ),
             contentPadding = PaddingValues(16.dp)
@@ -55,9 +56,9 @@ fun FlowFilterChip(
             modifier = chipModifier,
             onClick = onClick,
             shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+            border = BorderStroke(2.dp, LocalGameAccent.current),
             colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary
+                contentColor = LocalGameAccent.current
             ),
             contentPadding = PaddingValues(16.dp)
         ) {

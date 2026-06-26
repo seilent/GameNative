@@ -94,6 +94,7 @@ import app.gamenative.service.AchievementWatcher
 import app.gamenative.service.SteamService
 import app.gamenative.service.epic.EpicService
 import app.gamenative.service.gog.GOGService
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.QuickMenu
 import app.gamenative.ui.component.QuickMenuAction
 import app.gamenative.ui.component.parseBooleanExtra
@@ -2762,17 +2763,18 @@ private fun EditModeToolbar(
                 }
             }
     ) {
-        Row(
+        GlassSurface(
             modifier = Modifier
-                .wrapContentSize()
-                .background(
-                    color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.8f),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .wrapContentSize(),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            dark = true,
         ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             // Drag handle indicator
             Icon(
                 imageVector = Icons.Default.Menu,
@@ -2842,6 +2844,7 @@ private fun EditModeToolbar(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(stringResource(R.string.close), color = androidx.compose.ui.graphics.Color.White)
             }
+        }
         }
     }
 }

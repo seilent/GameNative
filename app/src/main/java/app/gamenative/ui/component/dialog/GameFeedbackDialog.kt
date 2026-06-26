@@ -20,6 +20,8 @@ import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import app.gamenative.ui.component.dialog.state.GameFeedbackDialogState
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import timber.log.Timber
 
 @OptIn(
@@ -44,8 +46,9 @@ fun GameFeedbackDialog(
                     .fillMaxWidth()
                     .wrapContentHeight(),
                 shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.surface
+                color = GlassFillStrong
             ) {
+                val accent = LocalGameAccent.current
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -72,7 +75,7 @@ fun GameFeedbackDialog(
                             Icon(
                                 imageVector = if (i <= state.rating) Icons.Filled.Star else Icons.Filled.StarOutline,
                                 contentDescription = "Star $i",
-                                tint = if (i <= state.rating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                tint = if (i <= state.rating) accent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clickable {
@@ -137,7 +140,7 @@ fun GameFeedbackDialog(
                         onClick = onDiscordSupport,
                         modifier = Modifier.padding(bottom = 16.dp)
                     ) {
-                        Text(stringResource(R.string.get_support_on_discord))
+                        Text(stringResource(R.string.get_support_on_discord), color = accent)
                     }
 
                     // Dialog action buttons
@@ -155,7 +158,8 @@ fun GameFeedbackDialog(
                                 onSubmit(state)
                             },
                             modifier = Modifier.padding(start = 8.dp),
-                            enabled = state.rating > 0 // Require at least a rating
+                            enabled = state.rating > 0,
+                            colors = ButtonDefaults.buttonColors(containerColor = accent)
                         ) {
                             Text(state.confirmBtnText)
                         }

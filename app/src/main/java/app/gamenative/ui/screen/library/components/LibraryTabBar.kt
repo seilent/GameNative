@@ -46,10 +46,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.LocalGameAccent
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -61,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.BuildConfig
 import app.gamenative.R
 import app.gamenative.ui.enums.LibraryTab
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.WindowWidthClass
 import app.gamenative.ui.util.rememberWindowWidthClass
@@ -134,7 +138,7 @@ private fun CompactLibraryTabBar(
     onNextTab: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tabs = LibraryTab.visibleEntries
+    val tabs = LibraryTab.visibleEntries(LocalContext.current)
     val currentIndex = tabs.indexOf(currentTab)
     val scrollState = rememberScrollState()
     val tabPositions = remember { mutableStateMapOf<Int, Float>() }
@@ -151,15 +155,6 @@ private fun CompactLibraryTabBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                        Color.Transparent,
-                    ),
-                ),
-            )
             .padding(top = 8.dp, bottom = 12.dp, start = 8.dp, end = 8.dp),
     ) {
         Row(
@@ -200,7 +195,7 @@ private fun CompactLibraryTabBar(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                    .background(GlassFill)
                     .horizontalScroll(scrollState)
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.Center,
@@ -219,15 +214,7 @@ private fun CompactLibraryTabBar(
                             .then(
                                 if (isTabFocused) {
                                     Modifier.border(
-                                        BorderStroke(
-                                            2.dp,
-                                            Brush.verticalGradient(
-                                                colors = listOf(
-                                                    MaterialTheme.colorScheme.primary,
-                                                    MaterialTheme.colorScheme.tertiary,
-                                                ),
-                                            ),
-                                        ),
+                                        BorderStroke(2.dp, LocalGameAccent.current),
                                         RoundedCornerShape(16.dp),
                                     )
                                 } else {
@@ -237,8 +224,8 @@ private fun CompactLibraryTabBar(
                             .clip(RoundedCornerShape(16.dp))
                             .background(
                                 when {
-                                    isSelected -> MaterialTheme.colorScheme.primary
-                                    isTabFocused -> MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                    isSelected -> LocalGameAccent.current
+                                    isTabFocused -> LocalGameAccent.current.copy(alpha = 0.15f)
                                     else -> Color.Transparent
                                 },
                             )
@@ -265,7 +252,7 @@ private fun CompactLibraryTabBar(
                             overflow = TextOverflow.Ellipsis,
                             color = when {
                                 isSelected -> MaterialTheme.colorScheme.onPrimary
-                                isTabFocused -> MaterialTheme.colorScheme.primary
+                                isTabFocused -> LocalGameAccent.current
                                 else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             },
                         )
@@ -313,15 +300,7 @@ private fun CompactIconButton(
             .then(
                 if (isFocused) {
                     Modifier.border(
-                        BorderStroke(
-                            2.dp,
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.tertiary,
-                                ),
-                            ),
-                        ),
+                        BorderStroke(2.dp, LocalGameAccent.current),
                         CircleShape,
                     )
                 } else {
@@ -331,7 +310,7 @@ private fun CompactIconButton(
             .clip(CircleShape)
             .background(
                 if (isFocused) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    LocalGameAccent.current.copy(alpha = 0.2f)
                 } else {
                     MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 },
@@ -348,7 +327,7 @@ private fun CompactIconButton(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = if (isFocused) {
-                MaterialTheme.colorScheme.primary
+                LocalGameAccent.current
             } else {
                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             },
@@ -374,7 +353,7 @@ private fun ExpandedLibraryTabBar(
     onNextTab: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tabs = LibraryTab.visibleEntries
+    val tabs = LibraryTab.visibleEntries(LocalContext.current)
     val currentIndex = tabs.indexOf(currentTab)
     val scrollState = rememberScrollState()
 
@@ -385,19 +364,13 @@ private fun ExpandedLibraryTabBar(
 
     val indicatorOffset by animateDpAsState(
         targetValue = with(density) { (tabPositions[currentIndex] ?: 0f).toDp() },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.IndicatorDp,
         label = "indicatorOffset",
     )
 
     val indicatorWidth by animateDpAsState(
         targetValue = with(density) { (tabWidths[currentIndex] ?: 80f).toDp() },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.IndicatorDp,
         label = "indicatorWidth",
     )
 
@@ -411,15 +384,6 @@ private fun ExpandedLibraryTabBar(
 
     Box(
         modifier = modifier
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
-                        Color.Transparent,
-                    ),
-                ),
-            )
             .padding(top = 8.dp, bottom = 20.dp),
     ) {
         Row(
@@ -461,15 +425,7 @@ private fun ExpandedLibraryTabBar(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(24.dp))
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            ),
-                        ),
-                    )
+                    .background(color = GlassFill)
                     .horizontalScroll(scrollState)
                     .padding(4.dp),
                 contentAlignment = Alignment.CenterStart,
@@ -481,14 +437,7 @@ private fun ExpandedLibraryTabBar(
                         .width(indicatorWidth)
                         .height(40.dp)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-                                ),
-                            ),
-                        ),
+                        .background(color = LocalGameAccent.current),
                 )
 
                 Row(
@@ -545,10 +494,7 @@ private fun IconActionButton(
 
     val scale by animateFloatAsState(
         targetValue = if (isFocused) 1.15f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.FocusScale,
         label = "iconButtonScale",
     )
 
@@ -565,15 +511,7 @@ private fun IconActionButton(
             .then(
                 if (isFocused) {
                     Modifier.border(
-                        BorderStroke(
-                            2.dp,
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.tertiary,
-                                ),
-                            ),
-                        ),
+                        BorderStroke(2.dp, LocalGameAccent.current),
                         CircleShape,
                     )
                 } else {
@@ -585,8 +523,8 @@ private fun IconActionButton(
                 brush = Brush.radialGradient(
                     colors = if (isFocused) {
                         listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            LocalGameAccent.current.copy(alpha = 0.4f),
+                            LocalGameAccent.current.copy(alpha = 0.2f),
                         )
                     } else {
                         listOf(
@@ -609,7 +547,7 @@ private fun IconActionButton(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = if (isFocused) {
-                MaterialTheme.colorScheme.primary
+                LocalGameAccent.current
             } else {
                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             },
@@ -651,15 +589,7 @@ private fun TabItem(
             .then(
                 if (isFocused) {
                     Modifier.border(
-                        BorderStroke(
-                            2.dp,
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.tertiary,
-                                ),
-                            ),
-                        ),
+                        BorderStroke(2.dp, LocalGameAccent.current),
                         RoundedCornerShape(20.dp),
                     )
                 } else {

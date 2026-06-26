@@ -26,6 +26,7 @@ fun HomeScreen(
     onLogout: () -> Unit,
     onNavigateRoute: (String) -> Unit,
     onGoOnline: () -> Unit,
+    onGameBackdrop: (String) -> Unit = {},
     isOffline: Boolean = false
 ) {
     val homeState by viewModel.homeState.collectAsStateWithLifecycle()
@@ -47,6 +48,7 @@ fun HomeScreen(
             onLogout = onLogout,
             onGoOnline = onGoOnline,
             onDownloadsClick = { viewModel.onDestination(HomeDestination.Downloads) },
+            onGameBackdrop = onGameBackdrop,
             isOffline = isOffline,
         )
         HomeDestination.Downloads -> HomeDownloadsScreen(

@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -256,15 +255,7 @@ internal fun AmbientDownloadOverlay(
                         )
 
                         drawRect(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    shimmerColor.copy(alpha = ambientAlpha),
-                                    Color.Transparent,
-                                ),
-                                startX = shimmerStartX,
-                                endX = shimmerEndX,
-                            ),
+                            color = shimmerColor.copy(alpha = ambientAlpha),
                             topLeft = Offset(barX, barY),
                             size = Size(filledWidth, barHeightPx),
                         )

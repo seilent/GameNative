@@ -72,7 +72,10 @@ import app.gamenative.R
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 import app.gamenative.data.GameSource
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.screen.library.GameMigrationDialog
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.SnackbarManager
 import app.gamenative.utils.ContainerStorageManager
@@ -580,14 +583,13 @@ fun ContainerStorageManagerDialog(
                 .statusBarsPadding(),
             contentAlignment = Alignment.Center,
         ) {
-            Surface(
+            GlassSurface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.96f)
                     .widthIn(max = 1100.dp),
                 shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 6.dp,
+                fill = GlassFillStrong,
             ) {
                 ContainerStorageManagerContent(
                     state = state,
@@ -774,7 +776,7 @@ private fun StorageArtworkButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
 
     Box(
         modifier = Modifier
@@ -838,7 +840,7 @@ private fun StorageActionButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
 
     FilledTonalButton(
         onClick = onClick,

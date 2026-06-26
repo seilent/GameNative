@@ -1,9 +1,7 @@
 package app.gamenative.ui.component
 
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -33,13 +31,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,7 +53,7 @@ private const val FALLBACK_ITEM_HEIGHT_PX = 100f
 fun Scrollbar(
     listState: LazyGridState,
     modifier: Modifier = Modifier,
-    thumbColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+    thumbColor: Color = LocalGameAccent.current.copy(alpha = 0.6f),
     trackColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
     thumbWidthCollapsed: Dp = 4.dp,
     thumbWidthExpanded: Dp = 10.dp,
@@ -148,10 +147,7 @@ fun Scrollbar(
     // Animate width
     val thumbWidth by animateDpAsState(
         targetValue = if (isExpanded) thumbWidthExpanded else thumbWidthCollapsed,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.IndicatorDp,
         label = "thumbWidth",
     )
 
@@ -299,14 +295,7 @@ fun Scrollbar(
                         .width(thumbWidth)
                         .height(thumbHeightDp)
                         .clip(RoundedCornerShape(50))
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    thumbColor,
-                                    thumbColor.copy(alpha = thumbColor.alpha * 0.8f),
-                                ),
-                            ),
-                        ),
+                        .background(color = thumbColor),
                     contentAlignment = Alignment.Center,
                 ) {
                     // Grab handle lines (only visible when expanded)

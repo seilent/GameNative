@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -35,7 +37,10 @@ fun LoadingDialog(
             Dialog(
                 onDismissRequest = onDismissRequest,
             ) {
-                Card {
+                val accent = LocalGameAccent.current
+                Card(
+                    colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = GlassFillStrong),
+                ) {
                     Column(
                         modifier = Modifier
                             .padding(16.dp),
@@ -48,9 +53,10 @@ fun LoadingDialog(
                             Text(min(100, (progress * 100.0).roundToInt()).toString() + "%")
                             LinearProgressIndicator(
                                 progress = { progress },
+                                color = accent,
                             )
                         } else {
-                            LinearProgressIndicator()
+                            LinearProgressIndicator(color = accent)
                         }
                     }
                 }

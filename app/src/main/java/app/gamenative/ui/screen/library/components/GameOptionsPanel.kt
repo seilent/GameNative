@@ -1,9 +1,7 @@
 package app.gamenative.ui.screen.library.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -68,15 +66,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
+import app.gamenative.ui.component.BlurredBackdrop
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.data.AppMenuOption
 import app.gamenative.ui.enums.AppOptionMenuType
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalGameBackdrop
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.util.adaptivePanelWidth
 
 @Composable
@@ -120,30 +122,36 @@ fun GameOptionsPanel(
         visible = isOpen,
         enter = slideInHorizontally(
             initialOffsetX = { it },
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMedium,
-            ),
+            animationSpec = Motion.PanelSlide,
         ) + fadeIn(),
         exit = slideOutHorizontally(
             targetOffsetX = { it },
-            animationSpec = spring(stiffness = Spring.StiffnessHigh),
+            animationSpec = Motion.PanelSlide,
         ) + fadeOut(),
         modifier = modifier
             .fillMaxHeight()
             .width(adaptivePanelWidth(360.dp)),
     ) {
+        val panelShape = RoundedCornerShape(0.dp)
+        Box(modifier = Modifier.fillMaxSize().clip(panelShape)) {
+            val backdrop = LocalGameBackdrop.current
+            if (backdrop.isNotBlank()) {
+                BlurredBackdrop(
+                    imageModel = backdrop,
+                    accentKey = null,
+                    blurRadius = 28,
+                    onAccent = {},
+                    modifier = Modifier.matchParentSize(),
+                )
+            }
+            GlassSurface(
+                modifier = Modifier.matchParentSize(),
+                shape = panelShape,
+                dark = false,
+            ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                            MaterialTheme.colorScheme.surface,
-                        ),
-                    ),
-                )
                 .padding(vertical = 24.dp)
                 .verticalScroll(rememberScrollState())
                 .focusGroup(),
@@ -186,6 +194,8 @@ fun GameOptionsPanel(
                 }
             }
         }
+        }
+        }
     }
 }
 
@@ -209,7 +219,7 @@ private fun OptionSection(
             text = title,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
+            color = LocalGameAccent.current,
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
         )
 
@@ -239,10 +249,7 @@ private fun OptionItem(
 
     val scale by animateFloatAsState(
         targetValue = if (isFocused) 1.02f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.FocusScale,
         label = "optionScale",
     )
 
@@ -259,7 +266,7 @@ private fun OptionItem(
             .clip(RoundedCornerShape(12.dp))
             .background(
                 if (isFocused) {
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    LocalGameAccent.current.copy(alpha = 0.15f)
                 } else {
                     Color.Transparent
                 },
@@ -268,7 +275,7 @@ private fun OptionItem(
                 if (isFocused) {
                     Modifier.border(
                         1.dp,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        LocalGameAccent.current.copy(alpha = 0.5f),
                         RoundedCornerShape(12.dp),
                     )
                 } else {
@@ -297,7 +304,7 @@ private fun OptionItem(
             contentDescription = null,
             tint = when {
                 isDestructive -> MaterialTheme.colorScheme.error
-                isFocused -> MaterialTheme.colorScheme.primary
+                isFocused -> LocalGameAccent.current
                 else -> MaterialTheme.colorScheme.onSurfaceVariant
             },
             modifier = Modifier.size(24.dp),
@@ -309,7 +316,7 @@ private fun OptionItem(
             fontWeight = if (isFocused) FontWeight.Medium else FontWeight.Normal,
             color = when {
                 isDestructive -> MaterialTheme.colorScheme.error
-                isFocused -> MaterialTheme.colorScheme.onPrimaryContainer
+                isFocused -> LocalGameAccent.current
                 else -> MaterialTheme.colorScheme.onSurface
             },
         )

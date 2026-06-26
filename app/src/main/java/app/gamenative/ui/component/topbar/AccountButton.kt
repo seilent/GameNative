@@ -1,6 +1,9 @@
 package app.gamenative.ui.component.topbar
 
 import android.content.res.Configuration
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -13,12 +16,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.PluviaApp
 import app.gamenative.data.SteamFriend
 import app.gamenative.events.SteamEvent
 import app.gamenative.service.SteamService
 import app.gamenative.ui.component.dialog.ProfileDialog
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.SteamIconImage
 import app.gamenative.utils.getAvatarURL
@@ -82,8 +88,18 @@ fun AccountButton(
         isOffline = isOffline,
     )
 
+    val accountInteractionSource = remember { MutableInteractionSource() }
+    val isAccountFocused by accountInteractionSource.collectIsFocusedAsState()
+    val accountScale by animateFloatAsState(
+        targetValue = if (isAccountFocused) 1.1f else 1f,
+        animationSpec = Motion.FocusScale,
+        label = "accountBtnScale",
+    )
+
     IconButton(
         onClick = { showDialog = true },
+        interactionSource = accountInteractionSource,
+        modifier = Modifier.scale(accountScale),
         content = {
             SteamIconImage(
                 image = { persona?.avatarHash?.getAvatarURL() },

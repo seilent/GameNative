@@ -2,10 +2,8 @@ package app.gamenative.ui.component
 
 import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -44,6 +42,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 
 private data class OptionItemStyle(
@@ -62,43 +62,40 @@ private fun rememberOptionItemStyle(
 ): OptionItemStyle {
     val scale by animateFloatAsState(
         targetValue = if (isFocused) 1.02f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.FocusScale,
         label = "${labelPrefix}Scale",
     )
 
     val backgroundColor by animateColorAsState(
         targetValue = when {
-            isFocused && selected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+            isFocused && selected -> LocalGameAccent.current.copy(alpha = 0.25f)
             isFocused -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            selected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+            selected -> LocalGameAccent.current.copy(alpha = 0.12f)
             else -> Color.Transparent
         },
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        animationSpec = Motion.AccentColor,
         label = "${labelPrefix}BgColor",
     )
 
     val borderColor by animateColorAsState(
-        targetValue = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        targetValue = if (isFocused) LocalGameAccent.current else Color.Transparent,
+        animationSpec = Motion.AccentColor,
         label = "${labelPrefix}BorderColor",
     )
 
     val borderWidth by animateDpAsState(
         targetValue = if (isFocused) 2.dp else 0.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        animationSpec = Motion.IndicatorDp,
         label = "${labelPrefix}BorderWidth",
     )
 
     val contentColor by animateColorAsState(
         targetValue = when {
             isFocused -> MaterialTheme.colorScheme.onSurface
-            selected -> MaterialTheme.colorScheme.primary
+            selected -> LocalGameAccent.current
             else -> MaterialTheme.colorScheme.onSurfaceVariant
         },
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        animationSpec = Motion.AccentColor,
         label = "${labelPrefix}ContentColor",
     )
 
@@ -173,7 +170,7 @@ fun OptionListItem(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = LocalGameAccent.current,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -199,8 +196,8 @@ fun OptionRadioItem(
     )
 
     val radioIndicatorColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        targetValue = if (selected) LocalGameAccent.current else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+        animationSpec = Motion.AccentColor,
         label = "radioIndicatorColor"
     )
 
@@ -237,7 +234,7 @@ fun OptionRadioItem(
                     Box(
                         modifier = Modifier
                             .size(10.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape)
+                            .background(LocalGameAccent.current, CircleShape)
                     )
                 }
             }
@@ -271,7 +268,7 @@ fun OptionSectionHeader(
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+        color = LocalGameAccent.current.copy(alpha = 0.8f),
         letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing * 1.5f,
         modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)
     )

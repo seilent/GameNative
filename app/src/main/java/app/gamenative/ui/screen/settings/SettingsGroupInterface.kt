@@ -55,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import app.gamenative.ui.theme.PluviaTheme
+import app.gamenative.ui.theme.LocalGameAccent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -741,7 +742,7 @@ private fun IconVariantCard(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val border = if (selected) BorderStroke(2.dp, PluviaTheme.colors.accentPurple) else BorderStroke(
+    val border = if (selected) BorderStroke(2.dp, LocalGameAccent.current) else BorderStroke(
         1.dp,
         PluviaTheme.colors.borderDefault.copy(alpha = 0.5f),
     )
@@ -750,7 +751,7 @@ private fun IconVariantCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         border = border,
-        colors = CardDefaults.cardColors(),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
     ) {
         Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.BottomEnd) {

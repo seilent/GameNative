@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,7 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
-import app.gamenative.ui.theme.PluviaTheme
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import app.gamenative.ui.util.ScreenEffectsConfig
@@ -121,6 +123,7 @@ fun ScreenEffectDialog(
                 .widthIn(max = 560.dp)
                 .padding(16.dp),
             shape = MaterialTheme.shapes.extraLarge,
+            color = GlassFillStrong,
             tonalElevation = 6.dp,
             shadowElevation = 24.dp,
         ) {
@@ -141,7 +144,7 @@ fun ScreenEffectDialog(
                         Icon(
                             imageVector = Icons.Default.AutoFixHigh,
                             contentDescription = null,
-                            tint = PluviaTheme.colors.accentPink,
+                            tint = LocalGameAccent.current,
                         )
                         Column {
                             Text(
@@ -257,7 +260,10 @@ fun ScreenEffectDialog(
                         Text(stringResource(R.string.screen_effects_reset))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = onDismiss) {
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
+                    ) {
                         Text(stringResource(R.string.screen_effects_close))
                     }
                 }

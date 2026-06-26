@@ -46,6 +46,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,14 +61,19 @@ import app.gamenative.ui.component.CompatibilityBadge
 import app.gamenative.ui.component.GameStatsRow
 import app.gamenative.ui.data.GameCardStats
 import app.gamenative.ui.enums.PaneType
+import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ListItemImage
 import app.gamenative.utils.CustomGameScanner
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+private val gridImageUrlCache = ConcurrentHashMap<String, GridImageUrls>()
 
 /**
  * Grid card for Hero/Capsule layout views.
@@ -97,7 +103,7 @@ internal fun GridViewCard(
     val cardContentBottomPadding = if (isCapsule) 12.dp else 8.dp
     val topIconPadding = if (isCapsule) 10.dp else 8.dp
     val bottomGradientHeight = if (isCapsule) 80.dp else 56.dp
-    val glowColor = MaterialTheme.colorScheme.primary
+    val glowColor = LocalGameAccent.current
     val focusHaloModifier = if (isFocused && showFocusGlow) {
         Modifier.drawWithCache {
             val glowBrush = Brush.radialGradient(
@@ -119,12 +125,7 @@ internal fun GridViewCard(
     } else {
         Modifier
     }
-    val focusBorderBrush = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.tertiary,
-        ),
-    )
+    val focusBorderBrush = SolidColor(LocalGameAccent.current)
 
     Box(
         modifier = modifier
@@ -157,7 +158,7 @@ internal fun GridViewCard(
                 isFocused -> BorderStroke(2.dp, focusBorderBrush)
                 appInfo.isRecommended -> BorderStroke(
                     1.dp,
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                    LocalGameAccent.current.copy(alpha = 0.4f),
                 )
                 else -> null
             },
@@ -170,8 +171,16 @@ internal fun GridViewCard(
                     key2 = paneType,
                     key3 = imageRefreshCounter,
                 ) {
-                    value = withContext(Dispatchers.IO) {
-                        getGridImageUrl(context, appInfo, paneType)
+                    val cacheKey = "${appInfo.appId}:${paneType}:${imageRefreshCounter}"
+                    val cached = gridImageUrlCache[cacheKey]
+                    if (cached != null) {
+                        value = cached
+                    } else {
+                        val result = withContext(Dispatchers.IO) {
+                            getGridImageUrl(context, appInfo, paneType)
+                        }
+                        gridImageUrlCache[cacheKey] = result
+                        value = result
                     }
                 }
 
@@ -223,7 +232,7 @@ internal fun GridViewCard(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)),
+                            .background(GlassFill),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -243,14 +252,7 @@ internal fun GridViewCard(
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .height(bottomGradientHeight)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.85f),
-                                ),
-                            ),
-                        ),
+                        .background(Color.Black.copy(alpha = 0.85f)),
                 )
 
                 // Title + status icons, with per-device stats directly under the title
@@ -344,15 +346,7 @@ private fun CapsuleFallbackBackdrop(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colorStops = arrayOf(
-                            0.0f to Color.Black.copy(alpha = 0.28f),
-                            0.45f to Color.Black.copy(alpha = 0.12f),
-                            1.0f to Color.Black.copy(alpha = 0.34f),
-                        ),
-                    ),
-                ),
+                .background(Color.Black.copy(alpha = 0.34f)),
         )
     }
 }

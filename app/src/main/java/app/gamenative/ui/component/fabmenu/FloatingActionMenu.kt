@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.ui.component.fabmenu.state.FloatingActionMenuState
 import app.gamenative.ui.component.fabmenu.state.FloatingActionMenuValue
 import app.gamenative.ui.component.fabmenu.state.rememberFloatingActionMenuState
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import kotlinx.coroutines.launch
 
@@ -44,7 +45,7 @@ fun FloatingActionMenu(
     shape: Shape = FloatingActionButtonDefaults.shape,
     imageVector: ImageVector,
     closeImageVector: ImageVector? = null,
-    containerColor: Color = FloatingActionButtonDefaults.containerColor,
+    containerColor: Color = LocalGameAccent.current,
     contentColor: Color = contentColorFor(containerColor),
     elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
     interactionSource: MutableInteractionSource? = null,

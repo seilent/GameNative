@@ -3760,6 +3760,8 @@ class SteamService : Service(), IChallengeUrlChanged {
                                 val accountID = SteamID(member.steamid).accountID.toInt()
                                 familyGroupMembers.add(accountID)
                             }
+
+                            PluviaApp.events.emit(AndroidEvent.SteamLogonComplete)
                         }
                     }
                 }
@@ -3783,6 +3785,8 @@ class SteamService : Service(), IChallengeUrlChanged {
                 notificationHelper.notify("Connected")
 
                 _loginResult = LoginResult.Success
+
+                PluviaApp.events.emit(AndroidEvent.SteamLogonComplete)
 
                 // Resume any workshop downloads that were interrupted
                 scope.launch {

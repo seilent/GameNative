@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
+import app.gamenative.ui.theme.LocalGameAccent
 import com.winlator.inputcontrols.Binding
 import com.winlator.inputcontrols.ControlsProfile
 import com.winlator.inputcontrols.ExternalControllerBinding
@@ -566,7 +567,7 @@ private fun CategoryButton(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         color = if (isSelected)
-            MaterialTheme.colorScheme.primaryContainer
+            LocalGameAccent.current.copy(alpha = 0.18f)
         else
             MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.small

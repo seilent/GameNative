@@ -46,6 +46,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -82,6 +84,7 @@ import app.gamenative.ui.component.settings.SettingsCenteredLabel
 import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.components.rememberCustomGameFolderPicker
 import app.gamenative.ui.components.requestPermissionsForPath
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
@@ -1255,12 +1258,29 @@ fun ContainerConfigDialog(
                             )
                             .fillMaxSize(),
                     ) {
-                        ScrollableTabRow(selectedTabIndex = selectedTab, edgePadding = 0.dp) {
+                        val accent = LocalGameAccent.current
+                        ScrollableTabRow(
+                            selectedTabIndex = selectedTab,
+                            edgePadding = 0.dp,
+                            indicator = { tabPositions ->
+                                if (selectedTab < tabPositions.size) {
+                                    TabRowDefaults.SecondaryIndicator(
+                                        modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                                        color = accent,
+                                    )
+                                }
+                            },
+                        ) {
                             tabs.forEachIndexed { index, label ->
                                 Tab(
                                     selected = selectedTab == index,
                                     onClick = { selectedTab = index },
-                                    text = { Text(text = label) },
+                                    text = {
+                                        Text(
+                                            text = label,
+                                            color = if (selectedTab == index) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    },
                                 )
                             }
                         }

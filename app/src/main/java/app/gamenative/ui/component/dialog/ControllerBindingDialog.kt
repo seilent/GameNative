@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.ui.component.NoExtractOutlinedTextField
+import app.gamenative.ui.theme.LocalGameAccent
 import com.winlator.inputcontrols.Binding
 
 /**
@@ -146,7 +147,7 @@ fun ControllerBindingDialog(
                             Text(
                                 text = stringResource(app.gamenative.R.string.current_binding, currentBinding.toString()),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
+                                color = LocalGameAccent.current
                             )
                         }
                     }
@@ -272,7 +273,7 @@ fun ControllerBindingDialog(
                                             }
                                         },
                                     color = if (isSelected)
-                                        MaterialTheme.colorScheme.primaryContainer
+                                        LocalGameAccent.current.copy(alpha = 0.18f)
                                     else
                                         MaterialTheme.colorScheme.surfaceVariant,
                                     shape = MaterialTheme.shapes.small
@@ -293,7 +294,7 @@ fun ControllerBindingDialog(
                                                 style = MaterialTheme.typography.bodySmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = if (isSelected)
-                                                    MaterialTheme.colorScheme.primary
+                                                    LocalGameAccent.current
                                                 else
                                                     MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -418,7 +419,7 @@ fun BindingOption(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         color = if (isSelected)
-            MaterialTheme.colorScheme.primaryContainer
+            LocalGameAccent.current.copy(alpha = 0.18f)
         else
             MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.small
@@ -434,7 +435,7 @@ fun BindingOption(
                 text = binding.toString(),
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (isSelected)
-                    MaterialTheme.colorScheme.onPrimaryContainer
+                    LocalGameAccent.current
                 else
                     MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -443,7 +444,7 @@ fun BindingOption(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = LocalGameAccent.current
                 )
             }
         }

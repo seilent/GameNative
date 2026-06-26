@@ -44,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.service.SteamService
+import app.gamenative.ui.theme.GlassFillStrong
 import com.winlator.contents.ContentProfile
 import com.winlator.contents.ContentsManager
 import kotlinx.coroutines.Dispatchers
@@ -165,6 +166,7 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = GlassFillStrong,
         title = { Text(text = stringResource(R.string.contents_manager), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(

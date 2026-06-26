@@ -244,6 +244,7 @@ class MainViewModel @Inject constructor(
                 launchedAppId = "",
                 currentScreen = restoredScreen,
                 connectionState = initialConnectionState,
+                gameAccentArgb = PrefManager.gameAccentArgb,
             )
         }
 
@@ -444,6 +445,15 @@ class MainViewModel @Inject constructor(
 
     fun setLaunchedAppId(value: String) {
         _state.update { it.copy(launchedAppId = value) }
+    }
+
+    fun setGameAccent(argb: Int) {
+        _state.update { it.copy(gameAccentArgb = argb) }
+        PrefManager.gameAccentArgb = argb
+    }
+
+    fun setGameBackdrop(url: String) {
+        _state.update { it.copy(gameBackdropUrl = url) }
     }
 
     fun setBootToContainer(value: Boolean) {

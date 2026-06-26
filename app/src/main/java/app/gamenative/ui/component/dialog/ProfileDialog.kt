@@ -46,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.LocalUriHandler
@@ -57,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.service.SteamService
 import app.gamenative.ui.screen.PluviaScreen
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.SteamIconImage
 import app.gamenative.utils.getAvatarURL
@@ -84,6 +85,7 @@ fun ProfileDialog(
     val scrollState = rememberScrollState()
 
     AlertDialog(
+        containerColor = GlassFillStrong,
         onDismissRequest = onDismiss,
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -197,14 +199,7 @@ fun ProfileDialog(
                                         .align(Alignment.TopCenter)
                                         .fillMaxWidth()
                                         .height(24.dp)
-                                        .background(
-                                            brush = Brush.verticalGradient(
-                                                colors = listOf(
-                                                    dialogBackgroundColor,
-                                                    dialogBackgroundColor.copy(alpha = 0f)
-                                                )
-                                            )
-                                        )
+                                        .background(color = dialogBackgroundColor)
                                 )
                             }
                             
@@ -215,14 +210,7 @@ fun ProfileDialog(
                                         .align(Alignment.BottomCenter)
                                         .fillMaxWidth()
                                         .height(24.dp)
-                                        .background(
-                                            brush = Brush.verticalGradient(
-                                                colors = listOf(
-                                                    dialogBackgroundColor.copy(alpha = 0f),
-                                                    dialogBackgroundColor
-                                                )
-                                            )
-                                        )
+                                        .background(color = dialogBackgroundColor)
                                 )
                             }
                         }
@@ -232,7 +220,7 @@ fun ProfileDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.close))
+                Text(text = stringResource(R.string.close), color = LocalGameAccent.current)
             }
         },
     )

@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -32,7 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
+import app.gamenative.ui.theme.GlassFillStrong
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
@@ -51,6 +52,7 @@ import app.gamenative.ui.component.LoadingScreen
 import app.gamenative.ui.component.dialog.InstallSizeInfo
 import app.gamenative.ui.component.topbar.BackButton
 import app.gamenative.ui.data.GameDisplayInfo
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.utils.StorageUtils
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
@@ -212,14 +214,7 @@ fun EpicGameManagerDialog(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent,
-                                                Color.Black.copy(alpha = 0.8f)
-                                            )
-                                        )
-                                    )
+                                    .background(color = GlassFillStrong)
                             )
 
                             // Back button (top left)
@@ -296,7 +291,7 @@ fun EpicGameManagerDialog(
                                                 Text(
                                                     text = "DLC",
                                                     style = MaterialTheme.typography.labelSmall,
-                                                    color = MaterialTheme.colorScheme.primary
+                                                    color = LocalGameAccent.current
                                                 )
                                             }
                                         }
@@ -343,6 +338,7 @@ fun EpicGameManagerDialog(
                                 )
 
                                 Button(
+                                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                                     enabled = installButtonEnabled(),
                                     onClick = {
                                         val selectedIds = selectedGameIds

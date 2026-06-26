@@ -4,9 +4,6 @@ import android.content.res.Configuration
 import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -57,6 +54,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -67,12 +65,16 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.ui.component.GameStatsKey
+import app.gamenative.ui.component.BlurredBackdrop
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.OptionListItem
 import app.gamenative.ui.component.OptionRadioItem
 import app.gamenative.ui.component.OptionSectionHeader
 import app.gamenative.ui.enums.AppFilter
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.enums.SortOption
+import app.gamenative.ui.theme.LocalGameBackdrop
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.adaptivePanelWidth
 import java.util.EnumSet
@@ -98,8 +100,8 @@ fun LibraryOptionsPanel(
     Box(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
             visible = isOpen,
-            enter = fadeIn(animationSpec = tween(200)),
-            exit = fadeOut(animationSpec = tween(150))
+            enter = fadeIn(animationSpec = Motion.Fade),
+            exit = fadeOut(animationSpec = Motion.Fade)
         ) {
             Box(
                 modifier = Modifier
@@ -117,28 +119,34 @@ fun LibraryOptionsPanel(
             visible = isOpen,
             enter = slideInHorizontally(
                 initialOffsetX = { fullWidth -> -fullWidth },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessMediumLow
-                )
+                animationSpec = Motion.PanelSlide,
             ),
             exit = slideOutHorizontally(
                 targetOffsetX = { fullWidth -> -fullWidth },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
+                animationSpec = Motion.PanelSlide,
             )
         ) {
-            Surface(
+            val panelShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
+            Box(
                 modifier = Modifier
                     .width(adaptivePanelWidth(300.dp))
-                    .fillMaxHeight(),
-                shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
-                shadowElevation = 24.dp,
+                    .fillMaxHeight()
+                    .clip(panelShape),
             ) {
+                val backdrop = LocalGameBackdrop.current
+                if (backdrop.isNotBlank()) {
+                    BlurredBackdrop(
+                        imageModel = backdrop,
+                        accentKey = null,
+                        blurRadius = 28,
+                        onAccent = {},
+                        modifier = Modifier.matchParentSize(),
+                    )
+                }
+                GlassSurface(
+                    modifier = Modifier.matchParentSize(),
+                    shape = panelShape,
+                ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -307,6 +315,7 @@ fun LibraryOptionsPanel(
                         Spacer(modifier = Modifier.height(24.dp))
                     }
                 }
+            }
             }
         }
     }

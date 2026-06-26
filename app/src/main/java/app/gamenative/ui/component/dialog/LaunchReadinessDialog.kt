@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 @Composable
@@ -23,17 +25,18 @@ fun LaunchReadinessDialog(
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
+        containerColor = GlassFillStrong,
         onDismissRequest = { if (!isLoading) onDismiss() },
         title = { Text(text = title) },
         text = {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                CircularProgressIndicator(modifier = Modifier.size(32.dp), color = LocalGameAccent.current)
             } else {
                 Text(text = message)
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirm, enabled = !isLoading) { Text(text = confirmText) }
+            TextButton(onClick = onConfirm, enabled = !isLoading) { Text(text = confirmText, color = LocalGameAccent.current) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss, enabled = !isLoading) { Text(text = dismissText) }

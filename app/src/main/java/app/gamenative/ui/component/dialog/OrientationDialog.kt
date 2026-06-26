@@ -22,6 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.ui.enums.Orientation
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import java.util.EnumSet
 
@@ -45,6 +47,7 @@ fun OrientationDialog(
     }
 
     AlertDialog(
+        containerColor = GlassFillStrong,
         onDismissRequest = {
             // Block dismissal unless there is one valid setting checked.
             if (currentSettings.isNotEmpty()) {
@@ -81,7 +84,7 @@ fun OrientationDialog(
         },
         confirmButton = {
             TextButton(onClick = onClose, enabled = currentSettings.isNotEmpty()) {
-                Text(text = stringResource(R.string.close))
+                Text(text = stringResource(R.string.close), color = LocalGameAccent.current)
             }
         },
     )

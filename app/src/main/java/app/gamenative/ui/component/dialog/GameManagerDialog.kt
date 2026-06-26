@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -33,7 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
+import app.gamenative.ui.theme.GlassFillStrong
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
@@ -54,6 +55,7 @@ import app.gamenative.ui.component.LoadingScreen
 import app.gamenative.ui.component.topbar.BackButton
 import app.gamenative.ui.data.GameDisplayInfo
 import app.gamenative.ui.internal.fakeAppInfo
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.utils.SteamUtils
 import app.gamenative.utils.StorageUtils
@@ -340,14 +342,7 @@ fun GameManagerDialog(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent,
-                                                Color.Black.copy(alpha = 0.8f)
-                                            )
-                                        )
-                                    )
+                                    .background(color = GlassFillStrong)
                             )
 
                             // Back button (top left)
@@ -402,6 +397,7 @@ fun GameManagerDialog(
                         ) {
                             // Select All toggle
                             if (selectableAppIds.isNotEmpty()) {
+                                val accent = LocalGameAccent.current
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -409,6 +405,7 @@ fun GameManagerDialog(
                                     horizontalArrangement = Arrangement.End
                                 ) {
                                     Button(
+                                        colors = ButtonDefaults.buttonColors(containerColor = accent),
                                         onClick = {
                                             val newState = !allSelectableSelected
                                             selectableAppIds.forEach { appId ->
@@ -482,6 +479,7 @@ fun GameManagerDialog(
                                 )
 
                                 Button(
+                                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                                     enabled = installButtonEnabled(),
                                     onClick = {
                                         onInstall(selectedAppIds

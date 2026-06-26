@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.utils.KofiSupporter
 import app.gamenative.utils.fetchKofiSupporters
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -69,12 +71,14 @@ fun SupportersDialog(
     }
 
     AlertDialog(
+        containerColor = GlassFillStrong,
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.close), color = LocalGameAccent.current) }
         },
         title = { Text(stringResource(R.string.hall_of_fame)) },
         text = {
+            val accent = LocalGameAccent.current
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -97,12 +101,12 @@ fun SupportersDialog(
                             Icon(
                                 imageVector = Icons.Default.Brush,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = accent,
                             )
                             Text(
                                 text = stringResource(R.string.supporters_art_credits),
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = accent,
                             )
                         }
 
@@ -163,12 +167,12 @@ fun SupportersDialog(
                                     Icon(
                                         imageVector = Icons.Default.Person,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
+                                        tint = accent,
                                     )
                                     Text(
                                         text = stringResource(R.string.supporters_members),
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = accent,
                                     )
                                 }
 
@@ -203,12 +207,12 @@ fun SupportersDialog(
                                     Icon(
                                         imageVector = Icons.Default.VolunteerActivism,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
+                                        tint = accent,
                                     )
                                     Text(
                                         text = stringResource(R.string.supporters_supporters),
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = accent,
                                     )
                                 }
 

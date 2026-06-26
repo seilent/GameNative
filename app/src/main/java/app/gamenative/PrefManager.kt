@@ -834,6 +834,13 @@ object PrefManager {
             setPref(LIBRARY_LAYOUT, value.ordinal)
         }
 
+    private val GAME_ACCENT_ARGB = intPreferencesKey("game_accent_argb")
+    var gameAccentArgb: Int
+        get() = getPref(GAME_ACCENT_ARGB, 0xFF8B5CF6.toInt())
+        set(value) {
+            setPref(GAME_ACCENT_ARGB, value)
+        }
+
     private val LIBRARY_FILTER = intPreferencesKey("library_filter")
     var libraryFilter: EnumSet<AppFilter>
         get() {

@@ -29,6 +29,7 @@ import app.gamenative.R
 import app.gamenative.data.GameSource
 import app.gamenative.sync.FrontendSyncManager
 import app.gamenative.ui.components.rememberCustomGameFolderPicker
+import app.gamenative.ui.theme.GlassFillStrong
 
 /**
  * Dialog for configuring per-source export directories used by frontend launchers such as ES-DE.
@@ -48,6 +49,7 @@ fun FrontendSyncDialog(onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = GlassFillStrong,
         title = { Text(stringResource(R.string.frontend_sync_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {

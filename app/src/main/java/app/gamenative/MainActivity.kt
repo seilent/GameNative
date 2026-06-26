@@ -209,7 +209,7 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val imageLoader = remember {
                 val memoryCache = MemoryCache.Builder(context)
-                    .maxSizePercent(0.1)
+                    .maxSizePercent(0.20)
                     .strongReferencesEnabled(true)
                     .build()
 

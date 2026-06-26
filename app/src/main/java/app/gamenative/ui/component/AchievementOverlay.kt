@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.R
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.AchievementNotification
 import app.gamenative.ui.util.AchievementNotificationManager
@@ -119,7 +120,7 @@ private fun AchievementNotificationContent(notification: AchievementNotification
                 Text(
                     text = stringResource(R.string.achievement_unlocked),
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LocalGameAccent.current,
                 )
                 Text(
                     text = notification.name,

@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 @Composable
@@ -37,7 +39,9 @@ fun MessageDialog(
 ) {
     when {
         visible -> {
+            val accent = LocalGameAccent.current
             AlertDialog(
+                containerColor = GlassFillStrong,
                 icon = icon?.let { { Icon(imageVector = icon, contentDescription = null) } },
                 title = title?.let { { Text(it) } },
                 text = message?.let {
@@ -50,7 +54,7 @@ fun MessageDialog(
                                         style = SpanStyle(
                                             textDecoration = TextDecoration.Underline,
                                             fontStyle = FontStyle.Italic,
-                                            color = Color.Blue,
+                                            color = accent,
                                         ),
                                     ),
                                 ),
@@ -73,14 +77,14 @@ fun MessageDialog(
                         // Action button (displayed first if available)
                         if (actionBtnText != null && onActionClick != null) {
                             TextButton(onClick = onActionClick) {
-                                Text(actionBtnText)
+                                Text(actionBtnText, color = accent)
                             }
                         }
 
                         // Confirm button
                         onConfirmClick?.let {
                             TextButton(onClick = it) {
-                                Text(confirmBtnText)
+                                Text(confirmBtnText, color = accent)
                             }
                         }
                     }

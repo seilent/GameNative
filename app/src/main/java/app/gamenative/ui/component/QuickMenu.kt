@@ -4,9 +4,6 @@ import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -60,7 +57,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -90,6 +86,8 @@ import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.ui.data.PerformanceHudConfig
 import app.gamenative.ui.data.PerformanceHudSize
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.adaptivePanelWidth
 import app.gamenative.utils.MathUtils.normalizedProgress
@@ -281,7 +279,7 @@ fun QuickMenu(
                 id = QuickMenuAction.DISABLE_MOUSE,
                 icon = Icons.Filled.Mouse,
                 labelResId = R.string.disable_mouse_input,
-                accentColor = PluviaTheme.colors.accentPurple,
+                accentColor = LocalGameAccent.current,
             )
         )
         add(
@@ -289,7 +287,7 @@ fun QuickMenu(
                 id = QuickMenuAction.KEYBOARD,
                 icon = Icons.Default.Keyboard,
                 labelResId = R.string.keyboard,
-                accentColor = PluviaTheme.colors.accentPurple,
+                accentColor = LocalGameAccent.current,
             )
         )
         add(
@@ -297,7 +295,7 @@ fun QuickMenu(
                 id = QuickMenuAction.INPUT_CONTROLS,
                 icon = Icons.Default.TouchApp,
                 labelResId = R.string.input_controls,
-                accentColor = PluviaTheme.colors.accentPurple,
+                accentColor = LocalGameAccent.current,
             )
         )
         if (hasPhysicalController) {
@@ -306,7 +304,7 @@ fun QuickMenu(
                     id = QuickMenuAction.EDIT_PHYSICAL_CONTROLLER,
                     icon = Icons.Default.Gamepad,
                     labelResId = R.string.edit_physical_controller,
-                    accentColor = PluviaTheme.colors.accentPurple,
+                    accentColor = LocalGameAccent.current,
                 )
             )
         }
@@ -315,7 +313,7 @@ fun QuickMenu(
                 id = QuickMenuAction.EDIT_CONTROLS,
                 icon = Icons.Default.Edit,
                 labelResId = R.string.edit_controls,
-                accentColor = PluviaTheme.colors.accentPurple,
+                accentColor = LocalGameAccent.current,
             )
         )
         add(
@@ -323,7 +321,7 @@ fun QuickMenu(
                 id = QuickMenuAction.TOUCHSCREEN_MODE,
                 icon = Icons.Default.Fingerprint,
                 labelResId = R.string.touchscreen_mode,
-                accentColor = PluviaTheme.colors.accentPurple,
+                accentColor = LocalGameAccent.current,
             )
         )
     }
@@ -374,8 +372,8 @@ fun QuickMenu(
     Box(modifier = modifier.fillMaxSize()) {
         AnimatedVisibility(
             visible = isVisible,
-            enter = fadeIn(animationSpec = tween(200)),
-            exit = fadeOut(animationSpec = tween(150)),
+            enter = fadeIn(animationSpec = Motion.Fade),
+            exit = fadeOut(animationSpec = Motion.Fade),
         ) {
             Box(
                 modifier = Modifier
@@ -393,22 +391,20 @@ fun QuickMenu(
             visibleState = visibleState,
             enter = slideInHorizontally(
                 initialOffsetX = { fullWidth -> -fullWidth },
-                animationSpec = tween(200),
+                animationSpec = Motion.PanelSlide,
             ),
             exit = slideOutHorizontally(
                 targetOffsetX = { fullWidth -> -fullWidth },
-                animationSpec = tween(150),
+                animationSpec = Motion.PanelSlide,
             ),
             modifier = Modifier.align(Alignment.CenterStart),
         ) {
-            Surface(
+            GlassSurface(
                 modifier = Modifier
                     .width(adaptivePanelWidth(400.dp))
                     .fillMaxHeight(),
                 shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
-                shadowElevation = 24.dp,
+                dark = true,
             ) {
                 Column(
                     modifier = Modifier
@@ -461,7 +457,7 @@ fun QuickMenu(
                                     icon = Icons.Default.QueryStats,
                                     contentDescriptionResId = R.string.performance_hud,
                                     selected = selectedTab == QuickMenuTab.HUD,
-                                    accentColor = PluviaTheme.colors.accentPurple,
+                                    accentColor = LocalGameAccent.current,
                                     onSelected = {
                                         selectedTab = QuickMenuTab.HUD
                                         PrefManager.quickMenuLastTab = selectedTab
@@ -474,7 +470,7 @@ fun QuickMenu(
                                         icon = Icons.Default.Speed,
                                         contentDescriptionResId = R.string.lsfg_tab_title,
                                         selected = selectedTab == QuickMenuTab.LSFG,
-                                        accentColor = PluviaTheme.colors.accentPurple,
+                                        accentColor = LocalGameAccent.current,
                                         onSelected = {
                                             selectedTab = QuickMenuTab.LSFG
                                             PrefManager.quickMenuLastTab = selectedTab
@@ -488,7 +484,7 @@ fun QuickMenu(
                                         icon = Icons.Default.AutoFixHigh,
                                         contentDescriptionResId = R.string.screen_effects,
                                         selected = selectedTab == QuickMenuTab.EFFECTS,
-                                        accentColor = PluviaTheme.colors.accentPurple,
+                                        accentColor = LocalGameAccent.current,
                                         onSelected = {
                                             selectedTab = QuickMenuTab.EFFECTS
                                             PrefManager.quickMenuLastTab = selectedTab
@@ -501,7 +497,7 @@ fun QuickMenu(
                                     icon = Icons.Default.Gamepad,
                                     contentDescriptionResId = R.string.quick_menu_tab_controller,
                                     selected = selectedTab == QuickMenuTab.CONTROLLER,
-                                    accentColor = PluviaTheme.colors.accentPurple,
+                                    accentColor = LocalGameAccent.current,
                                     onSelected = {
                                         selectedTab = QuickMenuTab.CONTROLLER
                                         PrefManager.quickMenuLastTab = selectedTab
@@ -513,7 +509,7 @@ fun QuickMenu(
                                     icon = Icons.Default.BarChart,
                                     contentDescriptionResId = R.string.task_manager,
                                     selected = selectedTab == QuickMenuTab.TOOLS,
-                                    accentColor = PluviaTheme.colors.accentPurple,
+                                    accentColor = LocalGameAccent.current,
                                     onSelected = { selectedTab = QuickMenuTab.TOOLS },
                                     modifier = Modifier.width(56.dp),
                                     focusRequester = toolsTabFocusRequester,
@@ -712,7 +708,7 @@ private fun ToolsQuickMenuTab(
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
 
     Column(
         modifier = modifier
@@ -767,7 +763,7 @@ private fun PerformanceHudQuickMenuTab(
     focusRequester: FocusRequester? = null,
     modifier: Modifier = Modifier,
 ) {
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
 
     Column(
         modifier = modifier
@@ -1109,7 +1105,7 @@ private fun LsfgQuickMenuTab(
     focusRequester: FocusRequester? = null,
     modifier: Modifier = Modifier,
 ) {
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
     val isEnabled = multiplier >= 2
 
     Column(

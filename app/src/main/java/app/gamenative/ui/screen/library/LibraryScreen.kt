@@ -8,7 +8,6 @@ import app.gamenative.ui.util.SnackbarManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,6 +43,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,9 +56,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -110,6 +112,10 @@ import app.gamenative.utils.PlatformOAuthHandlers
 import app.gamenative.utils.SteamUtils
 import kotlinx.coroutines.launch
 import android.os.SystemClock
+import app.gamenative.ui.screen.library.components.getGridImageUrl
+import app.gamenative.ui.screen.library.components.GridImageUrls
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,6 +127,7 @@ fun HomeLibraryScreen(
     onLogout: () -> Unit,
     onGoOnline: () -> Unit,
     onDownloadsClick: () -> Unit = {},
+    onGameBackdrop: (String) -> Unit = {},
     isOffline: Boolean = false,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -149,6 +156,7 @@ fun HomeLibraryScreen(
         onTabChanged = viewModel::onTabChanged,
         onPreviousTab = viewModel::onPreviousTab,
         onNextTab = viewModel::onNextTab,
+        onGameBackdrop = onGameBackdrop,
         isOffline = isOffline,
     )
 }
@@ -178,6 +186,7 @@ private fun LibraryScreenContent(
     onTabChanged: (LibraryTab) -> Unit,
     onPreviousTab: () -> Unit,
     onNextTab: () -> Unit,
+    onGameBackdrop: (String) -> Unit = {},
     isOffline: Boolean = false,
 ) {
     val context = LocalContext.current
@@ -331,6 +340,7 @@ private fun LibraryScreenContent(
     var previousAppCount by remember { mutableIntStateOf(state.appInfoList.size) }
     var controllerBootstrapNeeded by remember { mutableStateOf(true) }
     var rootHasFocus by remember { mutableStateOf(false) }
+    var rootSelfFocused by remember { mutableStateOf(false) }
     var lastBootstrapAtMs by remember { mutableLongStateOf(0L) }
 
     fun firstVisibleContentIndex(): Int {
@@ -352,7 +362,13 @@ private fun LibraryScreenContent(
     }
 
     fun preferredContentFocusIndex(): Int =
-        if (currentPaneType == PaneType.CAROUSEL) currentCarouselFocusTargetIndex() else firstVisibleContentIndex()
+        if (currentPaneType == PaneType.CAROUSEL) {
+            currentCarouselFocusTargetIndex()
+        } else {
+            // Restore the last highlighted game (not just the first visible one) so dpad after a
+            // touch interaction returns the selector to where it was.
+            gridFocusTargetListIndex.coerceIn(0, state.appInfoList.lastIndex.coerceAtLeast(0))
+        }
 
     fun requestGridFocusOrDefer() {
         if (state.appInfoList.isEmpty()) return
@@ -603,19 +619,23 @@ private fun LibraryScreenContent(
         wasOptionsPanelOpen = state.isOptionsPanelOpen
     }
 
+    val inputModeManager = LocalInputModeManager.current
     // Global key/motion bootstrap path for cases where Compose focus was lost by touch mode.
     // This runs at the app event bus layer, independent of current Compose focus target.
     // Helper functions defined in composable scope to capture latest state on each recomposition.
     val canBootstrapContentFocus: () -> Boolean = {
         val now = SystemClock.uptimeMillis()
-        selectedAppId == null &&
+        val ready = selectedAppId == null &&
             !isSystemMenuOpen &&
             !state.isOptionsPanelOpen &&
             !state.isSearching &&
             state.appInfoList.isNotEmpty() &&
-            controllerBootstrapNeeded &&
-            !rootHasFocus &&
             (now - lastBootstrapAtMs) > 250L
+        // Bootstrap when nothing (or only the root) is focused, OR whenever a controller input
+        // arrives while in touch mode (restore the selector to the last highlighted game).
+        val needsFocus = (controllerBootstrapNeeded && (!rootHasFocus || rootSelfFocused)) ||
+            inputModeManager.inputMode == InputMode.Touch
+        ready && needsFocus
     }
     val canNavigateTabsWithoutFocus: () -> Boolean = {
         selectedAppId == null &&
@@ -709,20 +729,54 @@ private fun LibraryScreenContent(
         }
     }
 
+    val focusedItem by remember(
+        state.appInfoList,
+        currentPaneType,
+        carouselFocusTargetListIndex,
+        gridFocusTargetListIndex,
+    ) {
+        derivedStateOf {
+            val list = state.appInfoList
+            if (list.isEmpty()) null
+            else {
+                val idx = if (currentPaneType == PaneType.CAROUSEL) {
+                    carouselFocusTargetListIndex.coerceIn(0, list.lastIndex)
+                } else {
+                    gridFocusTargetListIndex.coerceIn(0, list.lastIndex)
+                }
+                list[idx]
+            }
+        }
+    }
+
+    val backdropImageUrl by produceState(
+        initialValue = "",
+        key1 = focusedItem?.appId,
+    ) {
+        val item = focusedItem
+        if (item == null) {
+            value = ""
+            return@produceState
+        }
+        value = withContext(Dispatchers.IO) {
+            val urls = getGridImageUrl(context, item, PaneType.GRID_HERO)
+            urls.primary.ifEmpty { urls.fallback }
+        }
+    }
+
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .then(safePaddingModifier)
             .focusRequester(rootFocusRequester)
             .focusable()
             .onFocusChanged { focusState ->
                 rootHasFocus = focusState.hasFocus
-                if (focusState.hasFocus) {
-                    controllerBootstrapNeeded = false
-                } else {
-                    controllerBootstrapNeeded = true
-                }
+                rootSelfFocused = focusState.isFocused
+                // Bootstrap is needed when nothing in the subtree has focus, OR when only the root
+                // container itself holds focus (i.e. no content item is focused yet) — otherwise the
+                // dpad gets stuck on the root with nowhere to traverse.
+                controllerBootstrapNeeded = !focusState.hasFocus || focusState.isFocused
             }
             .focusGroup()
             .onPreviewKeyEvent { keyEvent ->
@@ -853,6 +907,10 @@ private fun LibraryScreenContent(
                 }
             }
     ) {
+        LaunchedEffect(backdropImageUrl) {
+            onGameBackdrop(backdropImageUrl)
+        }
+
         if (selectedAppId == null) {
             // Use Box to allow content to scroll behind the tab bar
             Box(modifier = Modifier.fillMaxSize()) {
@@ -924,6 +982,7 @@ private fun LibraryScreenContent(
                             currentLayout = currentPaneType,
                             firstGridItemFocusRequester = gridFirstItemFocusRequester,
                             focusTargetListIndex = gridFocusTargetListIndex,
+                            onFocusedIndexChanged = { gridFocusTargetListIndex = it },
                             onPageChange = onPageChange,
                             onNavigate = { appId ->
                                 selectedAppId = appId
@@ -963,6 +1022,7 @@ private fun LibraryScreenContent(
                         currentTab = state.currentTab,
                         tabCounts = mapOf(
                             LibraryTab.ALL to state.allCount,
+                            LibraryTab.INSTALLED to state.installedCount,
                             LibraryTab.STEAM to state.steamCount,
                             LibraryTab.GOG to state.gogCount,
                             LibraryTab.EPIC to state.epicCount,

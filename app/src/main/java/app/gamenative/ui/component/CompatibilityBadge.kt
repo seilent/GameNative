@@ -1,13 +1,6 @@
 package app.gamenative.ui.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.QuestionMark
@@ -15,16 +8,11 @@ import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Verified
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.data.GameCompatibilityStatus
@@ -33,13 +21,11 @@ import app.gamenative.ui.theme.PluviaTheme
 /**
  * Badge displaying game compatibility status.
  *
- * Can be displayed as:
- * - Icon-only (for grid views) - compact circular badge
- * - Icon + label (for list views) - pill-shaped badge with text
+ * Renders just the status icon tinted by its status color, with no background container.
  *
  * @param status The compatibility status to display
  * @param modifier Modifier for the badge
- * @param showLabel Whether to show the text label (true for list view, false for grid)
+ * @param showLabel Unused, kept for API compat
  */
 @Composable
 fun CompatibilityBadge(
@@ -49,23 +35,12 @@ fun CompatibilityBadge(
 ) {
     val badgeStyle = getBadgeStyle(status)
 
-    if (showLabel) {
-        PillBadge(
-            modifier = modifier,
-            icon = badgeStyle.icon,
-            backgroundColor = badgeStyle.backgroundColor,
-            iconTint = badgeStyle.iconTint,
-            label = badgeStyle.labelResId,
-        )
-    } else {
-        IconBadge(
-            modifier = modifier,
-            icon = badgeStyle.icon,
-            backgroundColor = badgeStyle.backgroundColor,
-            iconTint = badgeStyle.iconTint,
-            contentDescription = badgeStyle.labelResId,
-        )
-    }
+    Icon(
+        imageVector = badgeStyle.icon,
+        contentDescription = stringResource(badgeStyle.labelResId),
+        tint = badgeStyle.iconTint,
+        modifier = modifier.size(18.dp),
+    )
 }
 
 /**
@@ -122,65 +97,5 @@ private fun getBadgeStyle(status: GameCompatibilityStatus): BadgeStyle {
     }
 }
 
-/**
- * Pill-shaped badge with icon and label (for list views).
- */
-@Composable
-private fun PillBadge(
-    modifier: Modifier,
-    icon: ImageVector,
-    backgroundColor: Color,
-    iconTint: Color,
-    label: Int,
-) {
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(backgroundColor)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconTint,
-            modifier = Modifier.size(14.dp),
-        )
-        Text(
-            text = stringResource(label),
-            style = MaterialTheme.typography.labelSmall,
-            color = iconTint,
-            fontWeight = FontWeight.Medium,
-        )
-    }
-}
 
-/**
- * Circular icon-only badge (for grid views).
- */
-@Composable
-private fun IconBadge(
-    modifier: Modifier,
-    icon: ImageVector,
-    backgroundColor: Color,
-    iconTint: Color,
-    contentDescription: Int,
-) {
-    Box(
-        modifier = modifier
-            .size(24.dp)
-            .shadow(4.dp, CircleShape)
-            .clip(CircleShape)
-            .background(backgroundColor),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = stringResource(contentDescription),
-            tint = iconTint,
-            modifier = Modifier.size(14.dp),
-        )
-    }
-}
 

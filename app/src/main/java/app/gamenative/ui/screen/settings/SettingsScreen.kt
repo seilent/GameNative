@@ -1,9 +1,7 @@
 package app.gamenative.ui.screen.settings
 
 import android.content.res.Configuration
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -35,7 +33,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,6 +54,9 @@ import androidx.compose.ui.unit.sp
 import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.enums.AppTheme
+import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import com.materialkolor.PaletteStyle
 
@@ -89,16 +89,7 @@ private fun SettingsScreenContent(
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        PluviaTheme.colors.surfacePanel,
-                        MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.background,
-                    ),
-                ),
-            ),
+            .fillMaxSize(),
     ) {
         Column(
             modifier = Modifier
@@ -125,7 +116,7 @@ private fun SettingsScreenContent(
                 SettingsSection(
                     title = stringResource(R.string.settings_emulation_title),
                     icon = Icons.Default.Gamepad,
-                    iconTint = PluviaTheme.colors.accentCyan,
+                    iconTint = LocalGameAccent.current,
                 ) {
                     SettingsGroupEmulation()
                 }
@@ -134,7 +125,7 @@ private fun SettingsScreenContent(
                 SettingsSection(
                     title = stringResource(R.string.settings_interface_title),
                     icon = Icons.Default.Palette,
-                    iconTint = PluviaTheme.colors.accentPurple,
+                    iconTint = LocalGameAccent.current,
                 ) {
                     SettingsGroupInterface(
                         appTheme = appTheme,
@@ -207,7 +198,7 @@ private fun SettingsHeader(
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            PluviaTheme.colors.accentCyan.copy(alpha = 0.2f),
+                            LocalGameAccent.current.copy(alpha = 0.2f),
                             Color.Transparent,
                         ),
                     ),
@@ -217,7 +208,7 @@ private fun SettingsHeader(
             Icon(
                 imageVector = Icons.Default.Settings,
                 contentDescription = null,
-                tint = PluviaTheme.colors.accentCyan.copy(alpha = 0.6f),
+                tint = LocalGameAccent.current.copy(alpha = 0.6f),
                 modifier = Modifier.size(24.dp),
             )
         }
@@ -234,10 +225,7 @@ private fun BackButton(
 
     val scale by animateFloatAsState(
         targetValue = if (isFocused) 1.1f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.FocusScale,
         label = "backButtonScale",
     )
 
@@ -248,7 +236,7 @@ private fun BackButton(
             .clip(CircleShape)
             .background(
                 if (isFocused) {
-                    PluviaTheme.colors.accentCyan.copy(alpha = 0.2f)
+                    LocalGameAccent.current.copy(alpha = 0.2f)
                 } else {
                     PluviaTheme.colors.surfaceElevated
                 },
@@ -257,7 +245,7 @@ private fun BackButton(
                 if (isFocused) {
                     Modifier.border(
                         2.dp,
-                        PluviaTheme.colors.accentCyan.copy(alpha = 0.6f),
+                        LocalGameAccent.current.copy(alpha = 0.6f),
                         CircleShape,
                     )
                 } else {
@@ -279,7 +267,7 @@ private fun BackButton(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
             contentDescription = stringResource(R.string.back),
-            tint = if (isFocused) PluviaTheme.colors.accentCyan else Color.White.copy(alpha = 0.8f),
+            tint = if (isFocused) LocalGameAccent.current else Color.White.copy(alpha = 0.8f),
             modifier = Modifier.size(24.dp),
         )
     }
@@ -293,11 +281,9 @@ private fun SettingsSection(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Surface(
+    GlassSurface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = PluviaTheme.colors.surfaceElevated,
-        tonalElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),

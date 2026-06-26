@@ -3,9 +3,7 @@ package app.gamenative.ui.screen.downloads
 import android.content.res.Configuration
 import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,8 +40,6 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -66,7 +62,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -91,6 +86,9 @@ import app.gamenative.ui.screen.library.components.LibraryDetailPane
 import app.gamenative.ui.screen.settings.ContainerStorageManagerContent
 import app.gamenative.ui.screen.settings.ContainerStorageManagerTransientUi
 import app.gamenative.ui.screen.settings.rememberContainerStorageManagerUiState
+import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
@@ -179,7 +177,6 @@ fun HomeDownloadsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .statusBarsPadding()
                 .displayCutoutPadding(),
         ) {
@@ -220,14 +217,11 @@ fun HomeDownloadsScreen(
                     )
                 }
 
-                Surface(
+                GlassSurface(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
                     shape = RoundedCornerShape(24.dp),
-                    color = PluviaTheme.colors.surfacePanel.copy(alpha = 0.94f),
-                    tonalElevation = 2.dp,
-                    shadowElevation = 12.dp,
                 ) {
                     when (selectedSection) {
                         DownloadsSection.Downloads -> DownloadsContent(
@@ -315,12 +309,9 @@ private fun DownloadsSidebar(
     }
     var requestedInitialFocus by remember { mutableStateOf(false) }
 
-    Surface(
+    GlassSurface(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
-        color = PluviaTheme.colors.surfacePanel.copy(alpha = 0.88f),
-        tonalElevation = 1.dp,
-        shadowElevation = 8.dp,
     ) {
         Column(
             modifier = Modifier
@@ -372,9 +363,9 @@ private fun DownloadsTabRow(
     ) {
         sections.forEach { section ->
             val isSelected = selectedSection == section
-            val accentColor = PluviaTheme.colors.accentPurple
+            val accentColor = LocalGameAccent.current
 
-            Surface(
+            GlassSurface(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(16.dp))
@@ -383,19 +374,12 @@ private fun DownloadsTabRow(
                         onClick = { onSectionSelected(section) },
                     ),
                 shape = RoundedCornerShape(16.dp),
-                color = if (isSelected) {
-                    accentColor.copy(alpha = 0.16f)
+                borderColor = if (isSelected) {
+                    accentColor.copy(alpha = 0.45f)
                 } else {
-                    PluviaTheme.colors.surfacePanel.copy(alpha = 0.88f)
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
                 },
-                border = BorderStroke(
-                    width = if (isSelected) 1.5.dp else 1.dp,
-                    color = if (isSelected) {
-                        accentColor.copy(alpha = 0.45f)
-                    } else {
-                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
-                    },
-                ),
+                borderWidth = if (isSelected) 1.5.dp else 1.dp,
             ) {
                 Row(
                     modifier = Modifier
@@ -431,22 +415,24 @@ private fun DownloadsSidebarItem(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
     val isHighlighted = selected || isFocused
+
+    val scale by animateFloatAsState(
+        targetValue = if (isFocused) 1.04f else 1f,
+        animationSpec = Motion.FocusScale,
+        label = "sidebarItemScale",
+    )
 
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .scale(scale)
             .clip(RoundedCornerShape(18.dp))
             .then(
                 if (isHighlighted) {
                     Modifier.background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                accentColor.copy(alpha = if (isFocused) 0.18f else 0.12f),
-                                accentColor.copy(alpha = 0.05f),
-                            ),
-                        ),
+                        color = accentColor.copy(alpha = if (isFocused) 0.18f else 0.12f),
                     )
                 } else {
                     Modifier.background(Color.Transparent)
@@ -610,7 +596,7 @@ private fun DownloadsToolbarButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
 
     FilledTonalButton(
         onClick = onClick,
@@ -650,13 +636,11 @@ private fun BackButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val accentColor = LocalGameAccent.current
 
     val scale by animateFloatAsState(
         targetValue = if (isFocused) 1.1f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.FocusScale,
         label = "backButtonScale",
     )
 
@@ -667,14 +651,14 @@ private fun BackButton(
             .clip(CircleShape)
             .background(
                 if (isFocused) {
-                    PluviaTheme.colors.accentPurple.copy(alpha = 0.2f)
+                    accentColor.copy(alpha = 0.2f)
                 } else {
                     PluviaTheme.colors.surfaceElevated
                 }
             )
             .then(
                 if (isFocused) {
-                    Modifier.border(2.dp, PluviaTheme.colors.accentPurple.copy(alpha = 0.6f), CircleShape)
+                    Modifier.border(2.dp, accentColor.copy(alpha = 0.6f), CircleShape)
                 } else {
                     Modifier.border(1.dp, PluviaTheme.colors.borderDefault.copy(alpha = 0.3f), CircleShape)
                 }
@@ -690,7 +674,7 @@ private fun BackButton(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
             contentDescription = stringResource(R.string.back),
-            tint = if (isFocused) PluviaTheme.colors.accentPurple else Color.White.copy(alpha = 0.8f),
+            tint = if (isFocused) accentColor else Color.White.copy(alpha = 0.8f),
             modifier = Modifier.size(24.dp),
         )
     }
@@ -747,11 +731,8 @@ private fun DownloadItemCard(
         DownloadItemStatus.DOWNLOADING -> PluviaTheme.colors.statusDownloading
     }
 
-    Card(
+    GlassSurface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-        ),
         shape = RoundedCornerShape(16.dp),
     ) {
         val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
@@ -959,10 +940,17 @@ private fun GameArtworkButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
+
+    val scale by animateFloatAsState(
+        targetValue = if (isFocused) 1.06f else 1f,
+        animationSpec = Motion.FocusScale,
+        label = "gameArtworkScale",
+    )
 
     Box(
         modifier = modifier
+            .scale(scale)
             .size(52.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(
@@ -1102,13 +1090,10 @@ private fun DownloadActionButton(
     val isFocused by interactionSource.collectIsFocusedAsState()
     val scale by animateFloatAsState(
         targetValue = if (isFocused) 1.08f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = Motion.FocusScale,
         label = "downloadActionButtonScale",
     )
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
 
     Box(
         modifier = modifier

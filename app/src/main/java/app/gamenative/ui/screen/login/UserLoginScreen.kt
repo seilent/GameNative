@@ -41,8 +41,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,7 +69,6 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -107,6 +104,7 @@ import app.gamenative.ui.component.LoadingScreen
 import app.gamenative.ui.data.UserLoginState
 import app.gamenative.ui.enums.ConnectionState
 import app.gamenative.ui.model.UserLoginViewModel
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.theme.PluviaTheme
 
 /**
@@ -337,7 +335,6 @@ private fun UserLoginScreenContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .imePadding(),
     ) {
         Column(
@@ -359,9 +356,7 @@ private fun UserLoginScreenContent(
                     text = stringResource(R.string.login_app_name),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(primaryColor, tertiaryColor),
-                        ),
+                        color = primaryColor,
                     ),
                 )
 
@@ -397,25 +392,21 @@ private fun UserLoginScreenContent(
                     userLoginState.loginResult != LoginResult.Success
                 ) {
                     // Login Card
-                    Card(
+                    GlassSurface(
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-                        ),
-                        border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.2f)),
                         shape = RoundedCornerShape(16.dp),
+                        borderColor = primaryColor.copy(alpha = 0.2f),
                     ) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
                         // Top gradient border
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(2.dp)
                                 .background(
-                                    brush = Brush.horizontalGradient(
-                                        colors = listOf(primaryColor, tertiaryColor, primaryColor),
-                                    ),
+                                    color = primaryColor,
                                 ),
                         )
 
@@ -521,6 +512,7 @@ private fun UserLoginScreenContent(
                                     }
                                 }
                             }
+                        }
                         }
                     }
                 } else {
@@ -900,13 +892,7 @@ private fun QRCodeLogin(
                         .padding(vertical = 8.dp)
                         .size(qrSize)
                         .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.tertiary,
-                                    MaterialTheme.colorScheme.primary,
-                                ),
-                            ),
+                            color = MaterialTheme.colorScheme.primary,
                             shape = RoundedCornerShape(16.dp),
                         )
                         .padding(2.dp),

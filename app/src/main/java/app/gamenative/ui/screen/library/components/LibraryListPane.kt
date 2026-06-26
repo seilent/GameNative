@@ -1,9 +1,7 @@
 package app.gamenative.ui.screen.library.components
 
 import android.content.res.Configuration
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -117,6 +115,7 @@ internal fun LibraryListPane(
     currentLayout: PaneType,
     firstGridItemFocusRequester: FocusRequester? = null,
     focusTargetListIndex: Int? = null,
+    onFocusedIndexChanged: (Int) -> Unit = {},
     onPageChange: (Int) -> Unit,
     onNavigate: (String) -> Unit,
     onRefresh: () -> Unit,
@@ -190,6 +189,7 @@ internal fun LibraryListPane(
 
     Scaffold(
         modifier = modifier,
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         snackbarHost = { SnackbarHost(snackBarHost) },
     ) { paddingValues ->
         Box(
@@ -254,24 +254,11 @@ internal fun LibraryListPane(
                             items(
                                 count = state.appInfoList.size,
                                 key = { listIndex -> state.appInfoList[listIndex].appId },
+                                contentType = { "game" },
                             ) { listIndex ->
                                 val item = state.appInfoList[listIndex]
-                                var isVisible by remember(item.index) { mutableStateOf(false) }
-                                val alpha by animateFloatAsState(
-                                    targetValue = if (isVisible) 1f else 0f,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioNoBouncy,
-                                        stiffness = Spring.StiffnessLow,
-                                    ),
-                                    label = "fadeIn",
-                                )
 
-                                LaunchedEffect(item.index) {
-                                    delay((item.index % 8) * 30L)
-                                    isVisible = true
-                                }
-
-                                Box(modifier = Modifier.alpha(alpha)) {
+                                Box {
                                     val appItemModifier = if (firstGridItemFocusRequester != null &&
                                         focusTargetListIndex != null &&
                                         listIndex == focusTargetListIndex
@@ -289,7 +276,7 @@ internal fun LibraryListPane(
                                         appInfo = item,
                                         onClick = { onNavigate(item.appId) },
                                         paneType = currentLayout,
-                                        onFocus = { targetOfScroll = item.index },
+                                        onFocus = { targetOfScroll = item.index; onFocusedIndexChanged(item.index) },
                                         imageRefreshCounter = state.imageRefreshCounter,
                                         compatibilityStatus = state.compatibilityMap[item.name],
                                         gameStats = state.statsFor(item),

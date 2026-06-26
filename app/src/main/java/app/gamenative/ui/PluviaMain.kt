@@ -69,6 +69,7 @@ import app.gamenative.service.SteamService
 import app.gamenative.service.amazon.AmazonService
 import com.posthog.PostHog
 import app.gamenative.ui.component.AchievementOverlay
+import app.gamenative.ui.component.BlurredBackdrop
 import app.gamenative.ui.component.ConnectionStatusBanner
 import app.gamenative.service.epic.EpicService
 import app.gamenative.service.gog.GOGService
@@ -91,7 +92,14 @@ import app.gamenative.ui.screen.login.UserLoginScreen
 import app.gamenative.ui.screen.settings.SettingsScreen
 import app.gamenative.ui.screen.xserver.XServerScreen
 import app.gamenative.ui.theme.PluviaTheme
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalGameBackdrop
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.util.SnackbarManager
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import app.gamenative.utils.BestConfigService
 import app.gamenative.utils.ContainerUtils
 import app.gamenative.utils.PlatformAuthUtils
@@ -557,15 +565,7 @@ fun PluviaMain(
                                 if (currentRoute == PluviaScreen.LoginUser.route) {
                                     navController.navigateFromLoginIfNeeded(targetRoute, "LogonEnded")
                                 } else if (currentRoute == PluviaScreen.Home.route + "?offline={offline}") {
-                                    val isCurrentlyOffline = navController.currentBackStackEntry
-                                        ?.arguments?.getBoolean("offline") ?: false
-                                    if (isCurrentlyOffline) {
-                                        navController.navigate(PluviaScreen.Home.route + "?offline=false") {
-                                            popUpTo(PluviaScreen.Home.route + "?offline={offline}") {
-                                                inclusive = true
-                                            }
-                                        }
-                                    }
+                                    viewModel.setOffline(false)
                                 }
                             }
                         }
@@ -1132,7 +1132,16 @@ fun PluviaMain(
         isAmoled = (state.appTheme == AppTheme.AMOLED),
         style = state.paletteStyle,
     ) {
+        val accent by animateColorAsState(Color(state.gameAccentArgb), Motion.AccentColor, label = "rootAccent")
+        CompositionLocalProvider(LocalGameAccent provides accent, LocalGameBackdrop provides state.gameBackdropUrl) {
         Box(modifier = Modifier.fillMaxSize()) {
+            BlurredBackdrop(
+                imageModel = state.gameBackdropUrl.ifBlank { null },
+                accentKey = state.gameBackdropUrl,
+                onAccent = { viewModel.setGameAccent(it.toArgb()) },
+                modifier = Modifier.fillMaxSize(),
+            )
+
             LoadingDialog(
                 visible = state.loadingDialogVisible,
                 progress = state.loadingDialogProgress,
@@ -1318,12 +1327,14 @@ fun PluviaMain(
                         },
                     ),
                 ) { backStackEntry ->
-                    val isOffline = backStackEntry.arguments?.getBoolean("offline") ?: false
+                    val argOffline = backStackEntry.arguments?.getBoolean("offline") ?: false
+                    LaunchedEffect(Unit) { viewModel.setOffline(argOffline) }
+                    val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
 
                     // Show update/crash/support dialogs when Home is first displayed
                     // Skip when offline with Steam credentials (avoid flash when Steam reconnects)
                     LaunchedEffect(Unit) {
-                        val shouldShowDialogs = !isOffline || !SteamUtils.hasStoredCredentials()
+                        val shouldShowDialogs = !argOffline || !SteamUtils.hasStoredCredentials()
 
                         if (shouldShowDialogs && !state.annoyingDialogShown && PluviaApp.xEnvironment == null && !SteamService.keepAlive && !MainActivity.wasLaunchedViaExternalIntent) {
                             val currentUpdateInfo = updateInfo
@@ -1426,6 +1437,7 @@ fun PluviaMain(
                                 else PluviaScreen.Home.route
                             )
                         },
+                        onGameBackdrop = viewModel::setGameBackdrop,
                         isOffline = isOffline,
                     )
                 }
@@ -1531,6 +1543,7 @@ fun PluviaMain(
             }
 
             AchievementOverlay()
+        }
         }
     }
 }

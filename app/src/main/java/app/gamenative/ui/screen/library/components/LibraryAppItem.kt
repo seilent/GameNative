@@ -1,9 +1,7 @@
 package app.gamenative.ui.screen.library.components
 
 import android.content.res.Configuration
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +41,7 @@ import app.gamenative.ui.data.GameCardStats
 import app.gamenative.ui.icons.Amazon
 import app.gamenative.ui.icons.Steam
 import app.gamenative.ui.internal.fakeAppInfo
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -102,19 +101,23 @@ internal fun AppItem(
     val scale by if (enableFocusScale) {
         animateFloatAsState(
             targetValue = targetScale,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMedium,
-            ),
+            animationSpec = Motion.FocusScale,
             label = "focusScale",
         )
     } else {
         rememberUpdatedState(1f)
     }
 
+    // Unfocused cards recede so the focused one pops and the blurred backdrop bleeds through.
+    val cardAlpha by animateFloatAsState(
+        targetValue = if (isFocused) 1f else 0.75f,
+        animationSpec = Motion.Fade,
+        label = "cardAlpha",
+    )
+
     when (paneType) {
         PaneType.LIST -> ListViewCard(
-            modifier = modifier,
+            modifier = modifier.alpha(cardAlpha),
             appInfo = appInfo,
             onClick = onClick,
             onFocus = onFocus,
@@ -127,7 +130,7 @@ internal fun AppItem(
         )
 
         else -> GridViewCard(
-            modifier = modifier,
+            modifier = modifier.alpha(cardAlpha),
             appInfo = appInfo,
             onClick = onClick,
             onFocus = onFocus,

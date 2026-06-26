@@ -45,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -59,6 +58,8 @@ import androidx.core.widget.doAfterTextChanged
 import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.ui.data.LibraryState
+import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import kotlinx.coroutines.launch
 
@@ -90,19 +91,11 @@ fun LibrarySearchBar(
         ) + fadeOut(),
         modifier = modifier,
     ) {
-        // Gradient background container
+        // Glass background container
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
-                            Color.Transparent,
-                        ),
-                    ),
-                )
+                .background(color = GlassFill)
                 .padding(top = 8.dp, bottom = 20.dp, start = 12.dp, end = 12.dp),
         ) {
             Column(
@@ -124,7 +117,7 @@ fun LibrarySearchBar(
                             stringResource(R.string.search_results_many, resultCount)
                         },
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = LocalGameAccent.current,
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 }
@@ -164,20 +157,12 @@ private fun SearchBarInput(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    ),
-                ),
-            )
+            .background(color = GlassFill)
             .then(
                 if (isFocused) {
                     Modifier.border(
                         2.dp,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        LocalGameAccent.current.copy(alpha = 0.5f),
                         RoundedCornerShape(24.dp),
                     )
                 } else {
@@ -210,7 +195,7 @@ private fun SearchBarInput(
             imageVector = Icons.Default.Search,
             contentDescription = null,
             tint = if (isFocused) {
-                MaterialTheme.colorScheme.primary
+                LocalGameAccent.current
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant
             },
@@ -222,7 +207,7 @@ private fun SearchBarInput(
         // TODO: there must be a better way of doing this
         val textColor = MaterialTheme.colorScheme.onSurface
         val hintColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-        val cursorColor = MaterialTheme.colorScheme.primary
+        val cursorColor = LocalGameAccent.current
         val placeholderText = stringResource(R.string.library_search_placeholder)
 
         AndroidView(

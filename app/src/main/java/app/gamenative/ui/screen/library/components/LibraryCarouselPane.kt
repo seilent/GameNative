@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -22,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -33,48 +31,35 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.gamenative.R
-import app.gamenative.data.LibraryItem
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.data.LibraryState
 import app.gamenative.ui.data.statsFor
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.util.AdaptivePadding
 import app.gamenative.ui.util.shouldShowGamepadUI
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.coil.CoilImage
 import kotlin.math.abs
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private const val CAROUSEL_TILT_ANGLE = 30.061367f
 private const val CAROUSEL_SPACING_RATIO = -0.11f
@@ -184,11 +169,9 @@ private fun CarouselEmptyState(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        Surface(
+        GlassSurface(
             modifier = Modifier.padding(horizontal = 24.dp),
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shadowElevation = 8.dp,
         ) {
             Text(
                 modifier = Modifier.padding(24.dp),
@@ -305,27 +288,9 @@ internal fun LibraryCarouselPane(
             }
     }
 
-    var settledBackdropItem by remember { mutableStateOf<LibraryItem?>(null) }
-    val currentAppInfoList by rememberUpdatedState(state.appInfoList)
-    LaunchedEffect(listState) {
-        var pendingUpdate: Job? = null
-        snapshotFlow { listState.isScrollInProgress to centeredIndex }
-            .collect { (isScrolling, _) ->
-                pendingUpdate?.cancel()
-                if (!isScrolling) {
-                    pendingUpdate = launch {
-                        delay(200)
-                        val list = currentAppInfoList
-                        val idx = centeredIndex.takeIf { it in list.indices }
-                            ?: listState.firstVisibleItemIndex.coerceIn(0, list.lastIndex.coerceAtLeast(0))
-                        settledBackdropItem = list.getOrNull(idx)
-                    }
-                }
-            }
-    }
-
     Scaffold(
         modifier = modifier,
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
         PullToRefreshBox(
@@ -356,12 +321,6 @@ internal fun LibraryCarouselPane(
                 },
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                LibraryDynamicBackdrop(
-                    appInfo = settledBackdropItem,
-                    imageRefreshCounter = state.imageRefreshCounter,
-                    modifier = Modifier.fillMaxSize(),
-                )
-
                 if (state.appInfoList.isNotEmpty()) {
                     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 

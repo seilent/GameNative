@@ -50,6 +50,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.service.SteamService
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.utils.Net
 import com.winlator.core.StringUtils
 import com.winlator.container.ContainerManager
@@ -566,6 +568,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = GlassFillStrong,
         title = { Text(text = stringResource(R.string.wine_proton_manager), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(
@@ -577,7 +580,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 // Info card
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                        containerColor = LocalGameAccent.current.copy(alpha = 0.12f)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -591,13 +594,13 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                         Icon(
                             imageVector = Icons.Filled.Info,
                             contentDescription = "Info",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = LocalGameAccent.current
                         )
                         Column {
                             Text(
                                 text = stringResource(R.string.wine_proton_bionic_notice_header),
                                 style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary
+                                color = LocalGameAccent.current
                             )
                             Text(
                                 text = stringResource(R.string.wine_proton_info_description),
@@ -772,7 +775,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     Text(
                         text = statusMessage ?: "",
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isStatusSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                        color = if (isStatusSuccess) LocalGameAccent.current else MaterialTheme.colorScheme.error
                     )
                 }
 
@@ -802,7 +805,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                         Text(
                             text = stringResource(R.string.wine_proton_all_files_trusted),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = LocalGameAccent.current,
                             modifier = Modifier.padding(top = 8.dp)
                         )
                         Button(

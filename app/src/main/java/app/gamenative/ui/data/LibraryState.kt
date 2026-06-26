@@ -59,6 +59,7 @@ data class LibraryState(
 
     // Per-source game counts for tab badges
     val allCount: Int = 0,
+    val installedCount: Int = 0,
     val steamCount: Int = 0,
     val gogCount: Int = 0,
     val epicCount: Int = 0,

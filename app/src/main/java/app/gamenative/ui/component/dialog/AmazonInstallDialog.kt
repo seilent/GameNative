@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
@@ -25,7 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
+import app.gamenative.ui.theme.GlassFillStrong
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
@@ -39,6 +40,7 @@ import app.gamenative.R
 import app.gamenative.ui.component.LoadingScreen
 import app.gamenative.ui.component.topbar.BackButton
 import app.gamenative.ui.data.GameDisplayInfo
+import app.gamenative.ui.theme.LocalGameAccent
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 import java.text.SimpleDateFormat
@@ -116,14 +118,7 @@ fun AmazonInstallDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.8f),
-                                ),
-                            ),
-                        ),
+                        .background(color = GlassFillStrong),
                 )
 
                 // Back / dismiss button
@@ -213,6 +208,7 @@ fun AmazonInstallDialog(
                         Text(stringResource(R.string.cancel))
                     }
                     Button(
+                        colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                         enabled = installEnabled,
                         onClick = onInstall,
                     ) {

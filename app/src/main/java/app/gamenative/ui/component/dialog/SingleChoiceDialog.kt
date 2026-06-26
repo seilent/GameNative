@@ -16,6 +16,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.enums.AppTheme
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 @Composable
@@ -52,6 +55,7 @@ fun SingleChoiceDialog(
     }
 
     AlertDialog(
+        containerColor = GlassFillStrong,
         onDismissRequest = onDismiss,
         icon = {
             icon?.let {
@@ -60,6 +64,7 @@ fun SingleChoiceDialog(
         },
         title = { Text(text = title) },
         text = {
+            val accent = LocalGameAccent.current
             Column(modifier = Modifier.selectableGroup().verticalScroll(rememberScrollState())) {
                 items.forEachIndexed { index, entry ->
                     Row(
@@ -77,6 +82,7 @@ fun SingleChoiceDialog(
                         RadioButton(
                             selected = index == currentItem,
                             onClick = null,
+                            colors = RadioButtonDefaults.colors(selectedColor = accent),
                         )
                         Text(
                             text = entry,
@@ -90,7 +96,7 @@ fun SingleChoiceDialog(
         confirmButton = {
             TextButton(
                 onClick = onDismiss,
-                content = { Text(text = stringResource(R.string.close)) },
+                content = { Text(text = stringResource(R.string.close), color = LocalGameAccent.current) },
             )
         },
     )

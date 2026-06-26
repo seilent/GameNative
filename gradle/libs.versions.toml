@@ -33,6 +33,7 @@ mockk = "1.13.5" # https://mvnrepository.com/artifact/io.mockk/mockk
 mockwebserver = "5.1.0"
 navigation-compose = "2.8.6" # https://mvnrepository.com/artifact/androidx.navigation/navigation-compose
 orgJson = "20231013"
+palette = "1.0.0" # https://mvnrepository.com/artifact/androidx.palette/palette
 protobuf = "4.31.1" # https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
 robolectric = "4.14" # https://mvnrepository.com/artifact/org.robolectric/robolectric
 room-runtime = "2.8.4" # https://mvnrepository.com/artifact/androidx.room/room-runtime
@@ -50,6 +51,7 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-material-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-palette = { group = "androidx.palette", name = "palette", version.ref = "palette" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Version" }
 androidx-material3-adaptive-layout = { module = "androidx.compose.material3.adaptive:adaptive-layout", version.ref = "material3Adaptive" }
 androidx-material3-adaptive-nav-suite = { module = "androidx.compose.material3:material3-adaptive-navigation-suite", version.ref = "material3AdaptiveNavSuite" }

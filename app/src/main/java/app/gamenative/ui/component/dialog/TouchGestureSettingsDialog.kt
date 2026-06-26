@@ -50,6 +50,7 @@ import app.gamenative.data.TouchGestureConfig.Companion.ZOOM_PAGE_UP_DOWN
 import app.gamenative.data.TouchGestureConfig.Companion.ZOOM_PLUS_MINUS
 import app.gamenative.data.TouchGestureConfig.Companion.ZOOM_SCROLL_WHEEL
 import app.gamenative.ui.component.settings.SettingsListDropdown
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import app.gamenative.ui.theme.PluviaBackground
@@ -121,7 +122,7 @@ fun TouchGestureSettingsDialog(
                     text = stringResource(R.string.gesture_section_single_finger),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LocalGameAccent.current,
                     modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 2.dp),
                 )
 
@@ -211,7 +212,7 @@ fun TouchGestureSettingsDialog(
                     text = stringResource(R.string.gesture_section_two_finger),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LocalGameAccent.current,
                     modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 2.dp),
                 )
 
@@ -289,7 +290,7 @@ fun TouchGestureSettingsDialog(
                     text = stringResource(R.string.gesture_section_three_finger),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LocalGameAccent.current,
                     modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 2.dp),
                 )
 
@@ -349,7 +350,7 @@ fun TouchGestureSettingsDialog(
                     text = stringResource(R.string.gesture_section_other),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LocalGameAccent.current,
                     modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 2.dp),
                 )
 
@@ -793,7 +794,7 @@ private fun TapHoldActionPicker(
         ) {
             Text(stringResource(R.string.gesture_action_label))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(label, color = MaterialTheme.colorScheme.primary)
+                Text(label, color = LocalGameAccent.current)
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
@@ -817,7 +818,7 @@ private fun TapHoldActionPicker(
                                 text = category.header,
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = LocalGameAccent.current,
                                 modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
                             )
                         }
@@ -830,7 +831,7 @@ private fun TapHoldActionPicker(
                                         onActionSelected(actionKey)
                                         showDialog = false
                                     },
-                                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                color = if (isSelected) LocalGameAccent.current.copy(alpha = 0.18f)
                                 else PluviaSurface,
                             ) {
                                 Text(
@@ -897,7 +898,7 @@ private fun PanActionPicker(
         ) {
             Text(stringResource(R.string.gesture_action_label))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(label, color = MaterialTheme.colorScheme.primary)
+                Text(label, color = LocalGameAccent.current)
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
@@ -923,7 +924,7 @@ private fun PanActionPicker(
                                     onActionSelected(action)
                                     showDialog = false
                                 },
-                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else PluviaSurface,
+                            color = if (isSelected) LocalGameAccent.current.copy(alpha = 0.18f) else PluviaSurface,
                         ) {
                             Text(
                                 text = panActionLabel(action),

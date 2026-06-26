@@ -2,6 +2,7 @@ package app.gamenative.ui.theme
 
 import android.app.Activity
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -179,7 +180,10 @@ fun PluviaTheme(
         insetsController.isAppearanceLightNavigationBars = false
     }
 
-    CompositionLocalProvider(LocalPluviaColors provides pluviaColors) {
+    CompositionLocalProvider(
+        LocalPluviaColors provides pluviaColors,
+        LocalContentColor provides colorScheme.onBackground,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = PluviaTypography,
@@ -245,13 +249,16 @@ object DarkColors {
 fun settingsTileColors(): SettingsTileColors = SettingsTileDefaults.colors(
     titleColor = PluviaForeground,
     subtitleColor = PluviaForegroundMuted,
-    actionColor = PluviaCyan,
+    actionColor = LocalGameAccent.current,
+    containerColor = Color.Transparent,
 )
 
 @Composable
 fun settingsTileColorsAlt(): SettingsTileColors = SettingsTileDefaults.colors(
     titleColor = PluviaForeground,
     subtitleColor = PluviaForegroundMuted,
+    actionColor = LocalGameAccent.current,
+    containerColor = Color.Transparent,
 )
 
 @Composable
@@ -259,4 +266,5 @@ fun settingsTileColorsDebug(): SettingsTileColors = SettingsTileDefaults.colors(
     titleColor = PluviaDestructive,
     subtitleColor = PluviaForegroundMuted,
     actionColor = PluviaCyan,
+    containerColor = Color.Transparent,
 )

@@ -16,6 +16,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 
 @Composable
 fun WineDebugChannelsDialog(
@@ -31,6 +33,7 @@ fun WineDebugChannelsDialog(
     val selectedChannels = remember { mutableStateListOf<String>().apply { addAll(currentSelection) } }
 
     AlertDialog(
+        containerColor = GlassFillStrong,
         onDismissRequest = onDismiss,
         title = { Text(text = stringResource(R.string.select_wine_debug_channels)) },
         text = {
@@ -66,7 +69,7 @@ fun WineDebugChannelsDialog(
         },
         confirmButton = {
             TextButton(onClick = { onSave(selectedChannels.toList()) }) {
-                Text(text = stringResource(R.string.save))
+                Text(text = stringResource(R.string.save), color = LocalGameAccent.current)
             }
         },
         dismissButton = {

@@ -35,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,6 +47,9 @@ import app.gamenative.service.SteamService
 import app.gamenative.ui.component.CompatibilityBadge
 import app.gamenative.ui.component.GameStatsRow
 import app.gamenative.ui.data.GameCardStats
+import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ListItemImage
 import app.gamenative.utils.CustomGameScanner
 import kotlinx.coroutines.Dispatchers
@@ -89,24 +91,19 @@ internal fun ListViewCard(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isFocused) {
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+                GlassFill.copy(alpha = 0.35f)
             } else {
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f)
+                GlassFill
             },
         ),
         border = when {
             isFocused -> BorderStroke(
                 2.dp,
-                Brush.horizontalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.tertiary,
-                    ),
-                ),
+                LocalGameAccent.current,
             )
             appInfo.isRecommended -> BorderStroke(
                 1.dp,
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                LocalGameAccent.current.copy(alpha = 0.4f),
             )
             else -> null
         },
@@ -244,11 +241,11 @@ private fun InstallStatusBadge(
     }
 
     val (text, color) = when {
-        !isSteam -> stringResource(R.string.library_status_ready) to MaterialTheme.colorScheme.tertiary
+        !isSteam -> stringResource(R.string.library_status_ready) to PluviaTheme.colors.statusInstalled
 
-        isDownloading -> "${(downloadProgress * 100).toInt()}%" to MaterialTheme.colorScheme.primary
+        isDownloading -> "${(downloadProgress * 100).toInt()}%" to PluviaTheme.colors.statusDownloading
 
-        isInstalled -> stringResource(R.string.library_installed) to MaterialTheme.colorScheme.tertiary
+        isInstalled -> stringResource(R.string.library_installed) to PluviaTheme.colors.statusInstalled
 
         else -> stringResource(R.string.library_not_installed) to MaterialTheme.colorScheme.onSurfaceVariant.copy(
             alpha = 0.6f,

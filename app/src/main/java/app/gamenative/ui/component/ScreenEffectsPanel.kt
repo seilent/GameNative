@@ -3,8 +3,6 @@ package app.gamenative.ui.component
 import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -43,7 +41,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,7 +64,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
-import app.gamenative.ui.theme.PluviaTheme
+import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.util.ScreenEffectsConfig
 import app.gamenative.ui.util.adaptivePanelWidth
 import app.gamenative.ui.util.applyScreenEffectsConfig
@@ -410,7 +408,7 @@ fun GLScreenEffectsTabContent(
         ScreenEffectActionRow(
             title = stringResource(R.string.screen_effects_reset),
             icon = Icons.Default.RestartAlt,
-            accentColor = PluviaTheme.colors.accentPurple,
+            accentColor = LocalGameAccent.current,
             onClick = ::resetEffects,
         )
 
@@ -649,7 +647,7 @@ fun ScreenEffectsTabContent(
         ScreenEffectActionRow(
             title = stringResource(R.string.screen_effects_reset),
             icon = Icons.Default.RestartAlt,
-            accentColor = PluviaTheme.colors.accentPurple,
+            accentColor = LocalGameAccent.current,
             onClick = ::resetEffects,
         )
 
@@ -761,37 +759,24 @@ fun ScreenEffectsPanel(
             visible = isVisible,
             enter = slideInHorizontally(
                 initialOffsetX = { fullWidth -> fullWidth },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium,
-                ),
-            ) + fadeIn(),
+                animationSpec = Motion.PanelSlide,
+            ) + fadeIn(animationSpec = Motion.Fade),
             exit = slideOutHorizontally(
                 targetOffsetX = { fullWidth -> fullWidth },
-                animationSpec = spring(stiffness = Spring.StiffnessHigh),
-            ) + fadeOut(),
+                animationSpec = Motion.PanelSlide,
+            ) + fadeOut(animationSpec = Motion.Fade),
             modifier = Modifier.fillMaxHeight(),
         ) {
-            Surface(
+            GlassSurface(
                 modifier = Modifier
                     .width(adaptivePanelWidth(420.dp))
                     .fillMaxHeight(),
             shape = RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 4.dp,
-            shadowElevation = 24.dp,
+            dark = true,
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.surface,
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
-                            ),
-                        ),
-                    )
                     .statusBarsPadding(),
             ) {
                 Row(
@@ -919,7 +904,7 @@ fun ScreenEffectsPanel(
                     ScreenEffectActionRow(
                         title = stringResource(R.string.screen_effects_reset),
                         icon = Icons.Default.RestartAlt,
-                        accentColor = PluviaTheme.colors.accentPurple,
+                        accentColor = LocalGameAccent.current,
                         onClick = ::resetEffects,
                     )
 
@@ -942,7 +927,7 @@ private fun ScreenEffectAdjustmentRow(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
     val shape = RoundedCornerShape(14.dp)
     var isAdjustmentLocked by remember { mutableStateOf(false) }
 
@@ -1180,7 +1165,7 @@ private fun ScreenEffectToggleRow(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
 
     Row(
         modifier = Modifier
@@ -1257,7 +1242,7 @@ private fun ScreenEffectRadioRow(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val accentColor = PluviaTheme.colors.accentPurple
+    val accentColor = LocalGameAccent.current
     val shape = RoundedCornerShape(14.dp)
 
     Row(

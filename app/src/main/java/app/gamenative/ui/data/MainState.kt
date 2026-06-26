@@ -1,11 +1,15 @@
 package app.gamenative.ui.data
 
+import androidx.compose.ui.graphics.toArgb
 import app.gamenative.enums.AppTheme
 import app.gamenative.ui.enums.ConnectionState
 import app.gamenative.ui.screen.PluviaScreen
+import app.gamenative.ui.theme.PluviaPurple
 import com.materialkolor.PaletteStyle
 
 data class MainState(
+    val gameAccentArgb: Int = PluviaPurple.toArgb(),
+    val gameBackdropUrl: String = "",
     val appTheme: AppTheme = AppTheme.NIGHT,
     val paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     val resettedScreen: PluviaScreen? = null,
