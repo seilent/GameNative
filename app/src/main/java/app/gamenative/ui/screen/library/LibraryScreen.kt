@@ -908,6 +908,7 @@ private fun LibraryScreenContent(
             }
     ) {
         LaunchedEffect(backdropImageUrl) {
+            kotlinx.coroutines.delay(180)
             onGameBackdrop(backdropImageUrl)
         }
 
