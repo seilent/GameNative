@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -53,8 +54,13 @@ object PrefManager {
 
     private lateinit var dataStore: DataStore<Preferences>
 
+    @Volatile
+    private var cachedPrefs: Preferences? = null
+
     fun init(context: Context) {
         dataStore = context.datastore
+        cachedPrefs = runBlocking { dataStore.data.first() }
+        scope.launch { dataStore.data.collect { cachedPrefs = it } }
 
         // Note: Should remove after a few release versions. we've moved to encrypted values.
         val oldPassword = stringPreferencesKey("password")
@@ -121,18 +127,21 @@ object PrefManager {
         setPref(floatPreferencesKey(key), value)
 
     @Suppress("SameParameterValue")
-    private fun <T> getPref(key: Preferences.Key<T>, defaultValue: T): T = runBlocking {
-        dataStore.data.first()[key] ?: defaultValue
+    private fun <T> getPref(key: Preferences.Key<T>, defaultValue: T): T {
+        val prefs = cachedPrefs ?: runBlocking { dataStore.data.first() }.also { cachedPrefs = it }
+        return prefs[key] ?: defaultValue
     }
 
     @Suppress("SameParameterValue")
     private fun <T> setPref(key: Preferences.Key<T>, value: T) {
+        cachedPrefs = (cachedPrefs ?: emptyPreferences()).toMutablePreferences().apply { this[key] = value }
         scope.launch {
             dataStore.edit { pref -> pref[key] = value }
         }
     }
 
     private fun <T> removePref(key: Preferences.Key<T>) {
+        cachedPrefs = (cachedPrefs ?: emptyPreferences()).toMutablePreferences().apply { remove(key) }
         scope.launch {
             dataStore.edit { pref -> pref.remove(key) }
         }
@@ -817,8 +826,9 @@ object PrefManager {
     // Special: Because null value.
     private val CLIENT_ID = longPreferencesKey("client_id")
     var clientId: Long?
-        get() = runBlocking { dataStore.data.first()[CLIENT_ID] }
+        get() = (cachedPrefs ?: runBlocking { dataStore.data.first() }.also { cachedPrefs = it })[CLIENT_ID]
         set(value) {
+            cachedPrefs = (cachedPrefs ?: emptyPreferences()).toMutablePreferences().apply { this[CLIENT_ID] = value!! }
             scope.launch {
                 dataStore.edit { pref -> pref[CLIENT_ID] = value!! }
             }

@@ -99,8 +99,13 @@ class LibraryViewModel @Inject constructor(
         onFilterApps(paginationCurrentPage)
     }
 
+    private var logonRefilterJob: Job? = null
     private val onSteamLogonComplete: (AndroidEvent.SteamLogonComplete) -> Unit = {
-        onFilterApps(paginationCurrentPage)
+        logonRefilterJob?.cancel()
+        logonRefilterJob = viewModelScope.launch {
+            delay(300)
+            onFilterApps(paginationCurrentPage)
+        }
     }
 
     // How many items loaded on one page of results
