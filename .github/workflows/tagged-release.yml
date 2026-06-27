@@ -85,19 +85,11 @@ jobs:
           yes | "$SDKMANAGER" --install "build-tools;34.0.0"
 
       - name: Build with Gradle
-        run: ./gradlew :app:bundleModernRelease
+        run: ./gradlew :app:assembleModernRelease
 
-      - name: Stage bundles
+      - name: Stage APK
         run: |
-          cp app/build/outputs/bundle/modernRelease/app-modern-release.aab app-modern-release.aab
-
-      - name: Extract APKs from Bundles
-        run: |
-          java -jar tools/bundletool-all-1.17.2.jar build-apks \
-            --bundle=app-modern-release.aab \
-            --output=app-modern-release.apks \
-            --mode=universal
-          unzip -p app-modern-release.apks universal.apk > universal-modern.apk
+          cp app/build/outputs/apk/modern/release/app-modern-release.apk universal-modern.apk
 
       - name: Sign modern APK
         env:
