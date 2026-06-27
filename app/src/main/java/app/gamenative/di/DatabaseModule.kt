@@ -9,6 +9,7 @@ import app.gamenative.db.dao.AmazonGameDao
 import app.gamenative.db.dao.CachedLicenseDao
 import app.gamenative.db.dao.DownloadingAppInfoDao
 import app.gamenative.db.dao.EncryptedAppTicketDao
+import app.gamenative.db.dao.SteamCollectionDao
 import app.gamenative.db.dao.SteamUnlockedBranchDao
 import app.gamenative.db.migration.ROOM_MIGRATION_V7_to_V8
 import dagger.Module
@@ -84,4 +85,8 @@ class DatabaseModule {
     @Provides
     @Singleton
     fun provideSteamUnlockedBranchDao(db: PluviaDatabase): SteamUnlockedBranchDao = db.steamUnlockedBranchDao()
+
+    @Provides
+    @Singleton
+    fun provideSteamCollectionDao(db: PluviaDatabase): SteamCollectionDao = db.steamCollectionDao()
 }

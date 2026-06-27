@@ -7,6 +7,7 @@ import app.gamenative.data.LibraryItem
 import app.gamenative.ui.enums.AppFilter
 import app.gamenative.utils.DeviceGameStatsService.DeviceGameStats
 import app.gamenative.ui.enums.LibraryTab
+import app.gamenative.ui.enums.LibraryTabItem
 import app.gamenative.ui.enums.SortOption
 import java.util.EnumSet
 
@@ -32,6 +33,8 @@ data class LibraryState(
     val showEpicInLibrary: Boolean = PrefManager.showEpicInLibrary,
     val showAmazonInLibrary: Boolean = PrefManager.showAmazonInLibrary,
 
+    val showHiddenGames: Boolean = PrefManager.showHiddenGames,
+
     // Loading state for skeleton loaders
     val isLoading: Boolean = false,
 
@@ -56,6 +59,12 @@ data class LibraryState(
 
     // Current library tab for quick filter access
     val currentTab: LibraryTab = LibraryTab.ALL,
+
+    val collectionTabs: List<LibraryTabItem.Collection> = emptyList(),
+    val currentCollectionId: String? = null,
+
+    val visibleTabItems: List<LibraryTabItem> = LibraryTab.entries.map { LibraryTabItem.Store(it) },
+    val currentTabItem: LibraryTabItem = LibraryTabItem.Store(LibraryTab.ALL),
 
     // Per-source game counts for tab badges
     val allCount: Int = 0,

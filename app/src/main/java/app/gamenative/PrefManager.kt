@@ -1072,6 +1072,13 @@ object PrefManager {
             setPref(SHOW_AMAZON_IN_LIBRARY, value)
         }
 
+    private val SHOW_HIDDEN_GAMES = booleanPreferencesKey("show_hidden_games")
+    var showHiddenGames: Boolean
+        get() = getPref(SHOW_HIDDEN_GAMES, false)
+        set(value) {
+            setPref(SHOW_HIDDEN_GAMES, value)
+        }
+
     // Game counts for skeleton loaders
     private val CUSTOM_GAMES_COUNT = intPreferencesKey("custom_games_count")
     var customGamesCount: Int

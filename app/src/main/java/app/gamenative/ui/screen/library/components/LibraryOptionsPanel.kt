@@ -89,6 +89,8 @@ fun LibraryOptionsPanel(
     onSortOptionChanged: (SortOption) -> Unit,
     currentView: PaneType,
     onViewChanged: (PaneType) -> Unit,
+    showHiddenGames: Boolean = false,
+    onToggleHidden: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val firstItemFocusRequester = remember { FocusRequester() }
@@ -270,6 +272,24 @@ fun LibraryOptionsPanel(
                                     )
                                 }
                             }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        OptionSectionHeader(text = stringResource(R.string.library_hidden_games))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusGroup()
+                                .padding(horizontal = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            OptionListItem(
+                                text = stringResource(R.string.library_show_hidden_games),
+                                selected = showHiddenGames,
+                                onClick = onToggleHidden,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(20.dp))

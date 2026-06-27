@@ -90,6 +90,7 @@ import app.gamenative.ui.components.requestPermissionsForPath
 import app.gamenative.ui.data.LibraryState
 import app.gamenative.ui.enums.AppFilter
 import app.gamenative.ui.enums.LibraryTab
+import app.gamenative.ui.enums.LibraryTabItem
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.enums.SortOption
 import app.gamenative.ui.internal.fakeAppInfo
@@ -159,10 +160,11 @@ fun HomeLibraryScreen(
         onAddCustomGameFolder = viewModel::addCustomGameFolder,
         onSortOptionChanged = viewModel::onSortOptionChanged,
         onOptionsPanelToggle = viewModel::onOptionsPanelToggle,
-        onTabChanged = viewModel::onTabChanged,
+        onTabChanged = { item: LibraryTabItem -> viewModel.onTabChanged(item) },
         onPreviousTab = viewModel::onPreviousTab,
         onNextTab = viewModel::onNextTab,
         onGameBackdrop = onGameBackdrop,
+        onToggleHidden = viewModel::onToggleHiddenGames,
         isOffline = isOffline,
     )
 }
@@ -189,7 +191,8 @@ private fun LibraryScreenContent(
     onAddCustomGameFolder: (String) -> Unit,
     onSortOptionChanged: (SortOption) -> Unit,
     onOptionsPanelToggle: (Boolean) -> Unit,
-    onTabChanged: (LibraryTab) -> Unit,
+    onTabChanged: (LibraryTabItem) -> Unit,
+    onToggleHidden: () -> Unit,
     onPreviousTab: () -> Unit,
     onNextTab: () -> Unit,
     onGameBackdrop: (String) -> Unit = {},
@@ -540,7 +543,7 @@ private fun LibraryScreenContent(
     }
 
     // Restore focus after tab change - handles both empty and populated tabs
-    LaunchedEffect(state.currentTab) {
+    LaunchedEffect(state.currentTab, state.currentCollectionId) {
         // Brief delay to let list populate after tab change
         kotlinx.coroutines.delay(150)
 
@@ -1073,7 +1076,8 @@ private fun LibraryScreenContent(
                 } else {
                     // Tab bar when not searching
                     LibraryTabBar(
-                        currentTab = state.currentTab,
+                        tabs = state.visibleTabItems,
+                        currentItem = state.currentTabItem,
                         tabCounts = mapOf(
                             LibraryTab.ALL to state.allCount,
                             LibraryTab.INSTALLED to state.installedCount,
@@ -1192,6 +1196,8 @@ private fun LibraryScreenContent(
                     PrefManager.libraryLayout = newPaneType
                     currentPaneType = newPaneType
                 },
+                showHiddenGames = state.showHiddenGames,
+                onToggleHidden = onToggleHidden,
             )
 
             // System menu (START) - renders on top of everything
@@ -1364,11 +1370,12 @@ private fun Preview_LibraryScreenContent() {
             onOptionsPanelToggle = { isOpen ->
                 state = state.copy(isOptionsPanelOpen = isOpen)
             },
-            onTabChanged = { tab ->
-                state = state.copy(currentTab = tab)
+            onTabChanged = { item ->
+                if (item is LibraryTabItem.Store) state = state.copy(currentTab = item.tab)
             },
             onPreviousTab = {},
             onNextTab = {},
+            onToggleHidden = {},
         )
     }
 }

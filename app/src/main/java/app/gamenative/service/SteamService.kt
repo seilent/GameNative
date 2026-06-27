@@ -243,6 +243,7 @@ class SteamService : Service(), IChallengeUrlChanged {
     private var _steamCloud: SteamCloud? = null
     private var _steamUserStats: SteamUserStats? = null
     private var _steamFamilyGroups: FamilyGroups? = null
+    private var _steamCloudConfigStore: CloudConfigStoreService? = null
 
     private var _loginResult: LoginResult = LoginResult.Failed
 
@@ -3482,6 +3483,7 @@ class SteamService : Service(), IChallengeUrlChanged {
 
             _unifiedFriends = SteamUnifiedFriends(this)
             _steamFamilyGroups = steamClient!!.getHandler<SteamUnifiedMessages>()!!.createService<FamilyGroups>()
+            _steamCloudConfigStore = steamClient!!.getHandler<SteamUnifiedMessages>()!!.createService<CloudConfigStoreService>()
 
             // subscribe to the callbacks we are interested in
             with(callbackSubscriptions) {
@@ -3793,6 +3795,10 @@ class SteamService : Service(), IChallengeUrlChanged {
                     resumePendingWorkshopDownloads()
                 }
 
+                scope.launch {
+                    fetchSteamCollections()
+                }
+
                 syncPendingOfflineAchievements()
             }
 
@@ -3868,6 +3874,66 @@ class SteamService : Service(), IChallengeUrlChanged {
         synchronized(pendingSyncFileLock) {
             pendingSyncAppIds.clear()
             runCatching { pendingSyncFile.delete() }
+        }
+    }
+
+    private suspend fun fetchSteamCollections() {
+        try {
+            val unifiedMessages = steamClient!!.getHandler<SteamUnifiedMessages>() ?: return
+            val request = app.gamenative.steamproto.SteamCloudConfigStore.CCloudConfigStore_Download_Request.newBuilder()
+                .addVersions(
+                    app.gamenative.steamproto.SteamCloudConfigStore.CCloudConfigStore_NamespaceVersion.newBuilder()
+                        .setEnamespace(1)
+                        .setVersion(0)
+                        .build()
+                )
+                .build()
+
+            val response = unifiedMessages.sendMessage(
+                app.gamenative.steamproto.SteamCloudConfigStore.CCloudConfigStore_Download_Response.Builder::class.java,
+                "CloudConfigStore.Download#1",
+                request,
+            ).await()
+
+            if (response.result != EResult.OK) {
+                Timber.w("CloudConfigStore.Download failed: ${response.result}")
+                return
+            }
+
+            val entries = response.body.dataList.flatMap { ns ->
+                ns.entriesList
+                    .filter { !it.isDeleted && it.hasKey() && it.hasValue() }
+                    .map { it.key to it.value }
+            }
+
+            val result = SteamCollectionsParser.parse(entries)
+            val summary = result.collections.joinToString { "${it.name}(${it.appIds.size})" }
+            Timber.i("Steam collections: ${result.collections.size} manual [$summary], ${result.hiddenAppIds.size} hidden appids")
+
+            val rows = result.collections.mapIndexed { index, c ->
+                app.gamenative.data.SteamCollection(
+                    id = c.id,
+                    name = c.name,
+                    appIds = c.appIds,
+                    isHidden = false,
+                    sortOrder = index,
+                )
+            } + if (result.hiddenAppIds.isNotEmpty()) {
+                listOf(
+                    app.gamenative.data.SteamCollection(
+                        id = "hidden",
+                        name = "Hidden",
+                        appIds = result.hiddenAppIds.toList(),
+                        isHidden = true,
+                        sortOrder = -1,
+                    )
+                )
+            } else emptyList()
+
+            db.steamCollectionDao().replaceAll(rows)
+            Timber.i("Steam collections stored: ${rows.size} rows")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fetch Steam collections")
         }
     }
 

@@ -52,7 +52,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.BuildConfig
 import app.gamenative.R
 import app.gamenative.ui.enums.LibraryTab
+import app.gamenative.ui.enums.LibraryTabItem
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.WindowWidthClass
@@ -75,9 +75,10 @@ import app.gamenative.ui.util.rememberWindowWidthClass
  */
 @Composable
 fun LibraryTabBar(
-    currentTab: LibraryTab,
+    tabs: List<LibraryTabItem>,
+    currentItem: LibraryTabItem,
     tabCounts: Map<LibraryTab, Int>,
-    onTabSelected: (LibraryTab) -> Unit,
+    onTabSelected: (LibraryTabItem) -> Unit,
     onOptionsClick: () -> Unit,
     onSearchClick: () -> Unit,
     onAddGameClick: () -> Unit,
@@ -91,7 +92,8 @@ fun LibraryTabBar(
 
     when (widthClass) {
         WindowWidthClass.COMPACT -> CompactLibraryTabBar(
-            currentTab = currentTab,
+            tabs = tabs,
+            currentItem = currentItem,
             tabCounts = tabCounts,
             onTabSelected = onTabSelected,
             onOptionsClick = onOptionsClick,
@@ -105,7 +107,8 @@ fun LibraryTabBar(
         )
 
         else -> ExpandedLibraryTabBar(
-            currentTab = currentTab,
+            tabs = tabs,
+            currentItem = currentItem,
             tabCounts = tabCounts,
             onTabSelected = onTabSelected,
             onOptionsClick = onOptionsClick,
@@ -126,9 +129,10 @@ fun LibraryTabBar(
  */
 @Composable
 private fun CompactLibraryTabBar(
-    currentTab: LibraryTab,
+    tabs: List<LibraryTabItem>,
+    currentItem: LibraryTabItem,
     tabCounts: Map<LibraryTab, Int>,
-    onTabSelected: (LibraryTab) -> Unit,
+    onTabSelected: (LibraryTabItem) -> Unit,
     onOptionsClick: () -> Unit,
     onSearchClick: () -> Unit,
     onAddGameClick: () -> Unit,
@@ -138,13 +142,12 @@ private fun CompactLibraryTabBar(
     onNextTab: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tabs = LibraryTab.visibleEntries(LocalContext.current)
-    val currentIndex = tabs.indexOf(currentTab)
+    val currentIndex = tabs.indexOf(currentItem).coerceAtLeast(0)
     val scrollState = rememberScrollState()
     val tabPositions = remember { mutableStateMapOf<Int, Float>() }
     val tabWidths = remember { mutableStateMapOf<Int, Float>() }
 
-    LaunchedEffect(currentTab) {
+    LaunchedEffect(currentItem) {
         val pos = tabPositions[currentIndex] ?: return@LaunchedEffect
         val width = tabWidths[currentIndex] ?: return@LaunchedEffect
         val targetCenter = (pos + width / 2).toInt()
@@ -201,8 +204,8 @@ private fun CompactLibraryTabBar(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                tabs.forEachIndexed { index, tab ->
-                    val isSelected = tab == currentTab
+                tabs.forEachIndexed { index, item ->
+                    val isSelected = item == currentItem
                     val tabInteractionSource = remember { MutableInteractionSource() }
                     val isTabFocused by tabInteractionSource.collectIsFocusedAsState()
                     Box(
@@ -233,17 +236,12 @@ private fun CompactLibraryTabBar(
                                 selected = isSelected,
                                 interactionSource = tabInteractionSource,
                                 indication = null,
-                                onClick = { onTabSelected(tab) },
+                                onClick = { onTabSelected(item) },
                             )
                             .padding(horizontal = 14.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        val count = tabCounts[tab]
-                        val label = if (count != null && count > 0) {
-                            stringResource(R.string.library_tab_with_count, stringResource(tab.labelResId), count)
-                        } else {
-                            stringResource(tab.labelResId)
-                        }
+                        val label = tabItemLabel(item, tabCounts)
                         Text(
                             text = label,
                             style = MaterialTheme.typography.labelMedium,
@@ -341,9 +339,10 @@ private fun CompactIconButton(
  */
 @Composable
 private fun ExpandedLibraryTabBar(
-    currentTab: LibraryTab,
+    tabs: List<LibraryTabItem>,
+    currentItem: LibraryTabItem,
     tabCounts: Map<LibraryTab, Int>,
-    onTabSelected: (LibraryTab) -> Unit,
+    onTabSelected: (LibraryTabItem) -> Unit,
     onOptionsClick: () -> Unit,
     onSearchClick: () -> Unit,
     onAddGameClick: () -> Unit,
@@ -353,8 +352,7 @@ private fun ExpandedLibraryTabBar(
     onNextTab: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tabs = LibraryTab.visibleEntries(LocalContext.current)
-    val currentIndex = tabs.indexOf(currentTab)
+    val currentIndex = tabs.indexOf(currentItem).coerceAtLeast(0)
     val scrollState = rememberScrollState()
 
     val tabPositions = remember { mutableStateMapOf<Int, Float>() }
@@ -374,7 +372,7 @@ private fun ExpandedLibraryTabBar(
         label = "indicatorWidth",
     )
 
-    LaunchedEffect(currentTab) {
+    LaunchedEffect(currentItem) {
         val pos = tabPositions[currentIndex] ?: return@LaunchedEffect
         val width = tabWidths[currentIndex] ?: return@LaunchedEffect
         val targetCenter = (pos + width / 2).toInt()
@@ -430,7 +428,6 @@ private fun ExpandedLibraryTabBar(
                     .padding(4.dp),
                 contentAlignment = Alignment.CenterStart,
             ) {
-                // Sliding pill indicator (rendered behind tabs)
                 Box(
                     modifier = Modifier
                         .offset { IntOffset(indicatorOffset.roundToPx(), 0) }
@@ -444,12 +441,12 @@ private fun ExpandedLibraryTabBar(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    tabs.forEachIndexed { index, tab ->
+                    tabs.forEachIndexed { index, item ->
                         TabItem(
-                            tab = tab,
-                            count = tabCounts[tab],
-                            isSelected = tab == currentTab,
-                            onClick = { onTabSelected(tab) },
+                            item = item,
+                            tabCounts = tabCounts,
+                            isSelected = item == currentItem,
+                            onClick = { onTabSelected(item) },
                             onPositioned = { position, width ->
                                 tabPositions[index] = position
                                 tabWidths[index] = width
@@ -557,9 +554,24 @@ private fun IconActionButton(
 }
 
 @Composable
+private fun tabItemLabel(item: LibraryTabItem, tabCounts: Map<LibraryTab, Int>): String {
+    return when (item) {
+        is LibraryTabItem.Store -> {
+            val count = tabCounts[item.tab]
+            if (count != null && count > 0) {
+                stringResource(R.string.library_tab_with_count, stringResource(item.tab.labelResId), count)
+            } else {
+                stringResource(item.tab.labelResId)
+            }
+        }
+        is LibraryTabItem.Collection -> item.name
+    }
+}
+
+@Composable
 private fun TabItem(
-    tab: LibraryTab,
-    count: Int?,
+    item: LibraryTabItem,
+    tabCounts: Map<LibraryTab, Int>,
     isSelected: Boolean,
     onClick: () -> Unit,
     onPositioned: (Float, Float) -> Unit,
@@ -578,11 +590,7 @@ private fun TabItem(
         label = "textAlpha",
     )
 
-    val label = if (count != null && count > 0) {
-        stringResource(R.string.library_tab_with_count, stringResource(tab.labelResId), count)
-    } else {
-        stringResource(tab.labelResId)
-    }
+    val label = tabItemLabel(item, tabCounts)
 
     Box(
         modifier = modifier
@@ -637,7 +645,14 @@ private fun Preview_LibraryTabBar() {
                 .padding(16.dp),
         ) {
             LibraryTabBar(
-                currentTab = LibraryTab.ALL,
+                tabs = listOf(
+                    LibraryTabItem.Store(LibraryTab.ALL),
+                    LibraryTabItem.Store(LibraryTab.INSTALLED),
+                    LibraryTabItem.Store(LibraryTab.STEAM),
+                    LibraryTabItem.Store(LibraryTab.GOG),
+                    LibraryTabItem.Store(LibraryTab.EPIC),
+                ),
+                currentItem = LibraryTabItem.Store(LibraryTab.ALL),
                 tabCounts = mapOf(
                     LibraryTab.ALL to 42,
                     LibraryTab.STEAM to 30,
@@ -666,13 +681,16 @@ private fun Preview_LibraryTabBar_Steam() {
                 .padding(16.dp),
         ) {
             LibraryTabBar(
-                currentTab = LibraryTab.STEAM,
+                tabs = listOf(
+                    LibraryTabItem.Store(LibraryTab.ALL),
+                    LibraryTabItem.Store(LibraryTab.INSTALLED),
+                    LibraryTabItem.Collection("fav", "Favorites"),
+                    LibraryTabItem.Collection("jrpg", "jrpg"),
+                ),
+                currentItem = LibraryTabItem.Store(LibraryTab.ALL),
                 tabCounts = mapOf(
                     LibraryTab.ALL to 42,
                     LibraryTab.STEAM to 30,
-                    LibraryTab.GOG to 8,
-                    LibraryTab.EPIC to 4,
-                    LibraryTab.LOCAL to 3,
                 ),
                 onTabSelected = {},
                 onOptionsClick = {},

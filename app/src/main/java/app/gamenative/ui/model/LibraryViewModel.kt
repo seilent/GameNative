@@ -32,8 +32,7 @@ import app.gamenative.ui.data.LibraryState
 import app.gamenative.ui.data.statsFor
 import app.gamenative.ui.enums.AppFilter
 import app.gamenative.ui.enums.LibraryTab
-import app.gamenative.ui.enums.LibraryTab.Companion.next
-import app.gamenative.ui.enums.LibraryTab.Companion.previous
+import app.gamenative.ui.enums.LibraryTabItem
 import app.gamenative.ui.enums.SortOption
 import app.gamenative.utils.CustomGameScanner
 import app.gamenative.data.RecommendationRepository
@@ -76,6 +75,7 @@ class LibraryViewModel @Inject constructor(
     private val gogGameDao: GOGGameDao,
     private val epicGameDao: EpicGameDao,
     private val amazonGameDao: AmazonGameDao,
+    private val steamCollectionDao: app.gamenative.db.dao.SteamCollectionDao,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -117,6 +117,12 @@ class LibraryViewModel @Inject constructor(
     private var gogGameList: List<GOGGame> = emptyList()
     private var epicGameList: List<EpicGame> = emptyList()
     private var amazonGameList: List<AmazonGame> = emptyList()
+
+    @Volatile
+    private var hiddenAppIds: Set<Int> = emptySet()
+
+    @Volatile
+    private var collectionAppIds: Map<String, Set<Int>> = emptyMap()
 
     // Track if this is the first load to apply minimum load time
     private var isFirstLoad = true
@@ -228,6 +234,38 @@ class LibraryViewModel @Inject constructor(
             }
         }
 
+        viewModelScope.launch(Dispatchers.IO) {
+            steamCollectionDao.getAllFlow().collect { collections ->
+                val hidden = collections.firstOrNull { it.isHidden }
+                val newSet = hidden?.appIds?.toSet() ?: emptySet()
+                val manual = collections
+                    .filter { !it.isHidden }
+                    .sortedBy { it.sortOrder }
+                val newTabs = manual.map { LibraryTabItem.Collection(it.id, it.name) }
+                val newAppIds = manual.associate { it.id to it.appIds.toSet() }
+                val hiddenChanged = newSet != hiddenAppIds
+                val tabsChanged = newTabs != _state.value.collectionTabs
+                hiddenAppIds = newSet
+                collectionAppIds = newAppIds
+                if (tabsChanged) {
+                    _state.update { it.copy(collectionTabs = newTabs) }
+                    refreshTabState()
+                    Timber.tag("LibraryViewModel").i(
+                        "Library tabs: %s",
+                        visibleTabItems().map {
+                            when (it) {
+                                is LibraryTabItem.Store -> it.tab.name
+                                is LibraryTabItem.Collection -> it.name
+                            }
+                        }
+                    )
+                }
+                if (hiddenChanged || tabsChanged) {
+                    onFilterApps(paginationCurrentPage)
+                }
+            }
+        }
+
         PluviaApp.events.on<AndroidEvent.LibraryInstallStatusChanged, Unit>(onInstallStatusChanged)
         PluviaApp.events.on<AndroidEvent.CustomGameImagesFetched, Unit>(onCustomGameImagesFetched)
         PluviaApp.events.on<AndroidEvent.RecommendationToggleChanged, Unit>(onRecommendationToggleChanged)
@@ -239,6 +277,8 @@ class LibraryViewModel @Inject constructor(
                 onFilterApps(paginationCurrentPage)
             }
         }
+
+        refreshTabState()
     }
 
     override fun onCleared() {
@@ -294,6 +334,13 @@ class LibraryViewModel @Inject constructor(
         onFilterApps(paginationCurrentPage)
     }
 
+    fun onToggleHiddenGames() {
+        val newValue = !_state.value.showHiddenGames
+        PrefManager.showHiddenGames = newValue
+        _state.update { it.copy(showHiddenGames = newValue) }
+        onFilterApps(paginationCurrentPage)
+    }
+
     fun onSortOptionChanged(sortOption: SortOption) {
         PrefManager.librarySortOption = sortOption
         _state.update { it.copy(currentSortOption = sortOption) }
@@ -304,31 +351,68 @@ class LibraryViewModel @Inject constructor(
         _state.update { it.copy(isOptionsPanelOpen = isOpen) }
     }
 
-    fun onTabChanged(tab: LibraryTab) {
-        val visible = LibraryTab.visibleEntries(context)
-        val safeTab = if (tab in visible) tab else LibraryTab.ALL
-        _state.update { it.copy(currentTab = safeTab) }
+    private fun isSteamOnly(): Boolean =
+        !GOGService.hasStoredCredentials(context) &&
+            !EpicService.hasStoredCredentials(context) &&
+            !AmazonService.hasStoredCredentials(context)
+
+    fun visibleTabItems(): List<LibraryTabItem> {
+        val state = _state.value
+        return if (isSteamOnly() && state.collectionTabs.isNotEmpty()) {
+            listOf(LibraryTabItem.Store(LibraryTab.ALL), LibraryTabItem.Store(LibraryTab.INSTALLED)) + state.collectionTabs
+        } else {
+            LibraryTab.visibleEntries(context).map { LibraryTabItem.Store(it) }
+        }
+    }
+
+    fun onTabChanged(item: LibraryTabItem) {
+        when (item) {
+            is LibraryTabItem.Store -> {
+                val visible = LibraryTab.visibleEntries(context)
+                val safeTab = if (item.tab in visible) item.tab else LibraryTab.ALL
+                _state.update { it.copy(currentTab = safeTab, currentCollectionId = null) }
+            }
+            is LibraryTabItem.Collection -> {
+                _state.update { it.copy(currentTab = LibraryTab.ALL, currentCollectionId = item.id) }
+            }
+        }
+        refreshTabState()
         onFilterApps(0)
+    }
+
+    fun onTabChanged(tab: LibraryTab) {
+        onTabChanged(LibraryTabItem.Store(tab))
     }
 
     fun onNextTab() {
-        val visible = LibraryTab.visibleEntries(context)
-        _state.update { currentState ->
-            val nextTab = currentState.currentTab.next(visible)
-            Timber.tag("LibraryViewModel").d("Tab next via bumper: ${currentState.currentTab} -> $nextTab")
-            currentState.copy(currentTab = nextTab)
-        }
-        onFilterApps(0)
+        val items = visibleTabItems()
+        val currentItem = currentTabItem()
+        val idx = items.indexOf(currentItem).coerceAtLeast(0)
+        val next = items[(idx + 1) % items.size]
+        Timber.tag("LibraryViewModel").d("Tab next via bumper: $currentItem -> $next")
+        onTabChanged(next)
     }
 
     fun onPreviousTab() {
-        val visible = LibraryTab.visibleEntries(context)
-        _state.update { currentState ->
-            val previousTab = currentState.currentTab.previous(visible)
-            Timber.tag("LibraryViewModel").d("Tab previous via bumper: ${currentState.currentTab} -> $previousTab")
-            currentState.copy(currentTab = previousTab)
+        val items = visibleTabItems()
+        val currentItem = currentTabItem()
+        val idx = items.indexOf(currentItem).coerceAtLeast(0)
+        val prev = items[if (idx == 0) items.size - 1 else idx - 1]
+        Timber.tag("LibraryViewModel").d("Tab previous via bumper: $currentItem -> $prev")
+        onTabChanged(prev)
+    }
+
+    private fun currentTabItem(): LibraryTabItem {
+        val s = _state.value
+        return if (s.currentCollectionId != null) {
+            s.collectionTabs.find { it.id == s.currentCollectionId } ?: LibraryTabItem.Store(s.currentTab)
+        } else {
+            LibraryTabItem.Store(s.currentTab)
         }
-        onFilterApps(0)
+    }
+
+    private fun refreshTabState() {
+        _state.update { it.copy(visibleTabItems = visibleTabItems(), currentTabItem = currentTabItem()) }
     }
 
     fun onSearchQuery(value: String) {
@@ -549,6 +633,9 @@ class LibraryViewModel @Inject constructor(
                     } else {
                         true
                     }
+                }
+                .filter { item ->
+                    currentState.showHiddenGames || item.id !in hiddenAppIds
                 }
                 .toList()
 
@@ -808,19 +895,31 @@ class LibraryViewModel @Inject constructor(
             }
 
             ensureActive()
-            val combined = buildList {
-                if (includeSteam) addAll(steamEntries)
-                if (includeOpen) addAll(customEntries)
-                if (includeGOG) addAll(gogEntries)
-                if (includeEpic) addAll(epicEntries)
-                if (includeAmazon) addAll(amazonEntries)
-            }.sortedWith(sortComparator).mapIndexed { idx, entry ->
-                entry.item.copy(index = idx, isInstalled = entry.isInstalled)
+            val collectionId = currentState.currentCollectionId
+            val combined = if (collectionId != null) {
+                val ids = collectionAppIds[collectionId] ?: emptySet()
+                steamEntries
+                    .filter { entry ->
+                        val appIdInt = entry.item.appId.removePrefix("${GameSource.STEAM.name}_").toIntOrNull()
+                        appIdInt != null && appIdInt in ids
+                    }
+                    .sortedWith(sortComparator)
+                    .mapIndexed { idx, entry -> entry.item.copy(index = idx, isInstalled = entry.isInstalled) }
+            } else {
+                buildList {
+                    if (includeSteam) addAll(steamEntries)
+                    if (includeOpen) addAll(customEntries)
+                    if (includeGOG) addAll(gogEntries)
+                    if (includeEpic) addAll(epicEntries)
+                    if (includeAmazon) addAll(amazonEntries)
+                }.sortedWith(sortComparator).mapIndexed { idx, entry ->
+                    entry.item.copy(index = idx, isInstalled = entry.isInstalled)
+                }
             }
 
             val installedOnly = currentState.currentTab.installedOnly ||
                 currentState.appInfoSortType.contains(AppFilter.INSTALLED)
-            val displayList = if (installedOnly) {
+            val displayList = if (installedOnly && collectionId == null) {
                 combined.filter { it.isInstalled }.mapIndexed { i, item -> item.copy(index = i) }
             } else {
                 combined
