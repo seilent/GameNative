@@ -56,13 +56,22 @@ jobs:
           EOF
 
       - name: Inject credentials
+        env:
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          POSTHOG_HOST: ${{ secrets.POSTHOG_HOST }}
+          STEAMGRIDDB_API_KEY: ${{ secrets.STEAMGRIDDB_API_KEY }}
+          CLOUD_PROJECT_NUMBER: ${{ secrets.CLOUD_PROJECT_NUMBER }}
         run: |
-          cat <<EOF > local.properties
-          POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}
-          POSTHOG_HOST=${{ secrets.POSTHOG_HOST }}
-          STEAMGRIDDB_API_KEY=${{ secrets.STEAMGRIDDB_API_KEY }}
-          CLOUD_PROJECT_NUMBER=${{ secrets.CLOUD_PROJECT_NUMBER }}
-          EOF
+          : > local.properties
+          add_prop() {
+            local value
+            value="$(printf '%s' "$2" | tr -d '\r\n"\\')"
+            if [ -n "$value" ]; then echo "$1=$value" >> local.properties; fi
+          }
+          add_prop POSTHOG_API_KEY "$POSTHOG_API_KEY"
+          add_prop POSTHOG_HOST "$POSTHOG_HOST"
+          add_prop STEAMGRIDDB_API_KEY "$STEAMGRIDDB_API_KEY"
+          add_prop CLOUD_PROJECT_NUMBER "$CLOUD_PROJECT_NUMBER"
 
       - name: Install Android SDK Build Tools
         run: |
@@ -73,74 +82,55 @@ jobs:
           yes | "$SDKMANAGER" --install "build-tools;34.0.0"
 
       - name: Build with Gradle
-        run: ./gradlew :app:bundleLegacyRelease :app:bundleModernRelease :app:bundleLegacyXrRelease
+        run: ./gradlew :app:bundleModernRelease
 
       - name: Stage bundles
         run: |
-          cp app/build/outputs/bundle/legacyRelease/app-legacy-release.aab app-release.aab
           cp app/build/outputs/bundle/modernRelease/app-modern-release.aab app-modern-release.aab
-          cp app/build/outputs/bundle/legacyXrRelease/app-legacyXr-release.aab app-legacy-xr-release.aab
 
       - name: Extract APKs from Bundles
         run: |
-          java -jar tools/bundletool-all-1.17.2.jar build-apks \
-            --bundle=app-release.aab \
-            --output=app-release.apks \
-            --mode=universal
-          unzip -o app-release.apks universal.apk
           java -jar tools/bundletool-all-1.17.2.jar build-apks \
             --bundle=app-modern-release.aab \
             --output=app-modern-release.apks \
             --mode=universal
           unzip -p app-modern-release.apks universal.apk > universal-modern.apk
-          java -jar tools/bundletool-all-1.17.2.jar build-apks \
-            --bundle=app-legacy-xr-release.aab \
-            --output=app-legacy-xr-release.apks \
-            --mode=universal
-          unzip -p app-legacy-xr-release.apks universal.apk > universal-legacy-xr.apk
 
-      - name: Copy lineage file
-        run: |
-          mkdir -p app/keystores
-          cp prod-debug.lineage app/keystores/prod-debug.lineage
-
-      - name: Dual sign universal APKs
+      - name: Sign modern APK
         env:
-          DEBUG_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          DEBUG_KEY_PASS: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          DEBUG_STORE_PASS: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
-          PROD_ALIAS: ${{ secrets.PROD_KEYSTORE_KEY_ALIAS }}
-          PROD_KEY_PASS: ${{ secrets.PROD_KEYSTORE_KEY_PASSWORD }}
-          PROD_STORE_PASS: ${{ secrets.PROD_KEYSTORE_STORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KS_STORE_PASS: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          KS_KEY_PASS: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
         run: |
           BUILD_TOOLS_DIR="${ANDROID_HOME}/build-tools/34.0.0"
           if [ ! -d "$BUILD_TOOLS_DIR" ]; then
             BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/34.0.0"
           fi
-          for apk in universal.apk universal-modern.apk universal-legacy-xr.apk; do
-            "${BUILD_TOOLS_DIR}/apksigner" sign \
-              --lineage app/keystores/prod-debug.lineage \
-              --ks app/keystores/keystore \
-              --ks-key-alias "$DEBUG_ALIAS" \
-              --ks-pass pass:$DEBUG_STORE_PASS \
-              --key-pass pass:$DEBUG_KEY_PASS \
-              --next-signer --ks app/keystores/prod.keystore \
-              --ks-key-alias "$PROD_ALIAS" \
-              --ks-pass pass:$PROD_STORE_PASS \
-              --key-pass pass:$PROD_KEY_PASS \
-              --out "${apk%.apk}-signed.apk" \
-              "$apk"
-            mv "${apk%.apk}-signed.apk" "$apk"
-          done
+          if [ -s app/keystores/keystore ] && [ -n "$KS_ALIAS" ]; then
+            echo "Signing with configured release keystore."
+            KS="app/keystores/keystore"; ALIAS="$KS_ALIAS"; STORE_PASS="$KS_STORE_PASS"; KEY_PASS="$KS_KEY_PASS"
+          else
+            echo "No release keystore secret set; signing with a debug keystore."
+            KS="$HOME/.android/debug.keystore"; ALIAS="androiddebugkey"; STORE_PASS="android"; KEY_PASS="android"
+            if [ ! -f "$KS" ]; then
+              mkdir -p "$HOME/.android"
+              keytool -genkeypair -v -keystore "$KS" -storetype PKCS12 \
+                -storepass android -keypass android -alias androiddebugkey \
+                -keyalg RSA -keysize 2048 -validity 10000 \
+                -dname "CN=Android Debug,O=Android,C=US"
+            fi
+          fi
+          "${BUILD_TOOLS_DIR}/apksigner" sign \
+            --ks "$KS" --ks-pass "pass:$STORE_PASS" --key-pass "pass:$KEY_PASS" --ks-key-alias "$ALIAS" \
+            --out universal-modern-signed.apk universal-modern.apk
+          mv universal-modern-signed.apk universal-modern.apk
 
       - name: Upload APKs for next job
         uses: actions/upload-artifact@v4
         with:
           name: universal-apk
           path: |
-            universal.apk
             universal-modern.apk
-            universal-legacy-xr.apk
 
   release:
     needs: build
@@ -156,26 +146,31 @@ jobs:
       - name: Rename APKs
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          mv universal.apk "gamenative-$TAG.apk"
           mv universal-modern.apk "gamenative-$TAG-modern.apk"
-          mv universal-legacy-xr.apk "gamenative-$TAG-legacy-xr.apk"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          prerelease: true
-          generate_release_notes: true
-          append_body: true
+          prerelease: false
           body: |
-            ## Downloads
-            - **`gamenative-${{ github.ref_name }}.apk`** — Standard build (Android 8–14). Recommended for most users.
-            - **`gamenative-${{ github.ref_name }}-modern.apk`** — Play Store build (Android 11+). Built for the latest Android, so **no security warning** about an outdated target. No D drive access and no custom game support; glibc not supported, external storage location moved.
-            - **`gamenative-${{ github.ref_name }}-legacy-xr.apk`** — Quest/VR sideload build. Legacy storage with all-files access and D drive support, forced landscape. Sideload only (not for the store).
+            ## Highlights
+
+            ### Glassmorphism UI
+            - Full glass redesign: frosted translucent panels over a single app-wide blurred backdrop driven by the highlighted game, with a per-game dynamic accent colour.
+            - Library grid/list, app detail page, install & manager dialogs (Steam/Epic/Amazon/Workshop), settings, dropdowns, config dialog and in-game overlays converted to glass; Material surface colours removed.
+            - Smoother library: removed redundant loading-placeholder layers and sped up large-library scrolling.
+            - Empty collection tabs (e.g. Favorites/VR with no games) are now hidden.
+
+            ### Frame Generation (LSFG)
+            - Real-frame cap with honest on-screen FPS, plus a per-game configurable real-frame cap.
+            - Reduced frame-generation judder via midpoint frame pacing and host-side vsync pacing for the SurfaceFlinger renderer.
+            - Default flow scale tuned to 0.30.
+
+            ## Download
+            - **`gamenative-${{ github.ref_name }}-modern.apk`** — Android 11+ build.
           files: |
-            gamenative-${{ github.ref_name }}.apk
             gamenative-${{ github.ref_name }}-modern.apk
-            gamenative-${{ github.ref_name }}-legacy-xr.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
