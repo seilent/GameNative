@@ -203,37 +203,6 @@ internal fun LibraryListPane(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            var shouldShowSkeletonOverlay by remember { mutableStateOf(true) }
-
-            val skeletonAlpha by animateFloatAsState(
-                targetValue = if (shouldShowSkeletonOverlay) 1f else 0f,
-                animationSpec = tween(durationMillis = 300),
-                label = "skeletonFadeOut",
-            )
-
-            LaunchedEffect(state.isLoading, state.appInfoList.size, state.totalAppsInFilter) {
-                shouldShowSkeletonOverlay = when {
-                    state.totalAppsInFilter == 0 -> false
-                    state.isLoading && state.appInfoList.isEmpty() -> true
-                    state.appInfoList.isNotEmpty() && !state.isLoading -> {
-                        delay(100)
-                        false
-                    }
-                    else -> false
-                }
-            }
-
-            val totalSkeletonCount = remember(state.showSteamInLibrary, state.showCustomGamesInLibrary, state.showGOGInLibrary, state.showEpicInLibrary, state.showAmazonInLibrary) {
-                val customCount = if (state.showCustomGamesInLibrary) PrefManager.customGamesCount else 0
-                val steamCount = if (state.showSteamInLibrary) PrefManager.steamGamesCount else 0
-                val gogInstalledCount = if (state.showGOGInLibrary && GOGService.hasStoredCredentials(context)) PrefManager.gogInstalledGamesCount else 0
-                val epicInstalledCount = if (state.showEpicInLibrary && EpicService.hasStoredCredentials(context)) PrefManager.epicInstalledGamesCount else 0
-                val amazonInstalledCount = if (state.showAmazonInLibrary && AmazonService.hasStoredCredentials(context)) PrefManager.amazonInstalledGamesCount else 0
-                val total = customCount + steamCount + gogInstalledCount + epicInstalledCount + amazonInstalledCount
-                Timber.tag("LibraryListPane").d("Skeleton calculation - Custom: $customCount, Steam: $steamCount, GOG installed: $gogInstalledCount, Epic installed: $epicInstalledCount, Amazon installed: $amazonInstalledCount, Total: $total")
-                if (total == 0) 6 else minOf(total, 20)
-            }
-
             if (state.appInfoList.isNotEmpty()) {
                 Scrollbar(
                     listState = listState,
@@ -312,38 +281,6 @@ internal fun LibraryListPane(
                                     }
                                 }
                             }
-                        }
-                    }
-                }
-            }
-
-            val skeletonListState = remember { LazyGridState() }
-            if (skeletonAlpha > 0f) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(skeletonAlpha)
-                        .pointerInteropFilter { false },
-                ) {
-                    LazyVerticalGrid(
-                        columns = columnType,
-                        state = skeletonListState,
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.spacedBy(gridSpacing),
-                        contentPadding = PaddingValues(
-                            top = 80.dp,
-                            start = horizontalPadding,
-                            end = horizontalPadding,
-                            bottom = 72.dp,
-                        ),
-                    ) {
-                        items(totalSkeletonCount) { index ->
-                            if (index > 0 && currentLayout == PaneType.LIST) {
-                                HorizontalDivider(color = GlassBorder)
-                            }
-                            GameSkeletonLoader(
-                                paneType = currentLayout,
-                            )
                         }
                     }
                 }

@@ -226,7 +226,7 @@ internal fun GridViewCard(
                         .then(gridHeroZoom),
                     contentScale = getGridContentScale(paneType),
                     image = { currentImageUrl },
-                    loading = { Box(Modifier.fillMaxSize().background(GlassFill)) },
+                    loading = {},
                     onFailure = {
                         if (imageUrls.fallback.isNotEmpty() && currentImageUrl == imageUrls.primary) {
                             currentImageUrl = imageUrls.fallback

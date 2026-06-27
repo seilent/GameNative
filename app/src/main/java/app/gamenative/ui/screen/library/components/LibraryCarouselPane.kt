@@ -488,35 +488,6 @@ internal fun LibraryCarouselPane(
                         }
                     }
                 } else if (state.isLoading) {
-                    LazyRow(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        contentPadding = PaddingValues(
-                            start = centeredHorizontalPadding,
-                            end = centeredHorizontalPadding,
-                            top = topOverlayClearance,
-                            bottom = bottomOverlayClearance,
-                        ),
-                    ) {
-                        items(6) {
-                            Box(
-                                modifier = Modifier
-                                    .width(cardWidth)
-                                    .height(itemContainerHeight),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                GameSkeletonLoader(
-                                    modifier = Modifier
-                                        .width(cardWidth)
-                                        .height(cardHeight)
-                                        .alpha(0.85f),
-                                    paneType = PaneType.GRID_CAPSULE,
-                                )
-                            }
-                        }
-                    }
                 } else {
                     CarouselEmptyState()
                 }
