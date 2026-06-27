@@ -20,11 +20,6 @@ val keystoreProperties: Properties? = if (keystorePropertiesFile.exists()) {
     }
 } else null
 
-fun javaStringLiteral(value: String): String {
-    val cleaned = value.replace("\r", "").replace("\n", "").trim()
-    return "\"" + cleaned.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
-}
-
 // Add PostHog API key and host as build-time variables
 val posthogApiKey: String = project.findProperty("POSTHOG_API_KEY") as String? ?: System.getenv("POSTHOG_API_KEY") ?: ""
 val posthogHost: String = project.findProperty("POSTHOG_HOST") as String? ?: System.getenv("POSTHOG_HOST") ?: "https://us.i.posthog.com"
@@ -76,10 +71,10 @@ android {
         fun secret(name: String) =
             project.findProperty(name) as String? ?: System.getenv(name) ?: ""
 
-        buildConfigField("String", "POSTHOG_API_KEY", javaStringLiteral(secret("POSTHOG_API_KEY")))
-        buildConfigField("String", "POSTHOG_HOST", javaStringLiteral(secret("POSTHOG_HOST")))
-        buildConfigField("String", "STEAMGRIDDB_API_KEY", javaStringLiteral(secret("STEAMGRIDDB_API_KEY")))
-        buildConfigField("String", "CLOUD_PROJECT_NUMBER", javaStringLiteral(secret("CLOUD_PROJECT_NUMBER")))
+        buildConfigField("String", "POSTHOG_API_KEY", "\"${secret("POSTHOG_API_KEY")}\"")
+        buildConfigField("String", "POSTHOG_HOST",  "\"${secret("POSTHOG_HOST")}\"")
+        buildConfigField("String", "STEAMGRIDDB_API_KEY", "\"${secret("STEAMGRIDDB_API_KEY")}\"")
+        buildConfigField("String", "CLOUD_PROJECT_NUMBER", "\"${secret("CLOUD_PROJECT_NUMBER")}\"")
         val iconValue = "@mipmap/ic_launcher"
         val iconRoundValue = "@mipmap/ic_launcher_round"
         manifestPlaceholders.putAll(
@@ -160,8 +155,8 @@ android {
             buildConfigField("String", "PRELOAD_BIONIC_SO", "\"libredirect-bionic-wx.so\"")
             buildConfigField("boolean", "XR_BUILD", "true")
             buildConfigField("boolean", "MODERN_XR", "true")
-            buildConfigField("String", "META_APP_ID", javaStringLiteral(metaAppId))
-            buildConfigField("String", "PRODUCT_SKU", javaStringLiteral(productSku))
+            buildConfigField("String", "META_APP_ID", "\"$metaAppId\"")
+            buildConfigField("String", "PRODUCT_SKU", "\"$productSku\"")
             manifestPlaceholders["screenOrientation"] = "landscape"
         }
     }

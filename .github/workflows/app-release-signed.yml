@@ -59,13 +59,19 @@ jobs:
         EOF
 
     - name: Inject credentials
+      env:
+        POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+        POSTHOG_HOST: ${{ secrets.POSTHOG_HOST }}
+        STEAMGRIDDB_API_KEY: ${{ secrets.STEAMGRIDDB_API_KEY }}
+        CLOUD_PROJECT_NUMBER: ${{ secrets.CLOUD_PROJECT_NUMBER }}
       run: |
-        cat <<EOF > local.properties
-        POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}
-        POSTHOG_HOST=${{ secrets.POSTHOG_HOST }}
-        STEAMGRIDDB_API_KEY=${{ secrets.STEAMGRIDDB_API_KEY }}
-        CLOUD_PROJECT_NUMBER=${{ secrets.CLOUD_PROJECT_NUMBER }}
-        EOF
+        sanitize() { printf '%s' "$1" | tr -d '\r\n"\\'; }
+        {
+          echo "POSTHOG_API_KEY=$(sanitize "$POSTHOG_API_KEY")"
+          echo "POSTHOG_HOST=$(sanitize "$POSTHOG_HOST")"
+          echo "STEAMGRIDDB_API_KEY=$(sanitize "$STEAMGRIDDB_API_KEY")"
+          echo "CLOUD_PROJECT_NUMBER=$(sanitize "$CLOUD_PROJECT_NUMBER")"
+        } > local.properties
 
     - name: Install Android SDK Build Tools
       run: |
