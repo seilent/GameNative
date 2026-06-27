@@ -239,7 +239,7 @@ class LibraryViewModel @Inject constructor(
                 val hidden = collections.firstOrNull { it.isHidden }
                 val newSet = hidden?.appIds?.toSet() ?: emptySet()
                 val manual = collections
-                    .filter { !it.isHidden }
+                    .filter { !it.isHidden && it.appIds.isNotEmpty() }
                     .sortedBy { it.sortOrder }
                 val newTabs = manual.map { LibraryTabItem.Collection(it.id, it.name) }
                 val newAppIds = manual.associate { it.id to it.appIds.toSet() }
