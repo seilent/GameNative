@@ -22,6 +22,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,6 +53,7 @@ import app.gamenative.R
 import app.gamenative.data.DepotInfo
 import app.gamenative.service.SteamService
 import app.gamenative.service.SteamService.Companion.INVALID_APP_ID
+import app.gamenative.ui.component.BlurredBackdrop
 import app.gamenative.ui.component.LoadingScreen
 import app.gamenative.ui.component.topbar.BackButton
 import app.gamenative.ui.data.GameDisplayInfo
@@ -297,10 +299,17 @@ fun GameManagerDialog(
                     dismissOnClickOutside = false,
                 ),
                 content = {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                    BlurredBackdrop(
+                        imageModel = displayInfo.heroImageUrl,
+                        accentKey = displayInfo.heroImageUrl,
+                        blurRadius = 28,
+                        onAccent = {},
+                        modifier = Modifier.fillMaxSize(),
+                    )
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black)
                             .verticalScroll(scrollState),
                         horizontalAlignment = Alignment.Start,
                     ) {
@@ -351,8 +360,8 @@ fun GameManagerDialog(
                                 modifier = Modifier
                                     .padding(20.dp)
                                     .background(
-                                        color = Color.Black.copy(alpha = 0.5f),
-                                        shape = RoundedCornerShape(12.dp)
+                                        color = Color.White.copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(8.dp)
                                     )
                             ) {
                                 BackButton(onClick = onDismissRequest)
@@ -426,6 +435,7 @@ fun GameManagerDialog(
                                 val enabled = enabledAppIds[dlcAppId] ?: false
 
                                 ListItem(
+                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                                     headlineContent = {
                                         Column {
                                             Text(
@@ -493,6 +503,7 @@ fun GameManagerDialog(
                                 }
                             }
                         }
+                    }
                     }
                 },
             )

@@ -41,8 +41,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import app.gamenative.ui.component.BlurredBackdrop
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -161,10 +163,17 @@ fun WorkshopManagerDialog(
             dismissOnClickOutside = false,
         ),
         content = {
+            Box(modifier = Modifier.fillMaxSize()) {
+            BlurredBackdrop(
+                imageModel = displayInfo.heroImageUrl,
+                accentKey = displayInfo.heroImageUrl,
+                blurRadius = 28,
+                onAccent = {},
+                modifier = Modifier.fillMaxSize(),
+            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black)
                     .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.Start,
             ) {
@@ -207,8 +216,8 @@ fun WorkshopManagerDialog(
                         modifier = Modifier
                             .padding(20.dp)
                             .background(
-                                color = Color.Black.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(12.dp)
+                                color = Color.White.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(8.dp)
                             )
                     ) {
                         BackButton(onClick = onDismissRequest)
@@ -403,6 +412,7 @@ fun WorkshopManagerDialog(
                                 val checked = selectedIds[item.publishedFileId] ?: false
 
                                 ListItem(
+                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                                     leadingContent = {
                                         if (item.previewUrl.isNotBlank()) {
                                             CoilImage(
@@ -512,6 +522,7 @@ fun WorkshopManagerDialog(
                         }
                     }
                 }
+            }
             }
         },
     )

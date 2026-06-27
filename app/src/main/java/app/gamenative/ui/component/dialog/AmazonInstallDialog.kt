@@ -18,6 +18,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
+import app.gamenative.ui.component.BlurredBackdrop
 import app.gamenative.ui.component.LoadingScreen
 import app.gamenative.ui.component.topbar.BackButton
 import app.gamenative.ui.data.GameDisplayInfo
@@ -81,10 +83,17 @@ fun AmazonInstallDialog(
             dismissOnClickOutside = false,
         ),
     ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+        BlurredBackdrop(
+            imageModel = displayInfo.heroImageUrl,
+            accentKey = displayInfo.heroImageUrl,
+            blurRadius = 28,
+            onAccent = {},
+            modifier = Modifier.fillMaxSize(),
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.Start,
         ) {
@@ -127,8 +136,8 @@ fun AmazonInstallDialog(
                     modifier = Modifier
                         .padding(20.dp)
                         .background(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(12.dp),
+                            color = Color.White.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(8.dp),
                         ),
                 ) {
                     BackButton(onClick = onDismiss)
@@ -167,6 +176,7 @@ fun AmazonInstallDialog(
 
             // ── Game row (mirrors Steam DLC list — single item, always selected) ──
             ListItem(
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 headlineContent = {
                     Column {
                         Text(text = displayInfo.name)
@@ -218,6 +228,7 @@ fun AmazonInstallDialog(
                     }
                 }
             }
+        }
         }
     }
 }

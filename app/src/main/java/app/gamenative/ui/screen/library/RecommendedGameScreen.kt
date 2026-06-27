@@ -45,6 +45,7 @@ import androidx.core.net.toUri
 import app.gamenative.R
 import app.gamenative.data.RecommendedGame
 import app.gamenative.ui.screen.library.components.VideoHero
+import androidx.compose.ui.graphics.Brush
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.PrefManager
@@ -78,11 +79,18 @@ internal fun RecommendedGameScreen(
                 modifier = Modifier.fillMaxSize(),
             )
 
-            // Gradient overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.40f)),
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.35f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.60f),
+                            ),
+                        ),
+                    ),
             )
 
             // Back button
@@ -90,7 +98,11 @@ internal fun RecommendedGameScreen(
                 onClick = onBack,
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(8.dp),
+                    .padding(8.dp)
+                    .background(
+                        color = Color.White.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(8.dp),
+                    ),
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,

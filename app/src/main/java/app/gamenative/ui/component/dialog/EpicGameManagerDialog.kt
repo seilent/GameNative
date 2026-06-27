@@ -21,6 +21,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import app.gamenative.ui.component.BlurredBackdrop
 import app.gamenative.ui.theme.GlassFillStrong
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -169,10 +171,17 @@ fun EpicGameManagerDialog(
                     dismissOnClickOutside = false,
                 ),
                 content = {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                    BlurredBackdrop(
+                        imageModel = displayInfo.heroImageUrl,
+                        accentKey = displayInfo.heroImageUrl,
+                        blurRadius = 28,
+                        onAccent = {},
+                        modifier = Modifier.fillMaxSize(),
+                    )
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black)
                             .verticalScroll(scrollState),
                         horizontalAlignment = Alignment.Start,
                     ) {
@@ -223,8 +232,8 @@ fun EpicGameManagerDialog(
                                 modifier = Modifier
                                     .padding(20.dp)
                                     .background(
-                                        color = Color.Black.copy(alpha = 0.5f),
-                                        shape = RoundedCornerShape(12.dp)
+                                        color = Color.White.copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(8.dp)
                                     )
                             ) {
                                 BackButton(onClick = onDismissRequest)
@@ -274,6 +283,7 @@ fun EpicGameManagerDialog(
                                 val isBaseGame = gameIdValue == gameId
 
                                 ListItem(
+                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                                     headlineContent = {
                                         Column {
                                             Text(
@@ -354,6 +364,7 @@ fun EpicGameManagerDialog(
                                 }
                             }
                         }
+                    }
                     }
                 },
             )

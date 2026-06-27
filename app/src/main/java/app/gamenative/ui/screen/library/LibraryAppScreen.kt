@@ -86,6 +86,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -870,7 +871,14 @@ private fun HeroSection(
                 .fillMaxWidth()
                 .height(120.dp)
                 .align(Alignment.TopCenter)
-                .background(color = Color.Black.copy(alpha = 0.40f)),
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.50f),
+                            Color.Transparent,
+                        ),
+                    ),
+                ),
         )
 
         // Back button (top left).
