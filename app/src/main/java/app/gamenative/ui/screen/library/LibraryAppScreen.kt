@@ -865,14 +865,6 @@ private fun HeroSection(
             }
         }
 
-        // Gradient overlay (bottom, for title/action bar)
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(color = Color.Black.copy(alpha = 0.40f)),
-        )
-
-        // Top gradient overlay (so back button is visible on light/white images)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
