@@ -97,21 +97,31 @@ jobs:
         unzip -p app-modern-release.apks universal.apk > universal-modern.apk
 
     - name: Sign modern APK
+      env:
+        KS_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+        KS_STORE_PASS: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+        KS_KEY_PASS: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
       run: |
         BUILD_TOOLS_DIR="${ANDROID_HOME}/build-tools/34.0.0"
         if [ ! -d "$BUILD_TOOLS_DIR" ]; then
           BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/34.0.0"
         fi
-        DEBUG_KS="$HOME/.android/debug.keystore"
-        if [ ! -f "$DEBUG_KS" ]; then
-          mkdir -p "$HOME/.android"
-          keytool -genkeypair -v -keystore "$DEBUG_KS" -storetype PKCS12 \
-            -storepass android -keypass android -alias androiddebugkey \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US"
+        if [ -s app/keystores/keystore ] && [ -n "$KS_ALIAS" ]; then
+          echo "Signing with configured release keystore."
+          KS="app/keystores/keystore"; ALIAS="$KS_ALIAS"; STORE_PASS="$KS_STORE_PASS"; KEY_PASS="$KS_KEY_PASS"
+        else
+          echo "No release keystore secret set; signing with a debug keystore."
+          KS="$HOME/.android/debug.keystore"; ALIAS="androiddebugkey"; STORE_PASS="android"; KEY_PASS="android"
+          if [ ! -f "$KS" ]; then
+            mkdir -p "$HOME/.android"
+            keytool -genkeypair -v -keystore "$KS" -storetype PKCS12 \
+              -storepass android -keypass android -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
         fi
         "${BUILD_TOOLS_DIR}/apksigner" sign \
-          --ks "$DEBUG_KS" --ks-pass pass:android --key-pass pass:android --ks-key-alias androiddebugkey \
+          --ks "$KS" --ks-pass "pass:$STORE_PASS" --key-pass "pass:$KEY_PASS" --ks-key-alias "$ALIAS" \
           --out universal-modern-signed.apk universal-modern.apk
         mv universal-modern-signed.apk universal-modern.apk
 
