@@ -105,6 +105,7 @@ import app.gamenative.ui.data.UserLoginState
 import app.gamenative.ui.enums.ConnectionState
 import app.gamenative.ui.model.UserLoginViewModel
 import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 /**
@@ -326,7 +327,7 @@ private fun UserLoginScreenContent(
     onLaunchEpic: () -> Unit,
     onLaunchAmazon: () -> Unit,
 ) {
-    val primaryColor = MaterialTheme.colorScheme.primary
+    val primaryColor = LocalGameAccent.current
     val tertiaryColor = MaterialTheme.colorScheme.tertiary
 
     val configuration = LocalConfiguration.current
@@ -545,28 +546,28 @@ private fun UserLoginScreenContent(
                             Text(
                                 text = "Epic",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = LocalGameAccent.current,
                             )
                         }
                         TextButton(onClick = onLaunchGog) {
                             Text(
                                 text = "GOG",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = LocalGameAccent.current,
                             )
                         }
                         TextButton(onClick = onLaunchAmazon) {
                             Text(
                                 text = "Amazon",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = LocalGameAccent.current,
                             )
                         }
                         TextButton(onClick = onContinueOffline) {
                             Text(
                                 text = stringResource(R.string.login_skip_login),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = LocalGameAccent.current,
                             )
                         }
                     }
@@ -717,7 +718,7 @@ private fun CredentialsForm(
                 ),
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = LocalGameAccent.current,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -760,7 +761,7 @@ private fun CredentialsForm(
             ),
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedBorderColor = LocalGameAccent.current,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -802,8 +803,8 @@ private fun CredentialsForm(
                 .height(48.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                containerColor = LocalGameAccent.current,
+                disabledContainerColor = LocalGameAccent.current.copy(alpha = 0.5f),
             ),
         ) {
             Text(
@@ -873,7 +874,7 @@ private fun QRCodeLogin(
                     modifier = Modifier
                         .padding(vertical = 8.dp)
                         .size(qrSize),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LocalGameAccent.current,
                 )
                 if (showInstructionText) {
                     Spacer(modifier = Modifier.height(8.dp))
@@ -892,7 +893,7 @@ private fun QRCodeLogin(
                         .padding(vertical = 8.dp)
                         .size(qrSize)
                         .background(
-                            color = MaterialTheme.colorScheme.primary,
+                            color = LocalGameAccent.current,
                             shape = RoundedCornerShape(16.dp),
                         )
                         .padding(2.dp),

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -623,7 +624,8 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             modifier = Modifier.weight(1f)
                         )
                         CircularProgressIndicator(
-                            modifier = Modifier.padding(start = 8.dp).height(24.dp)
+                            modifier = Modifier.padding(start = 8.dp).height(24.dp),
+                            color = LocalGameAccent.current,
                         )
                     }
                 } else if (manifestError != null) {
@@ -656,7 +658,8 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 
                         ExposedDropdownMenu(
                             expanded = isExpanded,
-                            onDismissRequest = { isExpanded = false }
+                            onDismissRequest = { isExpanded = false },
+                            containerColor = GlassFillStrong,
                         ) {
                             wineProtonManifest.keys.sorted().forEach { key ->
                                 DropdownMenuItem(
@@ -679,7 +682,8 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             Button(
                                 onClick = { downloadAndInstallWineProton(wineProtonManifest[selectedWineKey]!!) },
                                 enabled = !isBusy && !isDownloading && !isInstalling,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                             ) {
                                 when {
                                     isDownloading -> Text("Downloading...")
@@ -693,7 +697,8 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             Column(modifier = Modifier.padding(top = 8.dp)) {
                                 androidx.compose.material3.LinearProgressIndicator(
                                     progress = { downloadProgress },
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = LocalGameAccent.current,
                                 )
                                 Text(
                                     text = "Downloading: ${(downloadProgress * 100).toInt()}%",
@@ -714,7 +719,8 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                     modifier = Modifier.weight(1f)
                                 )
                                 CircularProgressIndicator(
-                                    modifier = Modifier.padding(start = 8.dp).height(24.dp)
+                                    modifier = Modifier.padding(start = 8.dp).height(24.dp),
+                                    color = LocalGameAccent.current,
                                 )
                             }
                         }
@@ -752,7 +758,6 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     onClick = {
                         try {
                             SteamService.isImporting = true
-                            // Only allow .wcp files
                             importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
                         } catch (e: Exception) {
                             SteamService.isImporting = false
@@ -760,7 +765,8 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                         }
                     },
                     enabled = !isBusy,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                 ) { Text(stringResource(R.string.wine_proton_import_wcp_button)) }
 
                 if (isBusy) {
@@ -768,7 +774,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(bottom = 8.dp)
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.height(20.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(modifier = Modifier.height(20.dp), strokeWidth = 2.dp, color = LocalGameAccent.current)
                         Text(text = statusMessage ?: stringResource(R.string.wine_proton_processing))
                     }
                 } else if (!statusMessage.isNullOrEmpty()) {
@@ -820,7 +826,8 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                 }
                             },
                             enabled = !isBusy,
-                            modifier = Modifier.padding(top = 8.dp)
+                            modifier = Modifier.padding(top = 8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                         ) { Text(stringResource(R.string.wine_proton_install_package)) }
                     }
                 }
@@ -902,20 +909,25 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    val profile = pendingProfile ?: return@TextButton
-                    showUntrustedConfirm = false
-                    isBusy = true
-                    scope.launch {
-                        performFinishInstall(ctx, mgr, pendingProfile!!) { msg, success ->
-                            pendingProfile = null
-                            refreshInstalled()
-                            statusMessage = msg
-                            isStatusSuccess = success
-                            isBusy = false
+                TextButton(
+                    onClick = {
+                        val profile = pendingProfile ?: return@TextButton
+                        showUntrustedConfirm = false
+                        isBusy = true
+                        scope.launch {
+                            performFinishInstall(ctx, mgr, pendingProfile!!) { msg, success ->
+                                pendingProfile = null
+                                refreshInstalled()
+                                statusMessage = msg
+                                isStatusSuccess = success
+                                isBusy = false
+                            }
                         }
-                    }
-                }) { Text(stringResource(R.string.install_anyway)) }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = LocalGameAccent.current),
+                ) {
+                    Text(stringResource(R.string.install_anyway))
+                }
             },
             dismissButton = {
                 TextButton(onClick = {

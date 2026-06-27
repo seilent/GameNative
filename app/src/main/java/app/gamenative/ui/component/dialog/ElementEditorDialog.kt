@@ -26,6 +26,7 @@ import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.component.settings.SettingsTextField
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
+import app.gamenative.ui.theme.LocalGameAccent
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.alorma.compose.settings.ui.SettingsSwitch
@@ -633,7 +634,8 @@ fun ElementEditorDialog(
                                 },
                                 valueRange = 1f..maxSegments.toFloat(),
                                 steps = (maxSegments - 2).coerceAtLeast(0),
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                             )
                             Text(
                                 text = "$currentVisibleSegments",
@@ -707,7 +709,8 @@ fun ElementEditorDialog(
                                     hasUnsavedChanges = true
                                 },
                                 valueRange = 0.1f..10.0f,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                             )
                             Text(
                                 text = String.format(Locale.US, "%.1fx", currentLookSensitivity),
@@ -738,7 +741,8 @@ fun ElementEditorDialog(
                                     hasUnsavedChanges = true
                                 },
                                 valueRange = 0.5f..3.0f,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                             )
                             Text(
                                 text = String.format(Locale.US, "%.1fx", currentJoystickSize),
@@ -967,7 +971,8 @@ private fun SizeAdjusterOverlay(
                     valueRange = 0.1f..5.0f,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(32.dp)
+                        .height(32.dp),
+                    colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                 )
 
                 // All 4 buttons in one row

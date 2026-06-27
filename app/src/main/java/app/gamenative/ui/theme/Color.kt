@@ -38,7 +38,7 @@ val PluviaCard = Color(0xFF09090B)
 
 // Foregrounds
 val PluviaForeground = Color(0xFFFAFAFA)
-val PluviaForegroundMuted = Color(0xFF94969C)
+val PluviaForegroundMuted = Color(0xFFBFC1C7)
 
 // Secondary
 val PluviaSecondary = Color(0xFF27272A)

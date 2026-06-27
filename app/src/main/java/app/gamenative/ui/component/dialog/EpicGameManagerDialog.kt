@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
@@ -196,7 +197,7 @@ fun EpicGameManagerDialog(
                                             // Gradient background as fallback
                                             Surface(
                                                 modifier = Modifier.fillMaxSize(),
-                                                color = MaterialTheme.colorScheme.primary
+                                                color = LocalGameAccent.current
                                             ) { }
                                         }
                                     },
@@ -206,7 +207,7 @@ fun EpicGameManagerDialog(
                                 // Fallback gradient background when no hero image
                                 Surface(
                                     modifier = Modifier.fillMaxSize(),
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = LocalGameAccent.current
                                 ) { }
                             }
 
@@ -304,7 +305,8 @@ fun EpicGameManagerDialog(
                                                 if (!isBaseGame) {
                                                     selectedGameIds[gameIdValue] = isChecked
                                                 }
-                                            }
+                                            },
+                                            colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                                         )
                                     },
                                     modifier = Modifier.clickable(enabled = !isBaseGame) {

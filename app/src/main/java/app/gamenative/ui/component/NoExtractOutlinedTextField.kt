@@ -18,6 +18,13 @@ import androidx.compose.ui.platform.PlatformTextInputMethodRequest
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import app.gamenative.ui.theme.LocalGameAccent
 
 /**
  * OutlinedTextField wrapper that sets IME_FLAG_NO_EXTRACT_UI on the EditorInfo.
@@ -49,15 +56,44 @@ fun NoExtractOutlinedTextField(
     minLines: Int = 1,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     shape: Shape = OutlinedTextFieldDefaults.shape,
-    colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
+    colors: TextFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = LocalGameAccent.current,
+        cursorColor = LocalGameAccent.current,
+        focusedLabelColor = LocalGameAccent.current,
+        focusedTrailingIconColor = LocalGameAccent.current,
+    ),
 ) {
     val focusManager = LocalFocusManager.current
 
-    val resolvedOptions = if (keyboardOptions.imeAction == ImeAction.Default && singleLine) {
-        keyboardOptions.copy(imeAction = ImeAction.Done)
+    val dpadEscape = if (singleLine) {
+        Modifier.onPreviewKeyEvent { e ->
+            if (e.type == KeyEventType.KeyDown) {
+                when (e.key) {
+                    Key.DirectionDown -> {
+                        focusManager.moveFocus(FocusDirection.Down)
+                        true
+                    }
+                    Key.DirectionUp -> {
+                        focusManager.moveFocus(FocusDirection.Up)
+                        true
+                    }
+                    else -> false
+                }
+            } else {
+                false
+            }
+        }
     } else {
-        keyboardOptions
+        Modifier
     }
+
+    val resolvedOptions = (
+        if (keyboardOptions.imeAction == ImeAction.Default && singleLine) {
+            keyboardOptions.copy(imeAction = ImeAction.Done)
+        } else {
+            keyboardOptions
+        }
+        ).copy(showKeyboardOnFocus = false)
 
     val resolvedActions = keyboardActions
         ?: if (singleLine) KeyboardActions(onDone = { focusManager.clearFocus() })
@@ -77,7 +113,7 @@ fun NoExtractOutlinedTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = modifier,
+            modifier = modifier.then(dpadEscape),
             enabled = enabled,
             readOnly = readOnly,
             textStyle = textStyle,

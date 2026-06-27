@@ -1,5 +1,6 @@
 package app.gamenative.ui.component.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
@@ -7,10 +8,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -37,6 +40,9 @@ import androidx.compose.ui.unit.sp
 import com.alorma.compose.settings.ui.base.internal.LocalSettingsGroupEnabled
 import com.alorma.compose.settings.ui.base.internal.SettingsTileColors
 import com.alorma.compose.settings.ui.base.internal.SettingsTileDefaults
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.GlassBorder
+import app.gamenative.ui.theme.LocalGameAccent
 import com.alorma.compose.settings.ui.base.internal.SettingsTileScaffold
 
 @Composable
@@ -61,6 +67,7 @@ fun SettingsMultiListDropdown(
 
     var isDropdownExpanded by remember { mutableStateOf(false) }
     val selectedText = if (values.isNotEmpty()) values.map { items[it] }.joinToString(", ") else fallbackDisplay
+    val accent = LocalGameAccent.current
 
     SettingsTileScaffold(
         modifier = Modifier.clickable(
@@ -99,8 +106,14 @@ fun SettingsMultiListDropdown(
         DropdownMenu(
             expanded = isDropdownExpanded,
             onDismissRequest = { isDropdownExpanded = false },
+            containerColor = GlassFillStrong,
+            shape = RoundedCornerShape(12.dp),
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp,
+            border = BorderStroke(1.dp, GlassBorder),
         ) {
             items.forEachIndexed { index, text ->
+                val isSelected = values.contains(index)
                 DropdownMenuItem(
                     enabled = enabled,
                     text = {
@@ -109,13 +122,17 @@ fun SettingsMultiListDropdown(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(text = text)
+                            Text(
+                                text = text,
+                                color = if (isSelected) accent else MaterialTheme.colorScheme.onSurface,
+                            )
                             Checkbox(
                                 enabled = enabled,
-                                checked = values.contains(index),
+                                checked = isSelected,
                                 onCheckedChange = {
                                     onItemSelected(index)
                                 },
+                                colors = CheckboxDefaults.colors(checkedColor = accent),
                             )
                         }
                     },

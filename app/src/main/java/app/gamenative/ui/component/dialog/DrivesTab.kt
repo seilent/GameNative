@@ -1,15 +1,18 @@
 package app.gamenative.ui.component.dialog
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +29,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.gamenative.R
+import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.theme.GlassBorder
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.util.SnackbarManager
 import app.gamenative.ui.component.settings.SettingsCenteredLabel
 import app.gamenative.ui.theme.settingsTileColors
@@ -37,6 +44,8 @@ import com.winlator.container.Container
 fun DrivesTabContent(state: ContainerConfigState) {
     val context = LocalContext.current
     val config = state.config.value
+    GlassSurface(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(20.dp)) {
+    Column {
     SettingsGroup() {
         if (config.drives.isNotEmpty()) {
             for (drive in Container.drivesIterator(config.drives)) {
@@ -81,6 +90,7 @@ fun DrivesTabContent(state: ContainerConfigState) {
         }
 
         SettingsMenuLink(
+            colors = settingsTileColors(),
             title = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -89,6 +99,7 @@ fun DrivesTabContent(state: ContainerConfigState) {
                     Icon(
                         imageVector = Icons.Outlined.AddCircleOutline,
                         contentDescription = "Add drive",
+                        tint = LocalGameAccent.current,
                     )
                 }
             },
@@ -102,6 +113,8 @@ fun DrivesTabContent(state: ContainerConfigState) {
                 state.showAddDriveDialog.value = true
             },
         )
+    }
+    }
     }
 
     if (state.showAddDriveDialog.value) {
@@ -130,6 +143,11 @@ fun DrivesTabContent(state: ContainerConfigState) {
                     DropdownMenu(
                         expanded = state.driveLetterMenuExpanded.value,
                         onDismissRequest = { state.driveLetterMenuExpanded.value = false },
+                        containerColor = GlassFillStrong,
+                        shape = RoundedCornerShape(12.dp),
+                        tonalElevation = 0.dp,
+                        shadowElevation = 0.dp,
+                        border = BorderStroke(1.dp, GlassBorder),
                     ) {
                         state.availableDriveLetters.forEach { letter ->
                             DropdownMenuItem(
@@ -156,6 +174,7 @@ fun DrivesTabContent(state: ContainerConfigState) {
                     enabled = state.selectedDriveLetter.value.isNotBlank() &&
                         state.availableDriveLetters.contains(state.selectedDriveLetter.value),
                     onClick = { state.launchFolderPicker() },
+                    colors = ButtonDefaults.textButtonColors(contentColor = LocalGameAccent.current),
                     content = { Text(text = stringResource(R.string.ok)) },
                 )
             },

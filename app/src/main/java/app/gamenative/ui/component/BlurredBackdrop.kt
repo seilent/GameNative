@@ -1,6 +1,6 @@
 package app.gamenative.ui.component
 
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -60,7 +63,7 @@ fun BlurredBackdrop(
             value = null
             return@produceState
         }
-        delay(150)
+        delay(60)
         value = withContext(Dispatchers.IO) {
             runCatching {
                 val cacheKey = model.toString()
@@ -98,42 +101,80 @@ fun BlurredBackdrop(
         data?.accent?.let(onAccent)
     }
 
+    var base by remember { mutableStateOf<BackdropData?>(null) }
+    var incoming by remember { mutableStateOf<BackdropData?>(null) }
+    val incomingAlpha = remember { Animatable(0f) }
+    LaunchedEffect(data) {
+        val target = data
+        when {
+            target == null -> {
+                base = null
+                incoming = null
+                incomingAlpha.snapTo(0f)
+            }
+            base == null -> {
+                base = target
+                incoming = null
+                incomingAlpha.snapTo(0f)
+            }
+            target != base -> {
+                incoming = target
+                incomingAlpha.snapTo(0f)
+                incomingAlpha.animateTo(1f, animationSpec = Motion.BackdropCrossfade)
+                base = target
+                incoming = null
+                incomingAlpha.snapTo(0f)
+            }
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(PluviaBackground),
     ) {
-        Crossfade(
-            targetState = data,
-            animationSpec = Motion.BackdropCrossfade,
-            label = "blurred_backdrop",
-        ) { state ->
-            if (state != null) {
-                Image(
-                    bitmap = state.image,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            scaleX = 1.15f
-                            scaleY = 1.15f
-                        },
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(Color(0xFF1A1025), PluviaBackground),
-                            ),
+        val baseData = base
+        if (baseData != null) {
+            Image(
+                bitmap = baseData.image,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = 1.15f
+                        scaleY = 1.15f
+                    },
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(Color(0xFF1A1025), PluviaBackground),
                         ),
-                )
-            }
+                    ),
+            )
         }
 
-        // Scrims (adapted from LibraryDynamicBackdrop) keep glass content legible over bright art.
+        val incomingData = incoming
+        if (incomingData != null) {
+            Image(
+                bitmap = incomingData.image,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = 1.15f
+                        scaleY = 1.15f
+                        alpha = incomingAlpha.value
+                    },
+            )
+        }
+
+        // Scrim keeps glass content legible over bright art.
         Box(
             Modifier
                 .fillMaxSize()

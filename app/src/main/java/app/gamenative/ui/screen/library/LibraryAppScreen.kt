@@ -624,6 +624,13 @@ internal fun AppScreenContent(
         playButtonFocusRequester.requestFocus()
     }
 
+    LaunchedEffect(optionsMenuVisible) {
+        if (!optionsMenuVisible) {
+            kotlinx.coroutines.delay(50)
+            runCatching { playButtonFocusRequester.requestFocus() }
+        }
+    }
+
     // Button state calculations (needed by key event handler)
     val isResume = !isDownloading && hasPartialDownload
     val pauseResumeEnabled = if (isResume) downloadAllowed else true
@@ -1097,17 +1104,6 @@ private fun ActionBarOverlay(
             }
             }
         }
-
-        // Compatibility status (if applicable)
-        if (displayInfo.compatibilityMessage != null && displayInfo.compatibilityColor != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Icon(
-                imageVector = Icons.Rounded.Verified,
-                contentDescription = displayInfo.compatibilityMessage,
-                tint = Color(displayInfo.compatibilityColor),
-                modifier = Modifier.size(18.dp),
-            )
-        }
     }
 }
 
@@ -1166,11 +1162,24 @@ private fun InfoSection(
         }
 
         // Game information section
-        Text(
-            text = stringResource(R.string.game_information),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+        Row(
             modifier = Modifier.padding(bottom = 12.dp),
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.game_information),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            )
+            if (displayInfo.compatibilityMessage != null && displayInfo.compatibilityColor != null) {
+                Icon(
+                    imageVector = Icons.Rounded.Verified,
+                    contentDescription = displayInfo.compatibilityMessage,
+                    tint = accent,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        }
 
         // Info cards in 2-column grid
         Row(
@@ -1402,6 +1411,7 @@ fun GameMigrationDialog(
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
                     progress = { progress },
+                    color = LocalGameAccent.current,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

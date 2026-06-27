@@ -78,7 +78,7 @@ fun TwoFactorAuthScreenContent(
         )
 
         if (userLoginState.loginResult == LoginResult.DeviceConfirm) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = LocalGameAccent.current)
             Spacer(modifier = Modifier.height(16.dp))
             TextButton(
                 onClick = onUseGuardTotp
@@ -105,8 +105,8 @@ fun TwoFactorAuthScreenContent(
                     .height(48.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    containerColor = LocalGameAccent.current,
+                    disabledContainerColor = LocalGameAccent.current.copy(alpha = 0.5f),
                 ),
                 content = {
                     Text(

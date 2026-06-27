@@ -92,7 +92,7 @@ private fun rememberOptionItemStyle(
     val contentColor by animateColorAsState(
         targetValue = when {
             isFocused -> MaterialTheme.colorScheme.onSurface
-            selected -> LocalGameAccent.current
+            selected -> MaterialTheme.colorScheme.onSurface
             else -> MaterialTheme.colorScheme.onSurfaceVariant
         },
         animationSpec = Motion.AccentColor,

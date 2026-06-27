@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -102,7 +103,7 @@ fun AmazonInstallDialog(
                         failure = {
                             Surface(
                                 modifier = Modifier.fillMaxSize(),
-                                color = MaterialTheme.colorScheme.primary,
+                                color = LocalGameAccent.current,
                             ) {}
                         },
                         previewPlaceholder = painterResource(R.drawable.testhero),
@@ -110,7 +111,7 @@ fun AmazonInstallDialog(
                 } else {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = LocalGameAccent.current,
                     ) {}
                 }
 
@@ -181,6 +182,7 @@ fun AmazonInstallDialog(
                         checked = true,
                         enabled = false,
                         onCheckedChange = null,
+                        colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                     )
                 },
             )

@@ -282,12 +282,12 @@ fun SupportersDialogPreview() {
                                 Icon(
                                     imageVector = Icons.Default.Brush,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = LocalGameAccent.current,
                                 )
                                 Text(
                                     text = stringResource(R.string.supporters_art_credits),
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = LocalGameAccent.current,
                                 )
                             }
 
@@ -322,12 +322,12 @@ fun SupportersDialogPreview() {
                                 Icon(
                                     imageVector = Icons.Default.Person,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = LocalGameAccent.current,
                                 )
                                 Text(
                                     text = stringResource(R.string.supporters_members),
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = LocalGameAccent.current,
                                 )
                             }
 
@@ -362,12 +362,12 @@ fun SupportersDialogPreview() {
                                 Icon(
                                     imageVector = Icons.Default.VolunteerActivism,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = LocalGameAccent.current,
                                 )
                                 Text(
                                     text = stringResource(R.string.supporters_supporters),
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = LocalGameAccent.current,
                                 )
                             }
 

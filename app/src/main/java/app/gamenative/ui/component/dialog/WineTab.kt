@@ -1,9 +1,16 @@
 package app.gamenative.ui.component.dialog
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import app.gamenative.R
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.component.settings.SettingsListDropdownSearchable
 import app.gamenative.ui.theme.settingsTileColors
@@ -16,6 +23,8 @@ import com.winlator.core.StringUtils
 fun WineTabContent(state: ContainerConfigState) {
     val config = state.config.value
     val gpuCardsValues = state.gpuCards.values.toList()
+    GlassSurface(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(20.dp)) {
+    Column {
     SettingsGroup() {
         SettingsListDropdownSearchable(
             colors = settingsTileColors(),
@@ -84,5 +93,7 @@ fun WineTabContent(state: ContainerConfigState) {
                 state.config.value = config.copy(mouseWarpOverride = state.mouseWarps[it].lowercase())
             },
         )
+    }
+    }
     }
 }

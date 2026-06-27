@@ -13,9 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.data.GameCompatibilityStatus
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 /**
@@ -32,14 +34,15 @@ fun CompatibilityBadge(
     status: GameCompatibilityStatus,
     modifier: Modifier = Modifier,
     showLabel: Boolean = false,
+    size: Dp = 18.dp,
 ) {
     val badgeStyle = getBadgeStyle(status)
 
     Icon(
         imageVector = badgeStyle.icon,
         contentDescription = stringResource(badgeStyle.labelResId),
-        tint = badgeStyle.iconTint,
-        modifier = modifier.size(18.dp),
+        tint = LocalGameAccent.current,
+        modifier = modifier.size(size),
     )
 }
 

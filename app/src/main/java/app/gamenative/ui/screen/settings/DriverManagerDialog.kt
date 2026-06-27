@@ -25,6 +25,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -291,7 +292,8 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                         )
                         CircularProgressIndicator(
                             modifier = Modifier.height(20.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
+                            color = LocalGameAccent.current,
                         )
                     }
                 } else if (manifestError != null) {
@@ -326,7 +328,8 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 
                         ExposedDropdownMenu(
                             expanded = isExpanded,
-                            onDismissRequest = { isExpanded = false }
+                            onDismissRequest = { isExpanded = false },
+                            containerColor = GlassFillStrong,
                         ) {
                             driverManifest.keys.forEach { driverKey ->
                                 DropdownMenuItem(
@@ -348,7 +351,8 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                         ) {
                             Button(
                                 onClick = { downloadAndInstallDriver(driverManifest[selectedDriverKey]!!) },
-                                enabled = !isDownloading && !isImporting
+                                enabled = !isDownloading && !isImporting,
+                                colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                             ) {
                                 Text(stringResource(R.string.download))
                             }
@@ -356,7 +360,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             if (isDownloading) {
                                 if (totalBytes > 0) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        LinearProgressIndicator(progress = downloadProgress)
+                                        LinearProgressIndicator(progress = downloadProgress, color = LocalGameAccent.current)
                                         Row(
                                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                                             modifier = Modifier
@@ -370,7 +374,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                     }
                                 } else {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        LinearProgressIndicator() // indeterminate when total unknown
+                                        LinearProgressIndicator(color = LocalGameAccent.current) // indeterminate when total unknown
                                         Row(
                                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                                             modifier = Modifier
@@ -389,7 +393,8 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                 ) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.height(24.dp),
-                                        strokeWidth = 2.dp
+                                        strokeWidth = 2.dp,
+                                        color = LocalGameAccent.current,
                                     )
                                     Text(text = stringResource(R.string.installing))
                                 }
@@ -413,7 +418,8 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                         launcher.launch(arrayOf("application/zip", "application/x-zip-compressed"))
                     },
                     enabled = !isImporting && !isDownloading,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                 ) {
                     Text(stringResource(R.string.import_zip_from_device))
                 }
@@ -430,7 +436,8 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                         )
                         CircularProgressIndicator(
                             modifier = Modifier.height(20.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
+                            color = LocalGameAccent.current,
                         )
                     }
                 }

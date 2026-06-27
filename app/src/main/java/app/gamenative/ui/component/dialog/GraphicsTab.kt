@@ -1,9 +1,12 @@
 package app.gamenative.ui.component.dialog
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,11 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.component.settings.SettingsListDropdownSearchable
 import app.gamenative.ui.component.settings.SettingsMultiListDropdown
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.utils.LsfgVkManager
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsSwitch
@@ -32,6 +37,8 @@ import kotlin.math.roundToInt
 @Composable
 fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
     val config = state.config.value
+    GlassSurface(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(20.dp)) {
+    Column {
     SettingsGroup() {
         if (config.containerVariant.equals(Container.BIONIC, ignoreCase = true)) {
             // Bionic: Graphics Driver (Wrapper/Wrapper-v2)
@@ -48,6 +55,7 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
             // Bionic: Graphics Driver Version (stored in graphicsDriverConfig.version; list from manifest + installed)
             SettingsListDropdownSearchable(
                 colors = settingsTileColors(),
+                searchable = false,
                 title = { Text(text = stringResource(R.string.graphics_driver_version)) },
                 value = state.wrapperVersionIndex.value.coerceIn(0, (state.wrapperOptions.labels.size - 1).coerceAtLeast(0)),
                 items = state.wrapperOptions.labels,
@@ -210,6 +218,7 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
                             state.config.value = config.copy(sharpnessLevel = clamped)
                         },
                         valueRange = 0f..100f,
+                        colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                     )
                     Text(text = "${state.sharpnessLevel.value}%")
                 }
@@ -223,6 +232,7 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
                             state.config.value = config.copy(sharpnessDenoise = clamped)
                         },
                         valueRange = 0f..100f,
+                        colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                     )
                     Text(text = "${state.sharpnessDenoise.value}%")
                 }
@@ -345,6 +355,8 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
                 state.config.value = config.copy(useDRI3 = it)
             },
         )
+    }
+    }
     }
 }
 

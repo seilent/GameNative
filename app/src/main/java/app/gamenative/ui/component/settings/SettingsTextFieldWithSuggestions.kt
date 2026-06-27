@@ -1,8 +1,10 @@
 package app.gamenative.ui.component.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material3.DropdownMenu
@@ -23,10 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.alorma.compose.settings.ui.base.internal.LocalSettingsGroupEnabled
 import com.alorma.compose.settings.ui.base.internal.SettingsTileColors
 import com.alorma.compose.settings.ui.base.internal.SettingsTileDefaults
 import com.alorma.compose.settings.ui.base.internal.SettingsTileScaffold
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.GlassBorder
+import app.gamenative.ui.theme.LocalGameAccent
 
 /**
  * A text field that also offers a dropdown of preset suggestions.
@@ -49,6 +55,7 @@ fun SettingsTextFieldWithSuggestions(
 ) {
     val focusRequester = remember { FocusRequester() }
     var suggestionsExpanded by remember { mutableStateOf(false) }
+    val accent = LocalGameAccent.current
 
     SettingsTileScaffold(
         modifier = Modifier
@@ -81,6 +88,11 @@ fun SettingsTextFieldWithSuggestions(
                     DropdownMenu(
                         expanded = suggestionsExpanded,
                         onDismissRequest = { suggestionsExpanded = false },
+                        containerColor = GlassFillStrong,
+                        shape = RoundedCornerShape(12.dp),
+                        tonalElevation = 0.dp,
+                        shadowElevation = 0.dp,
+                        border = BorderStroke(1.dp, GlassBorder),
                     ) {
                         suggestions.forEach { suggestion ->
                                             // suggestion box headers
@@ -98,8 +110,14 @@ fun SettingsTextFieldWithSuggestions(
                                                     enabled = false,
                                                 )
                                             } else {
+                                                val isSelected = suggestion == value
                                                 DropdownMenuItem(
-                                                    text = { Text(suggestion) },
+                                                    text = {
+                                                        Text(
+                                                            suggestion,
+                                                            color = if (isSelected) accent else MaterialTheme.colorScheme.onSurface,
+                                                        )
+                                                    },
                                                     onClick = {
                                                         onValueChange(suggestion)
                                                         suggestionsExpanded = false

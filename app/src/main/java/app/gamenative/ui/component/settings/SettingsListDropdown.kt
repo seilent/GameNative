@@ -1,11 +1,13 @@
 package app.gamenative.ui.component.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
@@ -36,6 +38,9 @@ import com.alorma.compose.settings.ui.base.internal.LocalSettingsGroupEnabled
 import com.alorma.compose.settings.ui.base.internal.SettingsTileColors
 import com.alorma.compose.settings.ui.base.internal.SettingsTileDefaults
 import com.alorma.compose.settings.ui.base.internal.SettingsTileScaffold
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.GlassBorder
+import app.gamenative.ui.theme.LocalGameAccent
 
 @Composable
 fun SettingsListDropdown(
@@ -56,6 +61,7 @@ fun SettingsListDropdown(
 ) {
     var isDropdownExpanded by remember { mutableStateOf(false) }
     val selectedText = if (value >= 0 && value < items.size) items[value] else fallbackDisplay
+    val accent = LocalGameAccent.current
 
     SettingsTileScaffold(
         modifier = Modifier.clickable(
@@ -94,13 +100,19 @@ fun SettingsListDropdown(
         DropdownMenu(
             expanded = isDropdownExpanded,
             onDismissRequest = { isDropdownExpanded = false },
+            containerColor = GlassFillStrong,
+            shape = RoundedCornerShape(12.dp),
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp,
+            border = BorderStroke(1.dp, GlassBorder),
         ) {
             items.forEachIndexed { index, text ->
                 val isMuted = itemMuted?.getOrNull(index) == true
-                val textColor = if (isMuted) {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                } else {
-                    MaterialTheme.colorScheme.onSurface
+                val isSelected = index == value
+                val textColor = when {
+                    isSelected -> accent
+                    isMuted -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    else -> MaterialTheme.colorScheme.onSurface
                 }
                 DropdownMenuItem(
                     enabled = enabled,

@@ -52,6 +52,7 @@ import app.gamenative.ui.data.LibraryState
 import app.gamenative.ui.data.statsFor
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.internal.fakeAppInfo
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.AdaptivePadding
 import app.gamenative.ui.util.WindowWidthClass
@@ -232,6 +233,7 @@ internal fun LibraryListPane(
                 Scrollbar(
                     listState = listState,
                     modifier = Modifier.fillMaxSize(),
+                    totalItemsOverride = state.totalAppsInFilter,
                 ) {
                     PullToRefreshBox(
                         isRefreshing = state.isRefreshing,
@@ -291,7 +293,7 @@ internal fun LibraryListPane(
                                             .padding(16.dp),
                                         contentAlignment = Alignment.Center,
                                     ) {
-                                        CircularProgressIndicator()
+                                        CircularProgressIndicator(color = LocalGameAccent.current)
                                     }
                                 }
                             }

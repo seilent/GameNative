@@ -3,6 +3,8 @@ package app.gamenative.ui.component.settings
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import app.gamenative.ui.theme.LocalGameAccent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -37,6 +39,10 @@ fun SettingsSwitchWithAction(
                     enabled = enabled,
                     checked = state,
                     onCheckedChange = onCheckedChange,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = LocalGameAccent.current,
+                        checkedTrackColor = LocalGameAccent.current.copy(alpha = 0.5f),
+                    ),
                 )
                 action?.invoke()
             }

@@ -1,6 +1,7 @@
 package app.gamenative.ui.component.dialog
 
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ViewList
@@ -42,6 +44,8 @@ import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import app.gamenative.ui.component.settings.SettingsEnvVars
+import app.gamenative.ui.theme.GlassBorder
+import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.settingsTileColors
 import com.winlator.core.StringUtils
 import com.winlator.core.envvars.EnvVarInfo
@@ -134,6 +138,11 @@ fun FEXCorePresetsDialog(
                             DropdownMenu(
                                 expanded = showPresets,
                                 onDismissRequest = { showPresets = false },
+                                containerColor = GlassFillStrong,
+                                shape = RoundedCornerShape(12.dp),
+                                tonalElevation = 0.dp,
+                                shadowElevation = 0.dp,
+                                border = BorderStroke(1.dp, GlassBorder),
                             ) {
                                 for (preset in getPresets()) {
                                     DropdownMenuItem(

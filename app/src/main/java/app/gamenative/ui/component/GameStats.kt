@@ -94,7 +94,7 @@ private fun StatItem(
         val textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp)
         Text(
             text = value,
-            style = if (onDark) textStyle.copy(shadow = Shadow(color = Color.Black, blurRadius = 2f)) else textStyle,
+            style = if (onDark) textStyle.copy(shadow = Shadow(color = Color.Black, blurRadius = 6f)) else textStyle,
             color = tint,
             fontWeight = FontWeight.Normal,
             maxLines = 1,

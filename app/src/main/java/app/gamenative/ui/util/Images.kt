@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
@@ -34,6 +35,7 @@ internal fun ListItemImage(
     contentScale: ContentScale = ContentScale.Fit,
     image: () -> Any?,
     onFailure: () -> Unit = {},
+    loading: @Composable () -> Unit = { CircularProgressIndicator(color = LocalGameAccent.current) },
 ) {
     CoilImage(
         modifier = modifier
@@ -45,7 +47,7 @@ internal fun ListItemImage(
             contentDescription = contentDescription,
         ),
         loading = {
-            CircularProgressIndicator()
+            loading()
         },
         failure = {
             onFailure()
@@ -72,7 +74,7 @@ internal fun SteamIconImage(
             contentDescription = contentDescription,
         ),
         loading = {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = LocalGameAccent.current)
         },
         failure = {
             Icon(Icons.Default.AccountCircle, null)
@@ -90,7 +92,7 @@ fun EmoticonImage(
         modifier = Modifier.size(size),
         imageModel = image,
         loading = {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = LocalGameAccent.current)
         },
         failure = {
             Icon(Icons.Filled.QuestionMark, null)

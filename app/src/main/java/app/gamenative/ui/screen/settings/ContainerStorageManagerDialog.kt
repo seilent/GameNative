@@ -497,7 +497,7 @@ fun ContainerStorageManagerContent(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = LocalGameAccent.current)
                         Text(
                             text = stringResource(R.string.container_storage_loading),
                             style = MaterialTheme.typography.bodyMedium,

@@ -59,6 +59,7 @@ fun Scrollbar(
     thumbWidthExpanded: Dp = 10.dp,
     thumbMinHeightDp: Dp = 48.dp,
     hideDelay: Long = 1500L,
+    totalItemsOverride: Int? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -78,7 +79,8 @@ fun Scrollbar(
 
     // Read layout info directly
     val layoutInfo = listState.layoutInfo
-    val totalItemsCount = layoutInfo.totalItemsCount
+    val loadedItemsCount = layoutInfo.totalItemsCount
+    val totalItemsCount = (totalItemsOverride ?: loadedItemsCount).coerceAtLeast(loadedItemsCount)
     val visibleItemsInfo = layoutInfo.visibleItemsInfo
     val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
     val isScrollInProgress = listState.isScrollInProgress
@@ -223,7 +225,7 @@ fun Scrollbar(
                         detectTapGestures { offset ->
                             val targetProgress = (offset.y / containerHeight).coerceIn(0f, 1f)
                             val targetRow = (targetProgress * (totalRows - 1)).roundToInt()
-                            val targetIndex = (targetRow * columnsCount).coerceIn(0, totalItemsCount - 1)
+                            val targetIndex = (targetRow * columnsCount).coerceIn(0, loadedItemsCount - 1)
                             scope.launch {
                                 listState.animateScrollToItem(targetIndex)
                             }
@@ -235,7 +237,7 @@ fun Scrollbar(
                                 // Cache grid parameters at drag start
                                 dragColumnsCount = columnsCount
                                 dragTotalRows = totalRows
-                                dragTotalItems = totalItemsCount
+                                dragTotalItems = loadedItemsCount
                                 dragProgress = scrollProgress
                                 isDragging = true
                                 isVisible = true

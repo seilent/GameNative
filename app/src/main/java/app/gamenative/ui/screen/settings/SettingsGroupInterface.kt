@@ -66,6 +66,7 @@ import android.widget.ImageView
 import app.gamenative.utils.IconSwitcher
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
@@ -116,6 +117,7 @@ private fun FrontendSyncResyncButton() {
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 strokeWidth = 2.dp,
+                color = LocalGameAccent.current,
             )
         } else {
             Icon(
@@ -495,6 +497,7 @@ fun SettingsGroupInterface(
                 },
                 valueRange = 0f..3f,
                 steps = 2, // Creates exactly 4 positions: 0, 1, 2, 3
+                colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
             )
             // Labels below slider
             Row(

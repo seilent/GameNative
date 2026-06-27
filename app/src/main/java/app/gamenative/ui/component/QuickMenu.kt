@@ -1221,7 +1221,7 @@ private fun QuickMenuCloseButton(
                             2.dp,
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
+                                    LocalGameAccent.current,
                                     MaterialTheme.colorScheme.tertiary,
                                 ),
                             ),
@@ -1235,7 +1235,7 @@ private fun QuickMenuCloseButton(
             .clip(shape)
             .background(
                 if (isFocused) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    LocalGameAccent.current.copy(alpha = 0.12f)
                 } else {
                     Color.Transparent
                 },
@@ -1252,7 +1252,7 @@ private fun QuickMenuCloseButton(
             imageVector = Icons.Default.Close,
             contentDescription = stringResource(R.string.quick_menu_back),
             tint = if (isFocused) {
-                MaterialTheme.colorScheme.primary
+                LocalGameAccent.current
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant
             },
@@ -1285,7 +1285,7 @@ private fun QuickMenuTabButton(
                             2.dp,
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
+                                    LocalGameAccent.current,
                                     MaterialTheme.colorScheme.tertiary,
                                 ),
                             ),
@@ -1957,7 +1957,7 @@ private fun QuickMenuItemRow(
     val accentColor = if (item.accentColor != Color.Unspecified) {
         item.accentColor
     } else {
-        MaterialTheme.colorScheme.primary
+        LocalGameAccent.current
     }
 
     val disabledAlpha = 0.4f
@@ -1973,7 +1973,7 @@ private fun QuickMenuItemRow(
                             2.dp,
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
+                                    LocalGameAccent.current,
                                     MaterialTheme.colorScheme.tertiary,
                                 ),
                             ),

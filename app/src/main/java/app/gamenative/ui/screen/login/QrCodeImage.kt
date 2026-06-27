@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
@@ -72,7 +73,7 @@ fun QrCodeImage(
                     modifier = Modifier.size(size),
                 )
             } else {
-                CircularProgressIndicator(modifier = Modifier.size(92.dp))
+                CircularProgressIndicator(modifier = Modifier.size(92.dp), color = LocalGameAccent.current)
             }
         }
     }

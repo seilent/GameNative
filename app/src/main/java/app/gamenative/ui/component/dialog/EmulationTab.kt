@@ -1,10 +1,17 @@
 package app.gamenative.ui.component.dialog
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import app.gamenative.R
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.theme.settingsTileColors
 import com.alorma.compose.settings.ui.SettingsGroup
@@ -19,6 +26,8 @@ fun EmulationTabContent(state: ContainerConfigState) {
     val wineIsX8664 = config.wineVersion.contains("x86_64", true)
     val wineIsArm64Ec = config.wineVersion.contains("arm64ec", true)
 
+    GlassSurface(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(20.dp)) {
+    Column {
     SettingsGroup() {
         if (config.containerVariant.equals(Container.BIONIC, ignoreCase = true)) {
             if (wineIsArm64Ec) {
@@ -145,5 +154,7 @@ fun EmulationTabContent(state: ContainerConfigState) {
                 },
             )
         }
+    }
+    }
     }
 }

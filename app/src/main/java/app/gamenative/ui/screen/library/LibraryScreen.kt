@@ -31,6 +31,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
@@ -101,6 +102,7 @@ import app.gamenative.ui.screen.auth.AmazonOAuthActivity
 import app.gamenative.ui.screen.auth.EpicOAuthActivity
 import app.gamenative.ui.screen.auth.GOGOAuthActivity
 import app.gamenative.ui.screen.library.components.SystemMenu
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.PlatformAuthUiHelpers
 import app.gamenative.ui.util.PlatformLogoutCallbacks
@@ -365,9 +367,13 @@ private fun LibraryScreenContent(
         if (currentPaneType == PaneType.CAROUSEL) {
             currentCarouselFocusTargetIndex()
         } else {
-            // Restore the last highlighted game (not just the first visible one) so dpad after a
-            // touch interaction returns the selector to where it was.
-            gridFocusTargetListIndex.coerceIn(0, state.appInfoList.lastIndex.coerceAtLeast(0))
+            val lastIndex = state.appInfoList.lastIndex.coerceAtLeast(0)
+            val target = gridFocusTargetListIndex.coerceIn(0, lastIndex)
+            if (listState.layoutInfo.visibleItemsInfo.any { it.index == target }) {
+                target
+            } else {
+                firstVisibleContentIndex()
+            }
         }
 
     fun requestGridFocusOrDefer() {
@@ -631,10 +637,7 @@ private fun LibraryScreenContent(
             !state.isSearching &&
             state.appInfoList.isNotEmpty() &&
             (now - lastBootstrapAtMs) > 250L
-        // Bootstrap when nothing (or only the root) is focused, OR whenever a controller input
-        // arrives while in touch mode (restore the selector to the last highlighted game).
-        val needsFocus = (controllerBootstrapNeeded && (!rootHasFocus || rootSelfFocused)) ||
-            inputModeManager.inputMode == InputMode.Touch
+        val needsFocus = !rootHasFocus || rootSelfFocused
         ready && needsFocus
     }
     val canNavigateTabsWithoutFocus: () -> Boolean = {
@@ -908,7 +911,7 @@ private fun LibraryScreenContent(
             }
     ) {
         LaunchedEffect(backdropImageUrl) {
-            kotlinx.coroutines.delay(180)
+            kotlinx.coroutines.delay(300)
             onGameBackdrop(backdropImageUrl)
         }
 
@@ -1209,6 +1212,7 @@ private fun LibraryScreenContent(
                             Checkbox(
                                 checked = dontShowAgain,
                                 onCheckedChange = { dontShowAgain = it },
+                                colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(

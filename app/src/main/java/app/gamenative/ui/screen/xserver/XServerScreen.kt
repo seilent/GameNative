@@ -22,12 +22,14 @@ import android.view.InputDevice
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import app.gamenative.BuildConfig
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,6 +67,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import app.gamenative.R
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.util.SnackbarManager
 import app.gamenative.ui.util.applyScreenEffectsConfig
 import app.gamenative.ui.util.loadScreenEffectsConfig
@@ -2816,7 +2820,12 @@ private fun EditModeToolbar(
                 if (knownProfiles.isNotEmpty()) {
                     DropdownMenu(
                         expanded = duplicateProfileOpen,
-                        onDismissRequest = { duplicateProfileOpen = false }
+                        onDismissRequest = { duplicateProfileOpen = false },
+                        containerColor = GlassFillStrong,
+                        shape = RoundedCornerShape(12.dp),
+                        tonalElevation = 0.dp,
+                        shadowElevation = 0.dp,
+                        border = BorderStroke(1.dp, GlassBorder),
                     ) {
                         for (knownProfile in knownProfiles) {
                             DropdownMenuItem(

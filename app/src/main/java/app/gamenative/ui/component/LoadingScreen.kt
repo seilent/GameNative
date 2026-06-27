@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 @Composable
@@ -20,7 +21,7 @@ fun LoadingScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         content = {
-            CircularProgressIndicator(modifier = Modifier.size(64.dp))
+            CircularProgressIndicator(modifier = Modifier.size(64.dp), color = LocalGameAccent.current)
         },
     )
 }

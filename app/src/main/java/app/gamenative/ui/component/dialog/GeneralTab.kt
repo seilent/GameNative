@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.gamenative.R
 import app.gamenative.ui.component.NoExtractOutlinedTextField
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.settings.SettingsListDropdown
 import com.alorma.compose.settings.ui.SettingsSwitch
 import app.gamenative.ui.theme.settingsTileColors
@@ -137,6 +139,8 @@ fun GeneralTabContent(
         )
     }
 
+    GlassSurface(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(20.dp)) {
+    Column {
     SettingsGroup() {
         run {
             val variantIndex = rememberSaveable {
@@ -432,5 +436,7 @@ fun GeneralTabContent(
                 state.config.value = config.copy(suspendPolicy = policy)
             },
         )
+    }
+    }
     }
 }

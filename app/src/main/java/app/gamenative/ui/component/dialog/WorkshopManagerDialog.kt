@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.SnippetFolder
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -60,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -180,7 +182,7 @@ fun WorkshopManagerDialog(
                             failure = {
                                 Surface(
                                     modifier = Modifier.fillMaxSize(),
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = LocalGameAccent.current
                                 ) { }
                             },
                             previewPlaceholder = painterResource(R.drawable.testhero),
@@ -188,7 +190,7 @@ fun WorkshopManagerDialog(
                     } else {
                         Surface(
                             modifier = Modifier.fillMaxSize(),
-                            color = MaterialTheme.colorScheme.primary
+                            color = LocalGameAccent.current
                         ) { }
                     }
 
@@ -271,7 +273,7 @@ fun WorkshopManagerDialog(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    CircularProgressIndicator()
+                                    CircularProgressIndicator(color = LocalGameAccent.current)
                                     Text(
                                         text = "Loading subscribed mods...",
                                         modifier = Modifier.padding(top = 16.dp),
@@ -386,7 +388,7 @@ fun WorkshopManagerDialog(
                                     text = modFolderDisplay,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = if (workshopModPath.isNotEmpty()) {
-                                        MaterialTheme.colorScheme.primary
+                                        LocalGameAccent.current
                                     } else {
                                         MaterialTheme.colorScheme.onSurfaceVariant
                                     },
@@ -455,7 +457,8 @@ fun WorkshopManagerDialog(
                                             checked = checked,
                                             onCheckedChange = { isChecked ->
                                                 selectedIds[item.publishedFileId] = isChecked
-                                            }
+                                            },
+                                            colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                                         )
                                     },
                                     modifier = Modifier.clickable {
@@ -650,13 +653,13 @@ private fun FolderPickerDialog(
                                     Icons.Default.FolderOpen,
                                     contentDescription = null,
                                     modifier = Modifier.size(14.dp),
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = LocalGameAccent.current,
                                 )
                                 Spacer(Modifier.width(6.dp))
                                 Text(
                                     text = currentFolderName,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = LocalGameAccent.current,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
@@ -703,7 +706,7 @@ private fun FolderPickerDialog(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
                                 modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = LocalGameAccent.current,
                             )
                             Spacer(Modifier.width(10.dp))
                             Text(
@@ -753,7 +756,7 @@ private fun FolderPickerDialog(
                                         modifier = Modifier
                                             .size(36.dp)
                                             .background(
-                                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                                color = LocalGameAccent.current.copy(alpha = 0.15f),
                                                 shape = RoundedCornerShape(10.dp),
                                             ),
                                         contentAlignment = Alignment.Center,
@@ -762,7 +765,7 @@ private fun FolderPickerDialog(
                                             root.icon,
                                             contentDescription = null,
                                             modifier = Modifier.size(20.dp),
-                                            tint = MaterialTheme.colorScheme.primary,
+                                            tint = LocalGameAccent.current,
                                         )
                                     }
                                     Spacer(Modifier.width(14.dp))
@@ -806,7 +809,7 @@ private fun FolderPickerDialog(
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(28.dp),
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = LocalGameAccent.current,
                                     strokeWidth = 3.dp,
                                 )
                             }
@@ -846,7 +849,7 @@ private fun FolderPickerDialog(
                                         Icons.Default.Folder,
                                         contentDescription = null,
                                         modifier = Modifier.size(20.dp),
-                                        tint = MaterialTheme.colorScheme.primary,
+                                        tint = LocalGameAccent.current,
                                     )
                                     Spacer(Modifier.width(14.dp))
                                     Text(

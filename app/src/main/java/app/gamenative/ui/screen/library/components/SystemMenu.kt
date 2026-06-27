@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -84,6 +85,8 @@ import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.dialog.SupportersDialog
 import app.gamenative.ui.screen.PluviaScreen
 import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.LocalGameBackdrop
 import app.gamenative.ui.theme.Motion
@@ -516,9 +519,13 @@ fun SystemMenu(
                         androidx.compose.material3.DropdownMenu(
                             expanded = showStatusPicker,
                             onDismissRequest = { showStatusPicker = false },
+                            containerColor = GlassFillStrong,
+                            shape = RoundedCornerShape(12.dp),
+                            tonalElevation = 0.dp,
+                            shadowElevation = 0.dp,
+                            border = BorderStroke(1.dp, GlassBorder),
                             modifier = Modifier
-                                .width(280.dp)
-                                .background(GlassFill),
+                                .width(280.dp),
                         ) {
                             Column(
                                 modifier = Modifier

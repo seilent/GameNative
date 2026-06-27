@@ -1,14 +1,18 @@
 package app.gamenative.ui.component.dialog
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -23,11 +27,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import app.gamenative.R
+import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import app.gamenative.ui.component.settings.SettingsCenteredLabel
 import app.gamenative.ui.component.settings.SettingsEnvVars
 import app.gamenative.ui.component.settings.SettingsMultiListDropdown
+import app.gamenative.ui.theme.GlassBorder
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.settingsTileColors
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
@@ -39,6 +48,8 @@ import com.winlator.core.envvars.EnvVarSelectionType
 fun EnvironmentTabContent(state: ContainerConfigState) {
     val config = state.config.value
     val envVars = EnvVars(config.envVars)
+    GlassSurface(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(20.dp)) {
+    Column {
     SettingsGroup() {
         if (config.envVars.isNotEmpty()) {
             SettingsEnvVars(
@@ -67,6 +78,7 @@ fun EnvironmentTabContent(state: ContainerConfigState) {
             )
         }
         SettingsMenuLink(
+            colors = settingsTileColors(),
             title = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -75,11 +87,14 @@ fun EnvironmentTabContent(state: ContainerConfigState) {
                     Icon(
                         imageVector = Icons.Outlined.AddCircleOutline,
                         contentDescription = "Add environment variable",
+                        tint = LocalGameAccent.current,
                     )
                 }
             },
             onClick = { state.showEnvVarCreateDialog.value = true },
         )
+    }
+    }
     }
 
     if (state.showEnvVarCreateDialog.value) {
@@ -113,6 +128,11 @@ fun EnvironmentTabContent(state: ContainerConfigState) {
                         androidx.compose.material3.DropdownMenu(
                             expanded = knownVarsMenuOpen,
                             onDismissRequest = { knownVarsMenuOpen = false },
+                            containerColor = GlassFillStrong,
+                            shape = RoundedCornerShape(12.dp),
+                            tonalElevation = 0.dp,
+                            shadowElevation = 0.dp,
+                            border = BorderStroke(1.dp, GlassBorder),
                         ) {
                             val knownEnvVars = EnvVarInfo.KNOWN_ENV_VARS.values.filter {
                                 !config.envVars.contains("${it.identifier}=")
@@ -174,6 +194,11 @@ fun EnvironmentTabContent(state: ContainerConfigState) {
                                     DropdownMenu(
                                         expanded = suggestionsExpanded,
                                         onDismissRequest = { suggestionsExpanded = false },
+                                        containerColor = GlassFillStrong,
+                                        shape = RoundedCornerShape(12.dp),
+                                        tonalElevation = 0.dp,
+                                        shadowElevation = 0.dp,
+                                        border = BorderStroke(1.dp, GlassBorder),
                                     ) {
                                         selectedEnvVarInfo!!.possibleValues.forEach { suggestion ->
                                             // suggestion box headers
@@ -221,6 +246,7 @@ fun EnvironmentTabContent(state: ContainerConfigState) {
                         state.config.value = config.copy(envVars = envVars.toString())
                         state.showEnvVarCreateDialog.value = false
                     },
+                    colors = ButtonDefaults.textButtonColors(contentColor = LocalGameAccent.current),
                     content = { Text(text = stringResource(R.string.ok)) },
                 )
             },

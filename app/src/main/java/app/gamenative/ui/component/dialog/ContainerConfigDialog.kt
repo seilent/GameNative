@@ -77,7 +77,20 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.BuildConfig
 import app.gamenative.R
+import app.gamenative.ui.component.BlurredBackdrop
+import app.gamenative.ui.theme.LocalGameBackdrop
 import app.gamenative.ui.util.SnackbarManager
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalFocusManager
 import app.gamenative.ui.component.dialog.state.MessageDialogState
 import app.gamenative.ui.component.settings.SettingsCPUList
 import app.gamenative.ui.component.settings.SettingsCenteredLabel
@@ -85,6 +98,7 @@ import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.components.rememberCustomGameFolderPicker
 import app.gamenative.ui.components.requestPermissionsForPath
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
@@ -1209,11 +1223,59 @@ fun ContainerConfigDialog(
             ),
             content = {
                 val scrollState = rememberScrollState()
+                var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+                val tabs = listOf(
+                    stringResource(R.string.container_config_tab_general),
+                    stringResource(R.string.container_config_tab_graphics),
+                    stringResource(R.string.container_config_tab_emulation),
+                    stringResource(R.string.container_config_tab_controller),
+                    stringResource(R.string.container_config_tab_wine),
+                    stringResource(R.string.container_config_tab_win_components),
+                    stringResource(R.string.container_config_tab_environment),
+                    stringResource(R.string.container_config_tab_drives),
+                    stringResource(R.string.container_config_tab_advanced),
+                )
 
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .onPreviewKeyEvent { e ->
+                            if (e.type == KeyEventType.KeyDown) {
+                                when (e.key) {
+                                    Key.ButtonL1, Key.ButtonL2 -> {
+                                        selectedTab = (selectedTab - 1 + tabs.size) % tabs.size
+                                        true
+                                    }
+                                    Key.ButtonR1, Key.ButtonR2 -> {
+                                        selectedTab = (selectedTab + 1) % tabs.size
+                                        true
+                                    }
+                                    else -> false
+                                }
+                            } else {
+                                false
+                            }
+                        },
+                ) {
+                    BlurredBackdrop(
+                        imageModel = LocalGameBackdrop.current.ifBlank { null },
+                        accentKey = LocalGameBackdrop.current,
+                        blurRadius = 28,
+                        onAccent = {},
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 Scaffold(
+                    containerColor = Color.Transparent,
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
                         CenterAlignedTopAppBar(
+                            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                                containerColor = Color.Transparent,
+                                scrolledContainerColor = Color.Transparent,
+                                titleContentColor = Color.White,
+                                navigationIconContentColor = Color.White,
+                                actionIconContentColor = Color.White,
+                            ),
                             title = {
                                 Text(
                                     text = "$title${if (initialConfig != config) "*" else ""}",
@@ -1236,18 +1298,6 @@ fun ContainerConfigDialog(
                         )
                     },
                 ) { paddingValues ->
-                    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-                    val tabs = listOf(
-                        stringResource(R.string.container_config_tab_general),
-                        stringResource(R.string.container_config_tab_graphics),
-                        stringResource(R.string.container_config_tab_emulation),
-                        stringResource(R.string.container_config_tab_controller),
-                        stringResource(R.string.container_config_tab_wine),
-                        stringResource(R.string.container_config_tab_win_components),
-                        stringResource(R.string.container_config_tab_environment),
-                        stringResource(R.string.container_config_tab_drives),
-                        stringResource(R.string.container_config_tab_advanced)
-                    )
                     Column(
                         modifier = Modifier
                             .padding(
@@ -1261,6 +1311,7 @@ fun ContainerConfigDialog(
                         val accent = LocalGameAccent.current
                         ScrollableTabRow(
                             selectedTabIndex = selectedTab,
+                            containerColor = Color.Transparent,
                             edgePadding = 0.dp,
                             indicator = { tabPositions ->
                                 if (selectedTab < tabPositions.size) {
@@ -1275,10 +1326,12 @@ fun ContainerConfigDialog(
                                 Tab(
                                     selected = selectedTab == index,
                                     onClick = { selectedTab = index },
+                                    selectedContentColor = accent,
+                                    unselectedContentColor = Color.White.copy(alpha = 0.7f),
                                     text = {
                                         Text(
                                             text = label,
-                                            color = if (selectedTab == index) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = if (selectedTab == index) accent else Color.White.copy(alpha = 0.7f),
                                         )
                                     },
                                 )
@@ -1300,6 +1353,7 @@ fun ContainerConfigDialog(
                             if (selectedTab == 8) AdvancedTabContent(state)
                         }
                     }
+                }
                 }
             }
         )
@@ -1374,6 +1428,8 @@ internal fun ExecutablePathDropdown(
     var executables by remember { mutableStateOf<List<String>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
+    val accent = LocalGameAccent.current
+    val focusManager = LocalFocusManager.current
 
     // Load executables from A: drive when component is first created
     LaunchedEffect(containerData.drives) {
@@ -1397,21 +1453,39 @@ internal fun ExecutablePathDropdown(
             placeholder = { Text(stringResource(R.string.container_config_executable_path_placeholder)) },
             trailingIcon = {
                 if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = LocalGameAccent.current)
                 } else {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 }
             },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = accent,
+                cursorColor = accent,
+                focusedLabelColor = accent,
+                focusedTrailingIconColor = accent,
+            ),
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(),
+                .menuAnchor()
+                .onPreviewKeyEvent { e ->
+                    if (e.type == KeyEventType.KeyDown && !expanded) {
+                        when (e.key) {
+                            Key.DirectionDown -> { focusManager.moveFocus(FocusDirection.Down); true }
+                            Key.DirectionUp -> { focusManager.moveFocus(FocusDirection.Up); true }
+                            else -> false
+                        }
+                    } else {
+                        false
+                    }
+                },
             singleLine = true
         )
 
         if (!isLoading && executables.isNotEmpty()) {
             ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                containerColor = GlassFillStrong,
             ) {
                 executables.forEach { executable ->
                     DropdownMenuItem(

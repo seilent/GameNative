@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.service.SteamService
 import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import com.winlator.contents.ContentProfile
 import com.winlator.contents.ContentsManager
 import kotlinx.coroutines.Dispatchers
@@ -183,12 +185,12 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 
                 Button(
                     onClick = {
-                        // Let users pick any file; manager validates supported archives
                         SteamService.isImporting = true
                         importLauncher.launch(arrayOf("*/*"))
                     },
                     enabled = !isBusy,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                 ) { Text(stringResource(R.string.import_wcp_from_device)) }
 
                 if (isBusy) {
@@ -196,7 +198,7 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(bottom = 8.dp)
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.height(20.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(modifier = Modifier.height(20.dp), strokeWidth = 2.dp, color = LocalGameAccent.current)
                         Text(text = statusMessage ?: stringResource(R.string.working))
                     }
                 } else if (!statusMessage.isNullOrEmpty()) {
@@ -235,7 +237,8 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                 }
                             },
                             enabled = !isBusy,
-                            modifier = Modifier.padding(top = 8.dp)
+                            modifier = Modifier.padding(top = 8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                         ) { Text(stringResource(R.string.install)) }
                     }
                 }
@@ -262,7 +265,8 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 
                     ExposedDropdownMenu(
                         expanded = typeExpanded,
-                        onDismissRequest = { typeExpanded = false }
+                        onDismissRequest = { typeExpanded = false },
+                        containerColor = GlassFillStrong,
                     ) {
                         val allowed = listOf(
                             ContentProfile.ContentType.CONTENT_TYPE_DXVK,
@@ -348,20 +352,23 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    val profile = pendingProfile ?: return@TextButton
-                    showUntrustedConfirm = false
-                    isBusy = true
-                    scope.launch {
-                        performFinishInstall(ctx, mgr, profile) { _ ->
-                            pendingProfile = null
-                            currentType = profile.type
-                            refreshInstalled()
-                            statusMessage = null
-                            isBusy = false
+                TextButton(
+                    onClick = {
+                        val profile = pendingProfile ?: return@TextButton
+                        showUntrustedConfirm = false
+                        isBusy = true
+                        scope.launch {
+                            performFinishInstall(ctx, mgr, profile) { _ ->
+                                pendingProfile = null
+                                currentType = profile.type
+                                refreshInstalled()
+                                statusMessage = null
+                                isBusy = false
+                            }
                         }
-                    }
-                }) { Text(stringResource(R.string.install_anyway)) }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = LocalGameAccent.current),
+                ) { Text(stringResource(R.string.install_anyway)) }
             },
             dismissButton = {
                 TextButton(onClick = { showUntrustedConfirm = false }) { Text(stringResource(R.string.cancel)) }

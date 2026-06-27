@@ -53,6 +53,7 @@ import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.data.LibraryState
 import app.gamenative.ui.data.statsFor
 import app.gamenative.ui.enums.PaneType
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.util.AdaptivePadding
 import app.gamenative.ui.util.shouldShowGamepadUI
 import kotlin.math.abs
@@ -478,7 +479,7 @@ internal fun LibraryCarouselPane(
                                         .padding(16.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    CircularProgressIndicator()
+                                    CircularProgressIndicator(color = LocalGameAccent.current)
                                 }
                             }
                         }

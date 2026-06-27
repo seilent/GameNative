@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import app.gamenative.R
+import app.gamenative.ui.theme.LocalGameAccent
 import com.alorma.compose.settings.ui.base.internal.LocalSettingsGroupEnabled
 import com.alorma.compose.settings.ui.base.internal.SettingsTileColors
 import com.alorma.compose.settings.ui.base.internal.SettingsTileDefaults
@@ -59,6 +61,7 @@ fun SettingsCPUList(
                                 }
                                 onValueChange(newAffinity.joinToString(","))
                             },
+                            colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                         )
                         Text(stringResource(R.string.cpu_label, cpu))
                     }

@@ -81,6 +81,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import app.gamenative.ui.component.dialog.GameManagerDialog
 import app.gamenative.ui.component.dialog.WorkshopManagerDialog
+import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.screen.library.GameMigrationDialog
 import app.gamenative.ui.component.dialog.state.GameManagerDialogState
@@ -1559,6 +1560,7 @@ private fun SteamChangeBranchDialog(
                     ExposedDropdownMenu(
                         expanded = branchExpanded,
                         onDismissRequest = { branchExpanded = false },
+                        containerColor = GlassFillStrong,
                     ) {
                         availableBranches.forEach { branch ->
                             DropdownMenuItem(

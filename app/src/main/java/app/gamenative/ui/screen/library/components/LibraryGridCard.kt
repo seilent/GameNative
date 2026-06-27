@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,6 +63,9 @@ import app.gamenative.ui.component.GameStatsRow
 import app.gamenative.ui.data.GameCardStats
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.Motion
+import androidx.compose.animation.core.animateFloatAsState
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ListItemImage
@@ -102,8 +106,12 @@ internal fun GridViewCard(
     val topOverlayPadding = if (isCapsule) 8.dp else 4.dp
     val cardContentBottomPadding = if (isCapsule) 12.dp else 8.dp
     val topIconPadding = if (isCapsule) 10.dp else 8.dp
-    val bottomGradientHeight = if (isCapsule) 80.dp else 56.dp
     val glowColor = LocalGameAccent.current
+    val overlayAlpha by animateFloatAsState(
+        targetValue = if (isFocused) 1f else 0f,
+        animationSpec = Motion.Fade,
+        label = "overlayAlpha",
+    )
     val focusHaloModifier = if (isFocused && showFocusGlow) {
         Modifier.drawWithCache {
             val glowBrush = Brush.radialGradient(
@@ -218,6 +226,7 @@ internal fun GridViewCard(
                         .then(gridHeroZoom),
                     contentScale = getGridContentScale(paneType),
                     image = { currentImageUrl },
+                    loading = { Box(Modifier.fillMaxSize().background(GlassFill)) },
                     onFailure = {
                         if (imageUrls.fallback.isNotEmpty() && currentImageUrl == imageUrls.primary) {
                             currentImageUrl = imageUrls.fallback
@@ -246,74 +255,77 @@ internal fun GridViewCard(
                     }
                 }
 
-                // Gradient overlay at bottom for title
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(bottomGradientHeight)
-                        .background(Color.Black.copy(alpha = 0.85f)),
-                )
-
-                // Title + status icons, with per-device stats directly under the title
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp, vertical = cardContentBottomPadding),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = appInfo.name,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                shadow = Shadow(
-                                    color = Color.Black,
-                                    offset = Offset(1f, 1f),
-                                    blurRadius = 2f,
-                                ),
-                            ),
-                            color = Color.White,
-                            maxLines = if (paneType == PaneType.GRID_CAPSULE) 2 else 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-
-                        GridStatusIcons(appInfo = appInfo)
-                    }
-
-                    GameStatsRow(
-                        stats = gameStats,
-                        tint = Color.White.copy(alpha = 0.55f),
-                        onDark = true,
-                    )
-                }
-
-                // Compatibility / Recommended badge (top left)
                 val badgeStatus = if (appInfo.isRecommended) {
                     GameCompatibilityStatus.RECOMMENDED
                 } else {
                     compatibilityStatus
                 }
-                badgeStatus?.let { status ->
-                    CompatibilityBadge(
-                        status = status,
-                        showLabel = true,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = topOverlayPadding, start = topOverlayPadding),
-                    )
-                }
 
-                if (!appInfo.isRecommended) {
-                    GameSourceIcon(
-                        gameSource = appInfo.gameSource,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(top = topIconPadding, end = topIconPadding),
-                        iconSize = if (isCapsule) 14 else 12,
+                // Frosted glass title bar — title, then a row of stats + compat/source + installed
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .alpha(overlayAlpha)
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .background(LocalGameAccent.current.copy(alpha = 0.25f))
+                        .padding(horizontal = 10.dp, vertical = cardContentBottomPadding),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = appInfo.name,
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(0f, 1f),
+                                blurRadius = 3f,
+                            ),
+                        ),
+                        color = Color.White,
+                        maxLines = if (paneType == PaneType.GRID_CAPSULE) 2 else 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
                     )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        GameStatsRow(
+                            modifier = Modifier.weight(1f),
+                            stats = gameStats,
+                            tint = Color.White.copy(alpha = 0.7f),
+                            onDark = true,
+                        )
+                        badgeStatus?.let { status ->
+                            CompatibilityBadge(status = status, size = 14.dp)
+                        }
+                        if (!appInfo.isRecommended) {
+                            GameSourceIcon(
+                                gameSource = appInfo.gameSource,
+                                iconSize = 14,
+                                alignmentBoxSize = 14,
+                            )
+                        }
+                        if (appInfo.isInstalled) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = stringResource(R.string.library_installed),
+                                tint = PluviaTheme.colors.statusInstalled,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
+                        if (appInfo.isShared) {
+                            Icon(
+                                imageVector = Icons.Filled.Face4,
+                                contentDescription = stringResource(R.string.library_family_shared),
+                                tint = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.size(14.dp),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -358,9 +370,9 @@ private fun CapsuleFallbackBackdrop(
 private fun GridStatusIcons(appInfo: LibraryItem) {
     val isInstalled = appInfo.isInstalled
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (isInstalled) {
             Box(
