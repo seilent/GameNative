@@ -150,21 +150,13 @@ jobs:
           name: ${{ github.ref_name }}
           prerelease: true
           body: |
-            ## Highlights
-
             ### Glassmorphism UI
-            - Full glass redesign: frosted translucent panels over a single app-wide blurred backdrop driven by the highlighted game, with a per-game dynamic accent colour.
-            - Library grid/list, app detail page, install & manager dialogs (Steam/Epic/Amazon/Workshop), settings, dropdowns, config dialog and in-game overlays converted to glass; Material surface colours removed.
-            - Smoother library: removed redundant loading-placeholder layers and sped up large-library scrolling.
-            - Empty collection tabs (e.g. Favorites/VR with no games) are now hidden.
+            - Glass redesign: frosted translucent panels with a per-game dynamic accent color.
+            - Library: removed redundant placeholder layers and sped up library loading.
 
-            ### Frame Generation (LSFG)
-            - Real-frame cap with honest on-screen FPS, plus a per-game configurable real-frame cap.
-            - Reduced frame-generation judder via midpoint frame pacing and host-side vsync pacing for the SurfaceFlinger renderer.
-            - Default flow scale tuned to 0.30.
-
-            ## Download
-            - **`gamenative-${{ github.ref_name }}.apk`** — full build with external SD/USB storage support.
+            ### Framegen
+            - Readded FPS cap (inside game settings)
+            - Might have some bounce / jitter.
           files: |
             gamenative-${{ github.ref_name }}.apk
         env:
