@@ -85,11 +85,11 @@ jobs:
           yes | "$SDKMANAGER" --install "build-tools;34.0.0"
 
       - name: Build with Gradle
-        run: ./gradlew :app:assembleModernRelease
+        run: ./gradlew :app:assembleLegacyRelease
 
       - name: Stage APK
         run: |
-          cp app/build/outputs/apk/modern/release/app-modern-release.apk universal-modern.apk
+          cp app/build/outputs/apk/legacy/release/app-legacy-release.apk universal.apk
 
       - name: Sign modern APK
         env:
@@ -117,15 +117,15 @@ jobs:
           fi
           "${BUILD_TOOLS_DIR}/apksigner" sign \
             --ks "$KS" --ks-pass "pass:$STORE_PASS" --key-pass "pass:$KEY_PASS" --ks-key-alias "$ALIAS" \
-            --out universal-modern-signed.apk universal-modern.apk
-          mv universal-modern-signed.apk universal-modern.apk
+            --out universal-signed.apk universal.apk
+          mv universal-signed.apk universal.apk
 
       - name: Upload APKs for next job
         uses: actions/upload-artifact@v4
         with:
           name: universal-apk
           path: |
-            universal-modern.apk
+            universal.apk
 
   release:
     needs: build
@@ -141,7 +141,7 @@ jobs:
       - name: Rename APKs
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          mv universal-modern.apk "gamenative-$TAG-modern.apk"
+          mv universal.apk "gamenative-$TAG.apk"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -164,8 +164,8 @@ jobs:
             - Default flow scale tuned to 0.30.
 
             ## Download
-            - **`gamenative-${{ github.ref_name }}-modern.apk`** — Android 11+ build.
+            - **`gamenative-${{ github.ref_name }}.apk`** — full build with external SD/USB storage support.
           files: |
-            gamenative-${{ github.ref_name }}-modern.apk
+            gamenative-${{ github.ref_name }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
