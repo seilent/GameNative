@@ -52,6 +52,8 @@ class PluviaApp : SplitCompatApplication() {
     override fun onCreate() {
         super.onCreate()
 
+        android.system.Os.setenv("EVSHIM_BASE_PATH", filesDir.absolutePath, true)
+
         preloadSystemLibraries()
 
         // Allows to find resource streams not closed within GameNative and JavaSteam

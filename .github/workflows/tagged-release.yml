@@ -148,7 +148,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          prerelease: false
+          prerelease: true
           body: |
             ## Highlights
 
