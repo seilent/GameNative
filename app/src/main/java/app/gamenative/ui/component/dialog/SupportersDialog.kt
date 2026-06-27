@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.utils.KofiSupporter
 import app.gamenative.utils.fetchKofiSupporters
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import kotlinx.coroutines.Dispatchers
@@ -110,7 +111,7 @@ fun SupportersDialog(
                             )
                         }
 
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = GlassBorder)
 
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(

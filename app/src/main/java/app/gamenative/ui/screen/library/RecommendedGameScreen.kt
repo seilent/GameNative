@@ -22,7 +22,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -43,6 +45,8 @@ import androidx.core.net.toUri
 import app.gamenative.R
 import app.gamenative.data.RecommendedGame
 import app.gamenative.ui.screen.library.components.VideoHero
+import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.PrefManager
 import com.posthog.PostHog
 
@@ -205,6 +209,7 @@ internal fun RecommendedGameScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
             ) {
                 Icon(
                     imageVector = Icons.Filled.OpenInNew,
@@ -224,7 +229,7 @@ internal fun RecommendedGameScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                    containerColor = GlassFill,
                 ),
                 shape = RoundedCornerShape(12.dp),
             ) {
@@ -267,6 +272,7 @@ internal fun RecommendedGameScreen(
                                     style = MaterialTheme.typography.labelSmall,
                                 )
                             },
+                            colors = AssistChipDefaults.assistChipColors(containerColor = GlassFill),
                         )
                     }
                 }

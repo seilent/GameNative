@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.ui.icons.InputIcons
@@ -178,7 +179,7 @@ private fun Preview_GamepadActionBar() {
     val context = LocalContext.current
     PrefManager.init(context)
     PluviaTheme {
-        Surface(modifier = Modifier.fillMaxWidth()) {
+        Surface(modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -93,7 +93,7 @@ private fun getBadgeStyle(status: GameCompatibilityStatus): BadgeStyle {
 
         GameCompatibilityStatus.RECOMMENDED -> BadgeStyle(
             icon = Icons.Rounded.Star,
-            backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+            backgroundColor = LocalGameAccent.current.copy(alpha = 0.15f),
             iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
             labelResId = R.string.recommended_badge,
         )

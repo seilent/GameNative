@@ -28,7 +28,7 @@ import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsDebug
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import app.gamenative.PrefManager
 import app.gamenative.ui.util.SnackbarManager
 import app.gamenative.ui.theme.settingsTileColorsAlt
@@ -198,7 +198,7 @@ fun SettingsGroupDebug() {
             },
             onClick = { showChannelsDialog = true },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             state = enableWineDebugPref,
             title = { Text(text = stringResource(R.string.settings_debug_wine_logs_title)) },
@@ -210,7 +210,7 @@ fun SettingsGroupDebug() {
                 }
             },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             state = enableBox86Logs,
             title = { Text(text = stringResource(R.string.settings_debug_box_logs_title)) },

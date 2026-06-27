@@ -35,6 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +55,7 @@ import app.gamenative.ui.data.LibraryState
 import app.gamenative.ui.data.statsFor
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.internal.fakeAppInfo
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.AdaptivePadding
@@ -117,6 +121,7 @@ internal fun LibraryListPane(
     firstGridItemFocusRequester: FocusRequester? = null,
     focusTargetListIndex: Int? = null,
     onFocusedIndexChanged: (Int) -> Unit = {},
+    onTouchPosition: (Offset) -> Unit = {},
     onPageChange: (Int) -> Unit,
     onNavigate: (String) -> Unit,
     onRefresh: () -> Unit,
@@ -244,7 +249,16 @@ internal fun LibraryListPane(
                         LazyVerticalGrid(
                             columns = columnType,
                             state = listState,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .pointerInput(Unit) {
+                                    awaitPointerEventScope {
+                                        while (true) {
+                                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                                            event.changes.firstOrNull { it.pressed }?.let { onTouchPosition(it.position) }
+                                        }
+                                    }
+                                },
                             horizontalArrangement = Arrangement.spacedBy(gridSpacing),
                             contentPadding = PaddingValues(
                                 top = 80.dp,
@@ -271,17 +285,18 @@ internal fun LibraryListPane(
                                     }
 
                                     if (item.index > 0 && currentLayout == PaneType.LIST) {
-                                        HorizontalDivider()
+                                        HorizontalDivider(color = GlassBorder)
                                     }
                                     AppItem(
                                         modifier = appItemModifier,
                                         appInfo = item,
-                                        onClick = { onNavigate(item.appId) },
+                                        onClick = { onFocusedIndexChanged(item.index); onNavigate(item.appId) },
                                         paneType = currentLayout,
                                         onFocus = { targetOfScroll = item.index; onFocusedIndexChanged(item.index) },
                                         imageRefreshCounter = state.imageRefreshCounter,
                                         compatibilityStatus = state.compatibilityMap[item.name],
                                         gameStats = state.statsFor(item),
+                                        enableFocusScale = false,
                                     )
                                 }
                             }
@@ -324,7 +339,7 @@ internal fun LibraryListPane(
                     ) {
                         items(totalSkeletonCount) { index ->
                             if (index > 0 && currentLayout == PaneType.LIST) {
-                                HorizontalDivider()
+                                HorizontalDivider(color = GlassBorder)
                             }
                             GameSkeletonLoader(
                                 paneType = currentLayout,

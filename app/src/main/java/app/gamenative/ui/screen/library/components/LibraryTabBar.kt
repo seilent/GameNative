@@ -312,7 +312,7 @@ private fun CompactIconButton(
                 if (isFocused) {
                     LocalGameAccent.current.copy(alpha = 0.2f)
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    GlassFill
                 },
             )
             .selectable(
@@ -528,8 +528,8 @@ private fun IconActionButton(
                         )
                     } else {
                         listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                            GlassFill.copy(alpha = 0.4f),
+                            GlassFill.copy(alpha = 0.2f),
                         )
                     },
                 ),

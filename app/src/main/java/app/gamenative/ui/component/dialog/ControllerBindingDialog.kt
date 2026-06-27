@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.ui.component.NoExtractOutlinedTextField
+import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import com.winlator.inputcontrols.Binding
 
@@ -122,7 +124,7 @@ fun ControllerBindingDialog(
                 .fillMaxWidth(0.98f)  // Nearly full width for better space utilization
                 .fillMaxHeight(0.92f),  // Taller to maximize vertical space
             shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surface
+            color = GlassFillStrong
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Header with title, current binding, and close button
@@ -275,7 +277,7 @@ fun ControllerBindingDialog(
                                     color = if (isSelected)
                                         LocalGameAccent.current.copy(alpha = 0.18f)
                                     else
-                                        MaterialTheme.colorScheme.surfaceVariant,
+                                        GlassFill,
                                     shape = MaterialTheme.shapes.small
                                 ) {
                                     Row(
@@ -421,7 +423,7 @@ fun BindingOption(
         color = if (isSelected)
             LocalGameAccent.current.copy(alpha = 0.18f)
         else
-            MaterialTheme.colorScheme.surfaceVariant,
+            GlassFill,
         shape = MaterialTheme.shapes.small
     ) {
         Row(

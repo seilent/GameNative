@@ -1222,7 +1222,7 @@ private fun QuickMenuCloseButton(
                             Brush.verticalGradient(
                                 colors = listOf(
                                     LocalGameAccent.current,
-                                    MaterialTheme.colorScheme.tertiary,
+                                    LocalGameAccent.current.copy(alpha = 0.5f),
                                 ),
                             ),
                         ),
@@ -1286,7 +1286,7 @@ private fun QuickMenuTabButton(
                             Brush.verticalGradient(
                                 colors = listOf(
                                     LocalGameAccent.current,
-                                    MaterialTheme.colorScheme.tertiary,
+                                    LocalGameAccent.current.copy(alpha = 0.5f),
                                 ),
                             ),
                         ),
@@ -1301,7 +1301,7 @@ private fun QuickMenuTabButton(
                 when {
                     selected -> accentColor.copy(alpha = 0.18f)
                     isFocused -> accentColor.copy(alpha = 0.12f)
-                    else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                    else -> Color.White.copy(alpha = 0.08f)
                 },
             )
             .then(
@@ -1439,7 +1439,7 @@ private fun QuickMenuChoiceChip(
                 when {
                     selected -> accentColor.copy(alpha = 0.18f)
                     isFocused -> accentColor.copy(alpha = 0.12f)
-                    else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f)
+                    else -> Color.White.copy(alpha = 0.06f)
                 },
             )
             .then(
@@ -1500,8 +1500,8 @@ private fun QuickMenuAdjustmentRow(
                 } else {
                     Brush.horizontalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f),
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.10f),
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.04f),
                         ),
                     )
                 },
@@ -1691,7 +1691,7 @@ private fun QuickMenuAdjustmentButton(
                 if (isAdjustmentLocked) {
                     accentColor.copy(alpha = 0.25f)
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (rowIsFocused) 0.32f else 0.45f)
+                    Color.White.copy(alpha = if (rowIsFocused) 0.06f else 0.08f)
                 },
             )
             .border(
@@ -1748,8 +1748,8 @@ private fun QuickMenuToggleRow(
                 } else {
                     Brush.horizontalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f),
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.10f),
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.04f),
                         ),
                     )
                 },
@@ -1818,7 +1818,7 @@ private fun QuickMenuSwitch(
             .height(32.dp)
             .clip(RoundedCornerShape(999.dp))
             .background(
-                if (enabled) accentColor else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                if (enabled) accentColor else Color.White.copy(alpha = 0.12f),
             )
             .border(
                 width = 1.dp,
@@ -1866,8 +1866,8 @@ private fun QuickMenuProcessRow(
                 } else {
                     Brush.horizontalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f),
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.10f),
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.04f),
                         ),
                     )
                 },
@@ -1974,7 +1974,7 @@ private fun QuickMenuItemRow(
                             Brush.verticalGradient(
                                 colors = listOf(
                                     LocalGameAccent.current,
-                                    MaterialTheme.colorScheme.tertiary,
+                                    LocalGameAccent.current.copy(alpha = 0.5f),
                                 ),
                             ),
                         ),
@@ -2032,9 +2032,9 @@ private fun QuickMenuItemRow(
                 .clip(CircleShape)
                 .background(
                     when {
-                        !isEnabled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        !isEnabled -> Color.White.copy(alpha = 0.05f)
                         isFocused || isActive -> accentColor.copy(alpha = 0.2f)
-                        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        else -> Color.White.copy(alpha = 0.08f)
                     },
                 ),
             contentAlignment = Alignment.Center,
@@ -2067,7 +2067,7 @@ private fun QuickMenuItemRow(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .background(Color.White.copy(alpha = 0.08f))
                     .clickable(role = Role.Button, onClick = onSecondaryClick),
                 contentAlignment = Alignment.Center,
             ) {

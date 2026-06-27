@@ -87,6 +87,7 @@ import app.gamenative.ui.screen.settings.ContainerStorageManagerContent
 import app.gamenative.ui.screen.settings.ContainerStorageManagerTransientUi
 import app.gamenative.ui.screen.settings.rememberContainerStorageManagerUiState
 import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
@@ -465,7 +466,7 @@ private fun DownloadsSidebarItem(
                     when {
                         isFocused -> accentColor.copy(alpha = 0.22f)
                         selected -> accentColor.copy(alpha = 0.14f)
-                        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                        else -> GlassFill
                     },
                 ),
             contentAlignment = Alignment.Center,
@@ -536,8 +537,8 @@ private fun DownloadsContent(
                     icon = if (activeCount > 0) Icons.Default.Pause else Icons.Default.PlayArrow,
                     onClick = if (activeCount > 0) onPauseAll else onResumeAll,
                     enabled = activeCount > 0 || resumableCount > 0,
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    containerColor = LocalGameAccent.current,
+                    contentColor = Color.White,
                 )
                 DownloadsToolbarButton(
                     text = stringResource(R.string.downloads_cancel_all),
@@ -552,7 +553,7 @@ private fun DownloadsContent(
                     icon = null,
                     onClick = onClearFinished,
                     enabled = finishedCount > 0,
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = GlassFill,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -801,7 +802,7 @@ private fun DownloadItemCard(
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
                         color = progressColor,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        trackColor = GlassFill,
                     )
                 }
 
@@ -957,7 +958,7 @@ private fun GameArtworkButton(
                 if (isFocused) {
                     accentColor.copy(alpha = 0.18f)
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                    GlassFill
                 }
             )
             .border(
@@ -1039,44 +1040,44 @@ private fun statusLabel(status: DownloadItemStatus): String = when (status) {
 
 @Composable
 private fun sourceContainerColor(gameSource: GameSource): Color = when (gameSource) {
-    GameSource.STEAM -> MaterialTheme.colorScheme.primaryContainer
-    GameSource.GOG -> MaterialTheme.colorScheme.tertiaryContainer
-    GameSource.EPIC -> MaterialTheme.colorScheme.secondaryContainer
-    GameSource.AMAZON -> MaterialTheme.colorScheme.surfaceContainerHighest
-    GameSource.CUSTOM_GAME -> MaterialTheme.colorScheme.surfaceVariant
+    GameSource.STEAM -> GlassFill
+    GameSource.GOG -> GlassFill
+    GameSource.EPIC -> GlassFill
+    GameSource.AMAZON -> GlassFill
+    GameSource.CUSTOM_GAME -> GlassFill
 }
 
 @Composable
 private fun sourceContentColor(gameSource: GameSource): Color = when (gameSource) {
-    GameSource.STEAM -> MaterialTheme.colorScheme.onPrimaryContainer
-    GameSource.GOG -> MaterialTheme.colorScheme.onTertiaryContainer
-    GameSource.EPIC -> MaterialTheme.colorScheme.onSecondaryContainer
+    GameSource.STEAM -> MaterialTheme.colorScheme.onSurface
+    GameSource.GOG -> MaterialTheme.colorScheme.onSurface
+    GameSource.EPIC -> MaterialTheme.colorScheme.onSurface
     GameSource.AMAZON -> MaterialTheme.colorScheme.onSurface
-    GameSource.CUSTOM_GAME -> MaterialTheme.colorScheme.onSurfaceVariant
+    GameSource.CUSTOM_GAME -> MaterialTheme.colorScheme.onSurface
 }
 
 @Composable
 private fun statusContainerColor(status: DownloadItemStatus): Color = when (status) {
-    DownloadItemStatus.DOWNLOADING -> MaterialTheme.colorScheme.primaryContainer
+    DownloadItemStatus.DOWNLOADING -> PluviaTheme.colors.statusDownloading.copy(alpha = 0.15f)
     DownloadItemStatus.PAUSED,
     DownloadItemStatus.RESUMABLE,
-    -> MaterialTheme.colorScheme.secondaryContainer
-    DownloadItemStatus.COMPLETED -> MaterialTheme.colorScheme.tertiaryContainer
+    -> GlassFill
+    DownloadItemStatus.COMPLETED -> PluviaTheme.colors.accentSuccess.copy(alpha = 0.15f)
     DownloadItemStatus.CANCELLED,
     DownloadItemStatus.FAILED,
-    -> MaterialTheme.colorScheme.errorContainer
+    -> PluviaTheme.colors.accentDanger.copy(alpha = 0.15f)
 }
 
 @Composable
 private fun statusContentColor(status: DownloadItemStatus): Color = when (status) {
-    DownloadItemStatus.DOWNLOADING -> MaterialTheme.colorScheme.onPrimaryContainer
+    DownloadItemStatus.DOWNLOADING -> PluviaTheme.colors.statusDownloading
     DownloadItemStatus.PAUSED,
     DownloadItemStatus.RESUMABLE,
-    -> MaterialTheme.colorScheme.onSecondaryContainer
-    DownloadItemStatus.COMPLETED -> MaterialTheme.colorScheme.onTertiaryContainer
+    -> MaterialTheme.colorScheme.onSurface
+    DownloadItemStatus.COMPLETED -> PluviaTheme.colors.accentSuccess
     DownloadItemStatus.CANCELLED,
     DownloadItemStatus.FAILED,
-    -> MaterialTheme.colorScheme.onErrorContainer
+    -> PluviaTheme.colors.accentDanger
 }
 
 @Composable
@@ -1104,7 +1105,7 @@ private fun DownloadActionButton(
                 if (isFocused) {
                     accentColor.copy(alpha = 0.18f)
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    GlassFill
                 }
             )
             .border(

@@ -38,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import app.gamenative.ui.theme.GlassFill
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -71,13 +72,13 @@ fun ConnectionStatusBanner(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = Color.Transparent,
-            shadowElevation = 4.dp,
+            shadowElevation = 0.dp,
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant
+                        color = GlassFill
                     )
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {

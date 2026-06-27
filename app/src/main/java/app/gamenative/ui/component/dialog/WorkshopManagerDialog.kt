@@ -60,6 +60,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import androidx.compose.ui.graphics.Color
@@ -418,7 +419,7 @@ fun WorkshopManagerDialog(
                                                 modifier = Modifier
                                                     .size(48.dp)
                                                     .clip(RoundedCornerShape(4.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                    .background(GlassFill),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Text(
@@ -628,7 +629,7 @@ private fun FolderPickerDialog(
                 .fillMaxWidth(0.92f)
                 .height(480.dp),
             shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surface,
+            color = GlassFillStrong,
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // ── Header ──────────────────────────────────────────
@@ -682,7 +683,7 @@ private fun FolderPickerDialog(
                 if (currentDir != null) {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        color = GlassFill,
                     ) {
                         Row(
                             modifier = Modifier
@@ -741,7 +742,7 @@ private fun FolderPickerDialog(
                                     .fillMaxWidth()
                                     .padding(horizontal = 12.dp, vertical = 4.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                color = GlassFill,
                             ) {
                                 Row(
                                     modifier = Modifier

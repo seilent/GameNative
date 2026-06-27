@@ -266,9 +266,12 @@ internal fun LibraryCarouselPane(
 
         scope.launch {
             onFocusedIndexChanged(targetIndex)
+            val scrollJob = launch { listState.animateScrollToItem(targetIndex) }
             kotlinx.coroutines.delay(16)
-            listState.animateScrollToItem(targetIndex)
-            kotlinx.coroutines.delay(16)
+            if (listState.layoutInfo.visibleItemsInfo.none { it.index == targetIndex }) {
+                scrollJob.join()
+                kotlinx.coroutines.delay(16)
+            }
             try {
                 firstCarouselItemFocusRequester?.requestFocus()
             } catch (_: IllegalStateException) {

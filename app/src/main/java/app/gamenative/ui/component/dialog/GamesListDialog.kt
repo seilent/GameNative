@@ -25,6 +25,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -40,6 +41,7 @@ import app.gamenative.Constants
 import app.gamenative.R
 import app.gamenative.data.OwnedGames
 import app.gamenative.ui.component.LoadingScreen
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ListItemImage
 import app.gamenative.utils.SteamUtils
@@ -63,6 +65,7 @@ fun GamesListDialog(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
                         CenterAlignedTopAppBar(
+                            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
                             title = { Text(text = stringResource(R.string.games)) },
                             navigationIcon = {
                                 IconButton(
@@ -121,7 +124,7 @@ fun GamesListDialog(
                             )
 
                             if (idx < list.lastIndex) {
-                                HorizontalDivider()
+                                HorizontalDivider(color = GlassBorder)
                             }
                         }
                     }

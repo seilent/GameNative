@@ -15,7 +15,7 @@ import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import com.alorma.compose.settings.ui.SettingsGroup
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import com.winlator.container.Container
 
 @Composable
@@ -26,26 +26,26 @@ fun ControllerTabContent(state: ContainerConfigState, default: Boolean) {
     Column {
     SettingsGroup() {
         if (!default) {
-            SettingsSwitch(
+            SettingsSwitchWithAction(
                 colors = settingsTileColorsAlt(),
                 title = { Text(text = stringResource(R.string.use_sdl_api)) },
                 state = config.sdlControllerAPI,
                 onCheckedChange = { state.config.value = config.copy(sdlControllerAPI = it) },
             )
         }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.use_steam_input)) },
             state = config.useSteamInput,
             onCheckedChange = { state.config.value = config.copy(useSteamInput = it) },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.enable_xinput_api)) },
             state = config.enableXInput,
             onCheckedChange = { state.config.value = config.copy(enableXInput = it) },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.enable_directinput_api)) },
             state = config.enableDInput,
@@ -60,7 +60,7 @@ fun ControllerTabContent(state: ContainerConfigState, default: Boolean) {
                 state.config.value = config.copy(dinputMapperType = if (index == 0) 1 else 2)
             },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.shooter_mode_toggle)) },
             subtitle = { Text(text = stringResource(R.string.shooter_mode_toggle_description)) },
@@ -85,7 +85,7 @@ fun ControllerTabContent(state: ContainerConfigState, default: Boolean) {
                 )
             },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.external_display_swap)) },
             subtitle = { Text(text = stringResource(R.string.external_display_swap_subtitle)) },

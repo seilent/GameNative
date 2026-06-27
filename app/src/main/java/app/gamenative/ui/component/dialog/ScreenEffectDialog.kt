@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.settingsTileColors
@@ -48,7 +49,7 @@ import app.gamenative.ui.util.ScreenEffectsConfig
 import app.gamenative.ui.util.applyScreenEffectsConfig
 import app.gamenative.ui.util.loadScreenEffectsConfig
 import app.gamenative.ui.util.persistScreenEffectsConfig
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import com.winlator.container.Container
 import com.winlator.renderer.VulkanRenderer
 import kotlinx.coroutines.delay
@@ -125,8 +126,8 @@ fun ScreenEffectDialog(
                 .padding(16.dp),
             shape = MaterialTheme.shapes.extraLarge,
             color = GlassFillStrong,
-            tonalElevation = 6.dp,
-            shadowElevation = 24.dp,
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp,
         ) {
             Column(
                 modifier = Modifier
@@ -209,39 +210,39 @@ fun ScreenEffectDialog(
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         )
-                        SettingsSwitch(
+                        SettingsSwitchWithAction(
                             colors = settingsTileColorsAlt(),
                             title = { Text(stringResource(R.string.screen_effects_toon)) },
                             subtitle = { Text(stringResource(R.string.screen_effects_toon_description)) },
                             state = enableToon,
                             onCheckedChange = { enableToon = it },
                         )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                        SettingsSwitch(
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = GlassBorder)
+                        SettingsSwitchWithAction(
                             colors = settingsTileColors(),
                             title = { Text(stringResource(R.string.screen_effects_fxaa)) },
                             subtitle = { Text(stringResource(R.string.screen_effects_fxaa_description)) },
                             state = enableFXAA,
                             onCheckedChange = { enableFXAA = it },
                         )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                        SettingsSwitch(
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = GlassBorder)
+                        SettingsSwitchWithAction(
                             colors = settingsTileColorsAlt(),
                             title = { Text(stringResource(R.string.screen_effects_vivid)) },
                             subtitle = { Text(stringResource(R.string.screen_effects_vivid_description)) },
                             state = enableVivid,
                             onCheckedChange = { enableVivid = it },
                         )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                        SettingsSwitch(
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = GlassBorder)
+                        SettingsSwitchWithAction(
                             colors = settingsTileColors(),
                             title = { Text(stringResource(R.string.screen_effects_crt)) },
                             subtitle = { Text(stringResource(R.string.screen_effects_crt_description)) },
                             state = enableCRT,
                             onCheckedChange = { enableCRT = it },
                         )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                        SettingsSwitch(
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = GlassBorder)
+                        SettingsSwitchWithAction(
                             colors = settingsTileColors(),
                             title = { Text(stringResource(R.string.screen_effects_ntsc)) },
                             subtitle = { Text(stringResource(R.string.screen_effects_ntsc_description)) },

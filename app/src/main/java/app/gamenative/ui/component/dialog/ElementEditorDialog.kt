@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,10 +27,11 @@ import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.component.settings.SettingsTextField
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
+import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import com.winlator.inputcontrols.ControlElement
 import com.winlator.widget.InputControlsView
 import java.util.Locale
@@ -251,6 +253,7 @@ fun ElementEditorDialog(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
                 CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
                     title = {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -458,7 +461,7 @@ fun ElementEditorDialog(
                 // Button Settings Section (only for BUTTON type)
                 if (types[currentTypeIndex] == ControlElement.Type.BUTTON) {
                     SettingsGroup(title = { Text(stringResource(R.string.button_settings)) }) {
-                        SettingsSwitch(
+                        SettingsSwitchWithAction(
                             colors = settingsTileColorsAlt(),
                             title = { Text(stringResource(R.string.button_toggleable)) },
                             subtitle = { Text(stringResource(R.string.button_toggleable_subtitle)) },
@@ -645,7 +648,7 @@ fun ElementEditorDialog(
                         }
 
                         // Lock Scrolling switch
-                        SettingsSwitch(
+                        SettingsSwitchWithAction(
                             colors = settingsTileColorsAlt(),
                             title = { Text(stringResource(R.string.range_lock_scrolling)) },
                             subtitle = { Text(stringResource(R.string.range_lock_scrolling_subtitle)) },
@@ -939,8 +942,8 @@ private fun SizeAdjusterOverlay(
                 .align(if (isElementInTopPortion) Alignment.BottomCenter else Alignment.TopCenter)
                 .padding(16.dp),
             shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-            tonalElevation = 4.dp
+            color = GlassFill,
+            tonalElevation = 0.dp
         ) {
             Column(
                 modifier = Modifier
@@ -1110,7 +1113,7 @@ private fun VirtualControlPresets(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = LocalGameAccent.current.copy(alpha = 0.15f)
         )
     ) {
         Column(

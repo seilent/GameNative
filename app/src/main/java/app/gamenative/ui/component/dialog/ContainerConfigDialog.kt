@@ -116,7 +116,6 @@ import app.gamenative.utils.PaddingUtils
 import com.winlator.contents.ContentProfile
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
-import com.alorma.compose.settings.ui.SettingsSwitch
 import com.winlator.box86_64.Box86_64Preset
 import com.winlator.box86_64.Box86_64PresetManager
 import com.winlator.container.Container

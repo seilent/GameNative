@@ -26,7 +26,7 @@ import app.gamenative.ui.theme.settingsTileColorsAlt
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.utils.LsfgVkManager
 import com.alorma.compose.settings.ui.SettingsGroup
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import com.winlator.contents.ContentProfile
 import com.winlator.container.Container
 import com.winlator.core.KeyValueSet
@@ -123,7 +123,7 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
                 )
             }
             // Bionic: Use Adrenotools Turnip
-            SettingsSwitch(
+            SettingsSwitchWithAction(
                 colors = settingsTileColorsAlt(),
                 title = { Text(text = stringResource(R.string.use_adrenotools_turnip)) },
                 state = state.adrenotoolsTurnipChecked.value,
@@ -346,7 +346,7 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
         // with a Vortek/Adreno graphics driver.
         if (!default) LsfgSection(state)
 
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.use_dri3)) },
             subtitle = { Text(text = stringResource(R.string.use_dri3_description)) },
@@ -500,7 +500,7 @@ private fun LsfgSection(state: ContainerConfigState) {
         when {
             dllAvailable -> {
                 // State 1: DLL found — toggle works normally
-                SettingsSwitch(
+                SettingsSwitchWithAction(
                     colors = settingsTileColorsAlt(),
                     title = { Text(text = stringResource(R.string.lsfg_enable)) },
                     subtitle = { Text(text = stringResource(R.string.lsfg_description)) },
@@ -512,7 +512,7 @@ private fun LsfgSection(state: ContainerConfigState) {
             }
             ownsApp -> {
                 // State 2: User owns Lossless Scaling but hasn't installed it yet
-                SettingsSwitch(
+                SettingsSwitchWithAction(
                     colors = settingsTileColorsAlt(),
                     title = { Text(text = stringResource(R.string.lsfg_enable)) },
                     subtitle = { Text(text = stringResource(R.string.lsfg_install_prompt)) },
@@ -532,7 +532,7 @@ private fun LsfgSection(state: ContainerConfigState) {
             }
             else -> {
                 // State 3: User doesn't own Lossless Scaling
-                SettingsSwitch(
+                SettingsSwitchWithAction(
                     colors = settingsTileColorsAlt(),
                     title = { Text(text = stringResource(R.string.lsfg_enable)) },
                     subtitle = { Text(text = stringResource(R.string.lsfg_not_in_library)) },

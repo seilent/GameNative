@@ -74,6 +74,8 @@ import com.skydoves.landscapist.coil.CoilImage
 import app.gamenative.data.GameSource
 import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.screen.library.GameMigrationDialog
+import androidx.compose.ui.graphics.Color
+import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
@@ -627,7 +629,7 @@ private fun StorageEntryCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+            containerColor = GlassFill,
         ),
         shape = RoundedCornerShape(16.dp),
     ) {
@@ -674,8 +676,8 @@ private fun StorageEntryCard(
                 entry.combinedSizeBytes?.let {
                     MetadataChip(
                         text = StorageUtils.formatBinarySize(it),
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        containerColor = GlassFill,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -688,7 +690,7 @@ private fun StorageEntryCard(
             ) {
                 MetadataChip(
                     text = gameSourceLabel(entry.gameSource),
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    containerColor = GlassFillStrong,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 )
                 MetadataChip(
@@ -699,8 +701,8 @@ private fun StorageEntryCard(
                 if (storageLocation != ContainerStorageManager.StorageLocation.UNKNOWN) {
                     MetadataChip(
                         text = storageLocationLabel(storageLocation),
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        containerColor = GlassFill,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -727,8 +729,8 @@ private fun StorageEntryCard(
                             icon = Icons.Default.ArrowDownward,
                             onClick = onMoveToExternal,
                             enabled = actionsEnabled,
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            containerColor = LocalGameAccent.current,
+                            contentColor = Color.White,
                         )
                     }
                     if (canMoveToInternal) {
@@ -737,8 +739,8 @@ private fun StorageEntryCard(
                             icon = Icons.Default.ArrowUpward,
                             onClick = onMoveToInternal,
                             enabled = actionsEnabled,
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            containerColor = LocalGameAccent.current,
+                            contentColor = Color.White,
                         )
                     }
                     if (entry.canUninstallGame) {
@@ -757,7 +759,7 @@ private fun StorageEntryCard(
                             icon = Icons.Default.Delete,
                             onClick = onRemove,
                             enabled = actionsEnabled,
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            containerColor = GlassFillStrong,
                             contentColor = MaterialTheme.colorScheme.onSurface,
                         )
                     }
@@ -785,7 +787,7 @@ private fun StorageArtworkButton(
                 color = if (isFocused) {
                     accentColor.copy(alpha = 0.18f)
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                    GlassFill
                 },
                 shape = RoundedCornerShape(10.dp),
             )
@@ -952,18 +954,18 @@ private fun statusLabel(status: ContainerStorageManager.Status): String = when (
 
 @Composable
 private fun statusContainerColor(status: ContainerStorageManager.Status) = when (status) {
-    ContainerStorageManager.Status.READY -> MaterialTheme.colorScheme.secondaryContainer
-    ContainerStorageManager.Status.NO_CONTAINER -> MaterialTheme.colorScheme.primaryContainer
-    ContainerStorageManager.Status.GAME_FILES_MISSING -> MaterialTheme.colorScheme.tertiaryContainer
+    ContainerStorageManager.Status.READY -> PluviaTheme.colors.accentSuccess.copy(alpha = 0.15f)
+    ContainerStorageManager.Status.NO_CONTAINER -> GlassFill
+    ContainerStorageManager.Status.GAME_FILES_MISSING -> PluviaTheme.colors.accentWarning.copy(alpha = 0.15f)
     ContainerStorageManager.Status.ORPHANED -> MaterialTheme.colorScheme.errorContainer
-    ContainerStorageManager.Status.UNREADABLE -> MaterialTheme.colorScheme.surfaceContainerHighest
+    ContainerStorageManager.Status.UNREADABLE -> PluviaTheme.colors.accentDanger.copy(alpha = 0.15f)
 }
 
 @Composable
 private fun statusContentColor(status: ContainerStorageManager.Status) = when (status) {
-    ContainerStorageManager.Status.READY -> MaterialTheme.colorScheme.onSecondaryContainer
-    ContainerStorageManager.Status.NO_CONTAINER -> MaterialTheme.colorScheme.onPrimaryContainer
-    ContainerStorageManager.Status.GAME_FILES_MISSING -> MaterialTheme.colorScheme.onTertiaryContainer
+    ContainerStorageManager.Status.READY -> PluviaTheme.colors.accentSuccess
+    ContainerStorageManager.Status.NO_CONTAINER -> MaterialTheme.colorScheme.onSurface
+    ContainerStorageManager.Status.GAME_FILES_MISSING -> PluviaTheme.colors.accentWarning
     ContainerStorageManager.Status.ORPHANED -> MaterialTheme.colorScheme.onErrorContainer
-    ContainerStorageManager.Status.UNREADABLE -> MaterialTheme.colorScheme.onSurface
+    ContainerStorageManager.Status.UNREADABLE -> PluviaTheme.colors.accentDanger
 }

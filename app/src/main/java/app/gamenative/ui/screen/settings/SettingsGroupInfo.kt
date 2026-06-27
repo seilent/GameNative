@@ -19,7 +19,7 @@ import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 
 @Composable
 fun SettingsGroupInfo() {
@@ -45,7 +45,7 @@ fun SettingsGroupInfo() {
             },
         )
 
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             state = askForTip,
             title = { Text(stringResource(R.string.settings_info_ask_tip_title)) },
@@ -80,7 +80,7 @@ fun SettingsGroupInfo() {
         )
 
         var usageAnalytics by rememberSaveable { mutableStateOf(PrefManager.usageAnalyticsEnabled) }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             state = usageAnalytics,
             title = { Text(stringResource(R.string.settings_info_usage_analytics_title)) },

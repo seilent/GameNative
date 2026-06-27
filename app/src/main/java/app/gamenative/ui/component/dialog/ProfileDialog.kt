@@ -135,7 +135,7 @@ fun ProfileDialog(
                 /* Action Buttons - Scrollable */
                 Spacer(modifier = Modifier.height(16.dp))
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    val dialogBackgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    val dialogBackgroundColor = GlassFillStrong
                     val showTopFade = remember {
                         derivedStateOf { scrollState.value > 0 }
                     }

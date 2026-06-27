@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
+import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import com.winlator.inputcontrols.Binding
 import com.winlator.inputcontrols.ControlsProfile
@@ -216,6 +219,7 @@ internal fun PhysicalControllerConfigSection(
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
                     title = {
                         Text(
                             text = stringResource(R.string.physical_controller_config),
@@ -309,7 +313,7 @@ internal fun PhysicalControllerConfigSection(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                color = MaterialTheme.colorScheme.surface
+                color = GlassFillStrong
             ) {
                 // Two-column layout: Left = Categories, Right = Bindings list
                 Row(
@@ -569,7 +573,7 @@ private fun CategoryButton(
         color = if (isSelected)
             LocalGameAccent.current.copy(alpha = 0.18f)
         else
-            MaterialTheme.colorScheme.surfaceVariant,
+            GlassFill,
         shape = MaterialTheme.shapes.small
     ) {
         Text(
@@ -595,7 +599,7 @@ private fun ControllerBindingItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        color = GlassFill,
         shape = MaterialTheme.shapes.small
     ) {
         Row(
@@ -638,7 +642,7 @@ private fun PhysicalControlPresets(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = LocalGameAccent.current.copy(alpha = 0.15f)
         )
     ) {
         Column(

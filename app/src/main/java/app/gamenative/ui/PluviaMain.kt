@@ -94,6 +94,7 @@ import app.gamenative.ui.screen.xserver.XServerScreen
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.LocalGameBackdrop
+import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.util.SnackbarManager
 import androidx.compose.animation.animateColorAsState
@@ -1529,8 +1530,8 @@ fun PluviaMain(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(24.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shadowElevation = 4.dp,
+                        color = GlassFillStrong,
+                        shadowElevation = 0.dp,
                     ) {
                         Text(
                             text = data.visuals.message,

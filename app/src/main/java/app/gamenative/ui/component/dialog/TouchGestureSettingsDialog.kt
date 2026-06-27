@@ -57,7 +57,7 @@ import app.gamenative.ui.theme.PluviaBackground
 import app.gamenative.ui.theme.PluviaBorder
 import app.gamenative.ui.theme.PluviaSurface
 import app.gamenative.ui.theme.PluviaSurfaceElevated
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import com.winlator.inputcontrols.Binding
 
 /**
@@ -89,6 +89,7 @@ fun TouchGestureSettingsDialog(
             containerColor = PluviaBackground,
             topBar = {
                 CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
                     title = {
                         Text(
                             text = stringResource(R.string.gesture_settings_title),
@@ -375,7 +376,7 @@ fun TouchGestureSettingsDialog(
                 )
 
                 // ── Show Click Highlight ─────────────────────────────────
-                SettingsSwitch(
+                SettingsSwitchWithAction(
                     colors = settingsTileColorsAlt(),
                     title = { Text(stringResource(R.string.gesture_show_click_highlight)) },
                     subtitle = { Text(stringResource(R.string.gesture_show_click_highlight_subtitle)) },
@@ -383,7 +384,7 @@ fun TouchGestureSettingsDialog(
                     onCheckedChange = { config = config.copy(showClickHighlight = it) },
                 )
 
-                SettingsSwitch(
+                SettingsSwitchWithAction(
                     colors = settingsTileColorsAlt(),
                     title = { Text(stringResource(R.string.gesture_show_debug_overlay)) },
                     subtitle = { Text(stringResource(R.string.gesture_show_debug_overlay_subtitle)) },
@@ -391,7 +392,7 @@ fun TouchGestureSettingsDialog(
                     onCheckedChange = { config = config.copy(showGestureDebugOverlay = it) },
                 )
 
-                SettingsSwitch(
+                SettingsSwitchWithAction(
                     colors = settingsTileColorsAlt(),
                     title = { Text(stringResource(R.string.gesture_show_cursor_touchscreen_mode)) },
                     subtitle = { Text(stringResource(R.string.gesture_show_cursor_touchscreen_mode_subtitle)) },
@@ -427,7 +428,7 @@ private fun GestureRow(
     expandedContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     GestureBlock {
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(title) },
             subtitle = {

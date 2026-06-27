@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.R
+import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.AchievementNotification
@@ -95,9 +96,9 @@ fun BoxScope.AchievementOverlay() {
 private fun AchievementNotificationContent(notification: AchievementNotification) {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shadowElevation = 6.dp,
-        tonalElevation = 2.dp,
+        color = GlassFillStrong,
+        shadowElevation = 0.dp,
+        tonalElevation = 0.dp,
     ) {
         Row(
             modifier = Modifier.padding(12.dp),

@@ -20,7 +20,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import androidx.compose.material3.DropdownMenuItem
@@ -45,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.service.SteamService
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import com.winlator.contents.ContentProfile
@@ -206,7 +207,7 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 }
 
                 pendingProfile?.let { profile ->
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = GlassBorder)
                     Text(text = stringResource(R.string.selected_content), style = MaterialTheme.typography.titleMedium)
                     Column(
                         modifier = Modifier
@@ -243,7 +244,7 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     }
                 }
 
-                Divider(modifier = Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = GlassBorder)
                 Text(text = stringResource(R.string.installed_contents), style = MaterialTheme.typography.titleMedium)
 
                 // Content type selector

@@ -46,7 +46,7 @@ import app.gamenative.enums.AppTheme
 import app.gamenative.ui.component.dialog.SingleChoiceDialog
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import com.alorma.compose.settings.ui.SettingsGroup
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import com.materialkolor.PaletteStyle
 import kotlinx.serialization.json.Json
 import androidx.compose.runtime.remember
@@ -254,7 +254,7 @@ fun SettingsGroupInterface(
     }
 
     SettingsGroup(modifier = Modifier.background(Color.Transparent)) {
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.settings_achievement_show_notification)) },
             state = showAchievementNotifications,
@@ -283,7 +283,7 @@ fun SettingsGroupInterface(
             colors = settingsTileColorsAlt(),
         )
 
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.settings_interface_external_links_title)) },
             subtitle = { Text(text = stringResource(R.string.settings_interface_external_links_subtitle)) },
@@ -294,7 +294,7 @@ fun SettingsGroupInterface(
             },
         )
 
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.settings_interface_hide_statusbar_title)) },
             subtitle = { Text(text = stringResource(R.string.settings_interface_hide_statusbar_subtitle)) },
@@ -308,7 +308,7 @@ fun SettingsGroupInterface(
             },
         )
 
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.settings_interface_swap_face_buttons_title)) },
             subtitle = { Text(text = stringResource(R.string.settings_interface_swap_face_buttons_subtitle)) },
@@ -320,7 +320,7 @@ fun SettingsGroupInterface(
         )
 
         var warnBeforeExit by rememberSaveable { mutableStateOf(PrefManager.warnBeforeExit) }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.settings_interface_warn_before_exit_title)) },
             subtitle = { Text(text = stringResource(R.string.settings_interface_warn_before_exit_subtitle)) },
@@ -331,7 +331,7 @@ fun SettingsGroupInterface(
             },
         )
 
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.settings_interface_show_gamepad_hints_title)) },
             subtitle = { Text(text = stringResource(R.string.settings_interface_show_gamepad_hints_subtitle)) },
@@ -343,7 +343,7 @@ fun SettingsGroupInterface(
         )
 
         var showRecommendations by rememberSaveable { mutableStateOf(PrefManager.showRecommendations) }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.settings_interface_show_recommendations_title)) },
             subtitle = { Text(text = stringResource(R.string.settings_interface_show_recommendations_subtitle)) },
@@ -428,7 +428,7 @@ fun SettingsGroupInterface(
         title = { Text(text = stringResource(R.string.settings_interface_custom_games)) },
     ) {
         var importCustomGameAsSteamGame by rememberSaveable { mutableStateOf(PrefManager.importCustomGameAsSteamGame) }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.settings_interface_custom_game_import_as_steam)) },
             state = importCustomGameAsSteamGame,
@@ -449,7 +449,7 @@ fun SettingsGroupInterface(
         title = { Text(text = stringResource(R.string.settings_downloads_title)) },
     ) {
         var wifiOnlyDownload by rememberSaveable { mutableStateOf(PrefManager.downloadOnWifiOnly) }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.settings_interface_wifi_only_title)) },
             subtitle = { Text(text = stringResource(R.string.settings_interface_wifi_only_subtitle)) },
@@ -540,7 +540,7 @@ fun SettingsGroupInterface(
             }
         }
         var useExternalStorage by rememberSaveable { mutableStateOf(PrefManager.useExternalStorage) }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             enabled = dirs.isNotEmpty(),
             title = { Text(text = stringResource(R.string.settings_interface_external_storage_title)) },

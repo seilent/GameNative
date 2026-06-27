@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
@@ -69,7 +70,7 @@ private fun rememberOptionItemStyle(
     val backgroundColor by animateColorAsState(
         targetValue = when {
             isFocused && selected -> LocalGameAccent.current.copy(alpha = 0.25f)
-            isFocused -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            isFocused -> GlassFill
             selected -> LocalGameAccent.current.copy(alpha = 0.12f)
             else -> Color.Transparent
         },
@@ -278,7 +279,7 @@ fun OptionSectionHeader(
 @Composable
 private fun Preview_OptionListItem() {
     PluviaTheme {
-        Surface(color = MaterialTheme.colorScheme.surface) {
+        Surface(color = Color.Transparent) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)

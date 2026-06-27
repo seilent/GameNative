@@ -23,7 +23,7 @@ import app.gamenative.ui.theme.settingsTileColorsAlt
 import app.gamenative.utils.ContainerUtils
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 
 @Composable
 fun SettingsGroupEmulation() {
@@ -92,7 +92,7 @@ fun SettingsGroupEmulation() {
             onClick = { showConfigDialog = true },
         )
         var autoApplyKnownConfig by rememberSaveable { mutableStateOf(PrefManager.autoApplyKnownConfig) }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             state = autoApplyKnownConfig,
             title = { Text(text = stringResource(R.string.settings_emulation_auto_apply_known_config_title)) },

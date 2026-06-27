@@ -130,7 +130,7 @@ internal fun ListViewCard(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(GlassFill),
             ) {
                 ListItemImage(
                     modifier = Modifier.fillMaxSize(),
@@ -169,13 +169,13 @@ internal fun ListViewCard(
                             Icon(
                                 Icons.Filled.Face4,
                                 contentDescription = stringResource(R.string.library_family_shared),
-                                tint = MaterialTheme.colorScheme.tertiary,
+                                tint = LocalGameAccent.current,
                                 modifier = Modifier.size(14.dp),
                             )
                             Text(
                                 text = stringResource(R.string.library_shared_short),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.tertiary,
+                                color = LocalGameAccent.current,
                             )
                         }
                     }

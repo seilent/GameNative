@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.gamenative.data.LibraryItem
 import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.theme.GlassBorder
 
 @Composable
 internal fun LibraryList(
@@ -59,7 +60,7 @@ internal fun LibraryList(
                 )
 
                 if (item.index < list.lastIndex) {
-                    HorizontalDivider()
+                    HorizontalDivider(color = GlassBorder)
                 }
             }
         }

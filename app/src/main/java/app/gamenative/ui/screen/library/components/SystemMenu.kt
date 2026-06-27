@@ -451,7 +451,7 @@ fun SystemMenu(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                    .background(GlassFill),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 if (persona?.avatarHash?.isNotEmpty() == true) {
@@ -759,7 +759,7 @@ private fun Preview_SystemMenu() {
     val context = LocalContext.current
     PrefManager.init(context)
     PluviaTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
+        Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
             Box(modifier = Modifier.fillMaxSize()) {
                 // Fake background content
                 Column(

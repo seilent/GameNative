@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +55,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.Surface
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import android.content.res.Configuration
 import app.gamenative.ui.util.SnackbarManager
@@ -403,7 +404,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     }
                 }
 
-                Divider(modifier = Modifier.padding(vertical = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = GlassBorder)
 
                 // Local driver import section
                 Text(
@@ -443,7 +444,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 }
 
                 if (installedDrivers.isNotEmpty()) {
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = GlassBorder)
                     Text(
                         text = "Installed custom drivers",
                         style = MaterialTheme.typography.titleMedium,

@@ -341,7 +341,7 @@ private fun Preview_LibraryOptionsPanel() {
     val context = LocalContext.current
     PrefManager.init(context)
     PluviaTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
+        Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier

@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.service.SteamService
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.utils.Net
@@ -727,7 +728,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     }
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = GlassBorder)
 
                 // Local import section
                 Text(
@@ -786,7 +787,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 }
 
                 pendingProfile?.let { profile ->
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = GlassBorder)
                     Text(text = stringResource(R.string.wine_proton_package_details), style = MaterialTheme.typography.titleMedium)
                     Column(
                         modifier = Modifier
@@ -832,7 +833,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     }
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = GlassBorder)
                 Text(text = stringResource(R.string.wine_proton_installed_versions), style = MaterialTheme.typography.titleMedium)
 
                 if (installedProfiles.isEmpty()) {
@@ -871,7 +872,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                 }
                             }
                             if (p != installedProfiles.last()) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = GlassBorder)
                             }
                         }
                     }

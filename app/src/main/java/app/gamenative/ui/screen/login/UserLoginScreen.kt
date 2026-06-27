@@ -105,6 +105,8 @@ import app.gamenative.ui.data.UserLoginState
 import app.gamenative.ui.enums.ConnectionState
 import app.gamenative.ui.model.UserLoginViewModel
 import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.theme.GlassBorder
+import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
@@ -328,7 +330,7 @@ private fun UserLoginScreenContent(
     onLaunchAmazon: () -> Unit,
 ) {
     val primaryColor = LocalGameAccent.current
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val tertiaryColor = LocalGameAccent.current
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -365,7 +367,7 @@ private fun UserLoginScreenContent(
                 val uriHandler = LocalUriHandler.current
                 TextButton(
                     onClick = { uriHandler.openUri(Constants.Misc.PRIVACY_LINK) },
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
+                    border = BorderStroke(1.dp, GlassBorder),
                     shape = RoundedCornerShape(8.dp),
                 ) {
                     Text(
@@ -682,7 +684,10 @@ private fun CredentialsForm(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Box(contentAlignment = Alignment.Center) {
-                            Button(onClick = { onContinueOffline() }) {
+                            Button(
+                                onClick = { onContinueOffline() },
+                                colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
+                            ) {
                                 Text(stringResource(R.string.continue_offline))
                             }
                         }
@@ -720,8 +725,8 @@ private fun CredentialsForm(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = LocalGameAccent.current,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = GlassFill,
+                    unfocusedContainerColor = GlassFill,
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 ),
@@ -763,8 +768,8 @@ private fun CredentialsForm(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = LocalGameAccent.current,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = GlassFill,
+                unfocusedContainerColor = GlassFill,
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
             ),
@@ -857,16 +862,16 @@ private fun QRCodeLogin(
 
                 OutlinedButton(
                     onClick = onQrRetry,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
+                    border = BorderStroke(1.dp, LocalGameAccent.current),
                     modifier = Modifier.padding(top = 16.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = LocalGameAccent.current,
                     ),
                 ) {
                     Text(
                         text = stringResource(R.string.login_retry_qr),
-                        color = MaterialTheme.colorScheme.tertiary,
+                        color = LocalGameAccent.current,
                     )
                 }
             } else if (qrCode.isNullOrEmpty()) {

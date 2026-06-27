@@ -178,7 +178,7 @@ private fun SearchBarInput(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                .background(GlassFill)
                 .clickable { onDismiss() },
             contentAlignment = Alignment.Center,
         ) {
@@ -289,7 +289,7 @@ private fun SearchBarInput(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .background(GlassFill)
                     .clickable { onSearchText("") },
                 contentAlignment = Alignment.Center,
             ) {

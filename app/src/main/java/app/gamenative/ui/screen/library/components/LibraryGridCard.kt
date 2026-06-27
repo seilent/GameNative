@@ -299,9 +299,6 @@ internal fun GridViewCard(
                             tint = Color.White.copy(alpha = 0.7f),
                             onDark = true,
                         )
-                        badgeStatus?.let { status ->
-                            CompatibilityBadge(status = status, size = 14.dp)
-                        }
                         if (!appInfo.isRecommended) {
                             GameSourceIcon(
                                 gameSource = appInfo.gameSource,
@@ -321,10 +318,21 @@ internal fun GridViewCard(
                             Icon(
                                 imageVector = Icons.Filled.Face4,
                                 contentDescription = stringResource(R.string.library_family_shared),
-                                tint = MaterialTheme.colorScheme.tertiary,
+                                tint = LocalGameAccent.current,
                                 modifier = Modifier.size(14.dp),
                             )
                         }
+                    }
+                }
+
+                badgeStatus?.let { status ->
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .alpha(overlayAlpha)
+                            .padding(top = topOverlayPadding, start = topOverlayPadding),
+                    ) {
+                        CompatibilityBadge(status = status)
                     }
                 }
             }
@@ -401,7 +409,7 @@ private fun GridStatusIcons(appInfo: LibraryItem) {
                 Icon(
                     Icons.Filled.Face4,
                     contentDescription = stringResource(R.string.library_family_shared),
-                    tint = MaterialTheme.colorScheme.tertiary,
+                    tint = LocalGameAccent.current,
                     modifier = Modifier.size(12.dp),
                 )
             }
@@ -416,9 +424,6 @@ internal data class GridImageUrls(val primary: String, val fallback: String = ""
 
 private fun getGridContentScale(paneType: PaneType): ContentScale {
     return when (paneType) {
-        // Hero and capsule both show cover art that should fill the slot. Capsule art is
-        // close to but not always exactly 2:3 (e.g. GOG covers are ~0.71), so cropping the
-        // overflow looks better than letterboxing it against the blurred backdrop.
         PaneType.GRID_HERO, PaneType.GRID_CAPSULE -> ContentScale.Crop
         else -> ContentScale.Fit
     }

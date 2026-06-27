@@ -118,6 +118,7 @@ fun GameFeedbackDialog(
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = LocalGameAccent.current.copy(alpha = 0.2f)),
                                 modifier = Modifier.padding(end = 8.dp, bottom = 8.dp)
                             )
                         }

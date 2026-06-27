@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import app.gamenative.ui.enums.PaneType
+import app.gamenative.ui.theme.GlassFill
 
 /**
  * Skeleton loader for game items that matches the actual game item appearance
@@ -42,7 +43,7 @@ fun GameSkeletonLoader(
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = GlassFill
         ),
     ) {
         val outerPadding = if (paneType == PaneType.LIST) {

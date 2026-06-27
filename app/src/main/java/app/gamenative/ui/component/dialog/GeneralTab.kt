@@ -33,7 +33,7 @@ import app.gamenative.R
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.settings.SettingsListDropdown
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import com.alorma.compose.settings.ui.SettingsGroup
@@ -311,7 +311,7 @@ fun GeneralTabContent(
                 }
             },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.portrait_mode)) },
             subtitle = { Text(text = stringResource(R.string.portrait_mode_description)) },
@@ -329,14 +329,14 @@ fun GeneralTabContent(
             },
         )
         if (config.audioDriver == "pulseaudio") {
-            SettingsSwitch(
+            SettingsSwitchWithAction(
                 colors = settingsTileColorsAlt(),
                 title = { Text(text = stringResource(R.string.pulseaudio_low_latency)) },
                 state = config.pulseaudioLowLatency,
                 onCheckedChange = { state.config.value = config.copy(pulseaudioLowLatency = it) },
             )
         }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.force_dlc)) },
             subtitle = { Text(text = stringResource(R.string.force_dlc_description)) },
@@ -344,14 +344,14 @@ fun GeneralTabContent(
             onCheckedChange = { state.config.value = config.copy(forceDlc = it) },
         )
 
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.use_legacy_drm)) },
             state = config.useLegacyDRM,
             onCheckedChange = { state.config.value = config.copy(useLegacyDRM = it) },
         )
         if (!config.useLegacyDRM) {
-            SettingsSwitch(
+            SettingsSwitchWithAction(
                 colors = settingsTileColorsAlt(),
                 title = { Text(text = stringResource(R.string.unpack_files)) },
                 subtitle = { Text(text = stringResource(R.string.unpack_files_description)) },
@@ -359,21 +359,21 @@ fun GeneralTabContent(
                 onCheckedChange = { state.config.value = config.copy(unpackFiles = it) },
             )
         }
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.steam_offline_mode)) },
             subtitle = { Text(text = stringResource(R.string.steam_offline_mode_description)) },
             state = config.steamOfflineMode,
             onCheckedChange = { state.config.value = config.copy(steamOfflineMode = it) },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.epic_offline_mode)) },
             subtitle = { Text(text = stringResource(R.string.epic_offline_mode_description)) },
             state = config.epicOfflineMode,
             onCheckedChange = { state.config.value = config.copy(epicOfflineMode = it) },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.launch_steam_client_beta)) },
             subtitle = { Text(text = stringResource(R.string.launch_steam_client_description)) },
@@ -387,7 +387,7 @@ fun GeneralTabContent(
             },
         )
         if (config.containerVariant.equals(Container.BIONIC, ignoreCase = true)) {
-            SettingsSwitch(
+            SettingsSwitchWithAction(
                 colors = settingsTileColorsAlt(),
                 title = { Text(text = stringResource(R.string.launch_bionic_steam)) },
                 subtitle = { Text(text = stringResource(R.string.launch_bionic_steam_description)) },

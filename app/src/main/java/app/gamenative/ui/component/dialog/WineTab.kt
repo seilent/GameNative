@@ -16,7 +16,7 @@ import app.gamenative.ui.component.settings.SettingsListDropdownSearchable
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import com.alorma.compose.settings.ui.SettingsGroup
-import com.alorma.compose.settings.ui.SettingsSwitch
+import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import com.winlator.core.StringUtils
 
 @Composable
@@ -71,13 +71,13 @@ fun WineTabContent(state: ContainerConfigState) {
                 state.config.value = config.copy(videoMemorySize = StringUtils.parseNumber(state.videoMemSizes[it]))
             },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.enable_csmt)) },
             state = config.csmt,
             onCheckedChange = { state.config.value = config.copy(csmt = it) },
         )
-        SettingsSwitch(
+        SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.enable_strict_shader_math)) },
             state = config.strictShaderMath,

@@ -946,8 +946,8 @@ private fun ScreenEffectAdjustmentRow(
                 } else {
                     Brush.horizontalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f),
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.10f),
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.04f),
                         ),
                     )
                 },
@@ -1128,7 +1128,7 @@ private fun ScreenEffectAdjustmentButton(
                 if (isAdjustmentLocked) {
                     accentColor.copy(alpha = 0.25f)
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (rowIsFocused) 0.32f else 0.45f)
+                    Color.White.copy(alpha = if (rowIsFocused) 0.06f else 0.08f)
                 },
             )
             .border(
@@ -1182,8 +1182,8 @@ private fun ScreenEffectToggleRow(
                 } else {
                     Brush.horizontalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f),
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.10f),
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.04f),
                         ),
                     )
                 },
@@ -1260,8 +1260,8 @@ private fun ScreenEffectRadioRow(
                 } else {
                     Brush.horizontalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f),
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.10f),
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.04f),
                         ),
                     )
                 },
@@ -1357,8 +1357,8 @@ private fun ScreenEffectActionRow(
                 } else {
                     Brush.horizontalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f),
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.10f),
+                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.04f),
                         ),
                     )
                 },
@@ -1419,7 +1419,7 @@ private fun ScreenEffectSwitch(
             .height(32.dp)
             .clip(RoundedCornerShape(999.dp))
             .background(
-                if (enabled) accentColor else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                if (enabled) accentColor else Color.White.copy(alpha = 0.12f),
             )
             .border(
                 width = 1.dp,

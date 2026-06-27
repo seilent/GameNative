@@ -42,6 +42,9 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -57,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
@@ -317,6 +321,7 @@ private fun LibraryScreenContent(
     val carouselFocusRequester = remember { FocusRequester() }
     var gridFocusTargetListIndex by remember { mutableIntStateOf(0) }
     var carouselFocusTargetListIndex by remember { mutableIntStateOf(0) }
+    var lastTouchOffset by remember { mutableStateOf<Offset?>(null) }
     var pendingGridFocusRequest by remember { mutableStateOf(false) }
     var pendingCarouselFocusRequest by remember { mutableStateOf(false) }
 
@@ -363,6 +368,29 @@ private fun LibraryScreenContent(
         return carouselFocusTargetListIndex.coerceIn(0, lastIndex)
     }
 
+    fun nearestVisibleIndexToTouch(): Int? {
+        val touch = lastTouchOffset ?: return null
+        val visible = listState.layoutInfo.visibleItemsInfo
+        if (visible.isEmpty()) return null
+        return visible.minByOrNull { info ->
+            val centerX = info.offset.x + info.size.width / 2f
+            val centerY = info.offset.y + info.size.height / 2f
+            val dx = centerX - touch.x
+            val dy = centerY - touch.y
+            dx * dx + dy * dy
+        }?.index
+    }
+
+    fun middleVisibleIndex(): Int {
+        val visible = listState.layoutInfo.visibleItemsInfo
+        if (visible.isEmpty()) return firstVisibleContentIndex()
+        val viewportCenter =
+            (listState.layoutInfo.viewportStartOffset + listState.layoutInfo.viewportEndOffset) / 2f
+        return visible.minByOrNull { info ->
+            kotlin.math.abs((info.offset.y + info.size.height / 2f) - viewportCenter)
+        }?.index ?: firstVisibleContentIndex()
+    }
+
     fun preferredContentFocusIndex(): Int =
         if (currentPaneType == PaneType.CAROUSEL) {
             currentCarouselFocusTargetIndex()
@@ -372,7 +400,7 @@ private fun LibraryScreenContent(
             if (listState.layoutInfo.visibleItemsInfo.any { it.index == target }) {
                 target
             } else {
-                firstVisibleContentIndex()
+                nearestVisibleIndexToTouch() ?: firstVisibleContentIndex()
             }
         }
 
@@ -648,6 +676,28 @@ private fun LibraryScreenContent(
             !rootHasFocus
     }
 
+    val latestCanBootstrap by rememberUpdatedState(canBootstrapContentFocus)
+    val latestRequestContentFocus by rememberUpdatedState<(Int) -> Unit> { idx -> requestContentFocusOrDefer(idx) }
+    val latestMiddleIndex by rememberUpdatedState<() -> Int> { middleVisibleIndex() }
+
+    LaunchedEffect(currentPaneType) {
+        if (currentPaneType == PaneType.CAROUSEL) return@LaunchedEffect
+        var sawScroll = false
+        snapshotFlow { listState.isScrollInProgress }.collectLatest { scrolling ->
+            if (scrolling) {
+                sawScroll = true
+                return@collectLatest
+            }
+            if (sawScroll && latestCanBootstrap()) {
+                kotlinx.coroutines.delay(350)
+                if (!listState.isScrollInProgress && latestCanBootstrap()) {
+                    latestRequestContentFocus(latestMiddleIndex())
+                    sawScroll = false
+                }
+            }
+        }
+    }
+
     DisposableEffect(Unit) {
         val onGlobalKeyEvent: (AndroidEvent.KeyEvent) -> Boolean = { androidEvent ->
             val event = androidEvent.event
@@ -911,7 +961,6 @@ private fun LibraryScreenContent(
             }
     ) {
         LaunchedEffect(backdropImageUrl) {
-            kotlinx.coroutines.delay(300)
             onGameBackdrop(backdropImageUrl)
         }
 
@@ -987,6 +1036,7 @@ private fun LibraryScreenContent(
                             firstGridItemFocusRequester = gridFirstItemFocusRequester,
                             focusTargetListIndex = gridFocusTargetListIndex,
                             onFocusedIndexChanged = { gridFocusTargetListIndex = it },
+                            onTouchPosition = { lastTouchOffset = it },
                             onPageChange = onPageChange,
                             onNavigate = { appId ->
                                 selectedAppId = appId

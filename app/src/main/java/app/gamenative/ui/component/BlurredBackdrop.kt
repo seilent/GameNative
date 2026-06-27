@@ -9,9 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -30,23 +31,48 @@ import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 private data class BackdropData(val image: ImageBitmap, val accent: Color)
 
-/**
- * App-wide glassmorphism backdrop: a heavily blurred, scaled game thumbnail behind the UI.
- *
- * Generalized from the old `LibraryDynamicBackdrop`. The image is decoded ONCE at ~160x90 (cheap),
- * used to both (a) extract a per-game accent from the unblurred pixels and (b) produce an all-API
- * box-blurred backdrop. Crossfades with the calm [Motion.BackdropCrossfade] curve and layers scrims
- * so translucent glass content stays legible. Falls back to a soft radial gradient when no art.
- *
- * @param imageModel the art to show (URL string / Coil model), or null for the gradient fallback.
- * @param accentKey stable key (e.g. appId) used to cache the extracted accent.
- * @param onAccent invoked with the extracted (or fallback) accent color.
- */
+private suspend fun loadBackdrop(
+    context: android.content.Context,
+    model: Any,
+    accentKey: String?,
+    blurRadius: Int,
+): BackdropData? = withContext(Dispatchers.IO) {
+    runCatching {
+        val cacheKey = model.toString()
+        val cachedBlur = GameAccent.cachedBlur(cacheKey)
+        if (cachedBlur != null) {
+            val fallbackArgb = PluviaPurple.toArgb()
+            val accentArgb = accentKey?.let { GameAccent.cachedArgb(it) } ?: fallbackArgb
+            return@runCatching BackdropData(cachedBlur.asImageBitmap(), Color(accentArgb))
+        }
+
+        val request = ImageRequest.Builder(context)
+            .data(model)
+            .size(160, 90)
+            .allowHardware(false)
+            .build()
+        val bitmap = (context.imageLoader.execute(request) as? SuccessResult)
+            ?.drawable
+            ?.toBitmap()
+            ?: return@runCatching null
+
+        val fallbackArgb = PluviaPurple.toArgb()
+        val accentArgb = accentKey?.let { GameAccent.cachedArgb(it) }
+            ?: GameAccent.accentFromBitmap(bitmap, fallbackArgb).also { argb ->
+                accentKey?.let { GameAccent.put(it, argb) }
+            }
+
+        val blurred = GameAccent.boxBlur(bitmap, blurRadius)
+        GameAccent.putBlur(cacheKey, blurred)
+        BackdropData(blurred.asImageBitmap(), Color(accentArgb))
+    }.getOrNull()
+}
+
 @Composable
 fun BlurredBackdrop(
     imageModel: Any?,
@@ -56,75 +82,50 @@ fun BlurredBackdrop(
     onAccent: (Color) -> Unit = {},
 ) {
     val context = LocalContext.current
-
-    val data by produceState<BackdropData?>(initialValue = null, imageModel, accentKey) {
-        val model = imageModel
-        if (model == null) {
-            value = null
-            return@produceState
-        }
-        delay(60)
-        value = withContext(Dispatchers.IO) {
-            runCatching {
-                val cacheKey = model.toString()
-                val cachedBlur = GameAccent.cachedBlur(cacheKey)
-                if (cachedBlur != null) {
-                    val fallbackArgb = PluviaPurple.toArgb()
-                    val accentArgb = accentKey?.let { GameAccent.cachedArgb(it) } ?: fallbackArgb
-                    return@runCatching BackdropData(cachedBlur.asImageBitmap(), Color(accentArgb))
-                }
-
-                val request = ImageRequest.Builder(context)
-                    .data(model)
-                    .size(160, 90)
-                    .allowHardware(false)
-                    .build()
-                val bitmap = (context.imageLoader.execute(request) as? SuccessResult)
-                    ?.drawable
-                    ?.toBitmap()
-                    ?: return@runCatching null
-
-                val fallbackArgb = PluviaPurple.toArgb()
-                val accentArgb = accentKey?.let { GameAccent.cachedArgb(it) }
-                    ?: GameAccent.accentFromBitmap(bitmap, fallbackArgb).also { argb ->
-                        accentKey?.let { GameAccent.put(it, argb) }
-                    }
-
-                val blurred = GameAccent.boxBlur(bitmap, blurRadius)
-                GameAccent.putBlur(cacheKey, blurred)
-                BackdropData(blurred.asImageBitmap(), Color(accentArgb))
-            }.getOrNull()
-        }
-    }
-
-    LaunchedEffect(data?.accent) {
-        data?.accent?.let(onAccent)
-    }
+    val currentImageModel by rememberUpdatedState(imageModel)
+    val currentAccentKey by rememberUpdatedState(accentKey)
+    val currentBlurRadius by rememberUpdatedState(blurRadius)
+    val currentOnAccent by rememberUpdatedState(onAccent)
 
     var base by remember { mutableStateOf<BackdropData?>(null) }
     var incoming by remember { mutableStateOf<BackdropData?>(null) }
     val incomingAlpha = remember { Animatable(0f) }
-    LaunchedEffect(data) {
-        val target = data
-        when {
-            target == null -> {
+
+    LaunchedEffect(Unit) {
+        var displayedModel: Any? = null
+        while (true) {
+            val (target, key) = snapshotFlow { currentImageModel to currentAccentKey }
+                .first { it.first != displayedModel }
+
+            if (target == null) {
                 base = null
                 incoming = null
                 incomingAlpha.snapTo(0f)
+                displayedModel = null
+                continue
             }
-            base == null -> {
-                base = target
+
+            val targetData = loadBackdrop(context, target, key, currentBlurRadius)
+            if (targetData == null) {
+                displayedModel = target
+                continue
+            }
+
+            currentOnAccent(targetData.accent)
+
+            if (base == null) {
+                base = targetData
                 incoming = null
                 incomingAlpha.snapTo(0f)
-            }
-            target != base -> {
-                incoming = target
+            } else {
+                incoming = targetData
                 incomingAlpha.snapTo(0f)
                 incomingAlpha.animateTo(1f, animationSpec = Motion.BackdropCrossfade)
-                base = target
+                base = targetData
                 incoming = null
                 incomingAlpha.snapTo(0f)
             }
+            displayedModel = target
         }
     }
 
@@ -174,7 +175,6 @@ fun BlurredBackdrop(
             )
         }
 
-        // Scrim keeps glass content legible over bright art.
         Box(
             Modifier
                 .fillMaxSize()

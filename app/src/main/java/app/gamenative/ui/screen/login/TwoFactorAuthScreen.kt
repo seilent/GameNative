@@ -48,6 +48,7 @@ import app.gamenative.R
 import app.gamenative.enums.LoginResult
 import app.gamenative.ui.component.LoadingScreen
 import app.gamenative.ui.data.UserLoginState
+import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
@@ -182,8 +183,8 @@ private fun TwoFactorTextField(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = LocalGameAccent.current,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = GlassFill,
+                unfocusedContainerColor = GlassFill,
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             )

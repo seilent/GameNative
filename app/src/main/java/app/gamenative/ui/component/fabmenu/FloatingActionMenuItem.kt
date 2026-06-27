@@ -33,7 +33,7 @@ fun FloatingActionMenuItem(
     shape: Shape = FloatingActionButtonDefaults.smallShape,
     containerColor: Color = LocalGameAccent.current,
     contentColor: Color = contentColorFor(containerColor),
-    elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
+    elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
     interactionSource: MutableInteractionSource? = null,
     content: @Composable (() -> Unit),
 ) {

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -82,6 +83,7 @@ import kotlinx.coroutines.withContext
 import app.gamenative.ui.component.dialog.GameManagerDialog
 import app.gamenative.ui.component.dialog.WorkshopManagerDialog
 import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.screen.library.GameMigrationDialog
 import app.gamenative.ui.component.dialog.state.GameManagerDialogState
@@ -1612,6 +1614,7 @@ private fun SteamChangeBranchDialog(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                 ) {
                     Text(stringResource(R.string.private_branch_password_check))
                 }

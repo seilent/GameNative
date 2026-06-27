@@ -47,7 +47,7 @@ fun FloatingActionMenu(
     closeImageVector: ImageVector? = null,
     containerColor: Color = LocalGameAccent.current,
     contentColor: Color = contentColorFor(containerColor),
-    elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
+    elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
     interactionSource: MutableInteractionSource? = null,
     state: FloatingActionMenuState = rememberFloatingActionMenuState(),
     content: @Composable (ColumnScope.() -> Unit),
