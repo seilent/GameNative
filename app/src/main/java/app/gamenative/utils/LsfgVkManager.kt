@@ -58,9 +58,8 @@ object LsfgVkManager {
     const val EXTRA_MULTIPLIER = "lsfgMultiplier"
     const val EXTRA_FLOW_SCALE = "lsfgFlowScale"
     const val EXTRA_PERFORMANCE_MODE = "lsfgPerformanceMode"
+    const val EXTRA_BASE_FPS_CAP = "lsfgBaseFpsCap"
 
-    // Hardcoded real (pre-LSFG) render cap in fps; LSFG multiplies it to ~cap*multiplier
-    // displayed. TODO(tech-debt): expose as a user setting instead of a constant. See TECH_DEBT.md.
     const val LSFG_BASE_FPS_CAP = 30
 
     // Environment variables consumed by the lsfg-vk layer
@@ -69,7 +68,7 @@ object LsfgVkManager {
     private const val ENV_PROCESS = "LSFG_PROCESS"
 
     // Current runtime version (bumped when the bundled .so changes)
-    private const val RUNTIME_VERSION = "v1.0.2-android-arm64-v8a"
+    private const val RUNTIME_VERSION = "v1.0.3-android-arm64-v8a"
 
     // Asset paths
     private const val ASSET_DIR = "lsfg_vk/android_arm64_v8a"
@@ -119,6 +118,10 @@ object LsfgVkManager {
     /** Get whether performance mode is enabled (default true). */
     fun performanceMode(container: Container): Boolean =
         parseBool(container.getExtra(EXTRA_PERFORMANCE_MODE, "true"))
+
+    fun baseFpsCap(container: Container): Int =
+        container.getExtra(EXTRA_BASE_FPS_CAP, LSFG_BASE_FPS_CAP.toString())
+            .toIntOrNull()?.coerceAtLeast(0) ?: LSFG_BASE_FPS_CAP
 
     /**
      * Install the layer runtime + DLL into the container's filesystem.
@@ -237,6 +240,7 @@ object LsfgVkManager {
                 multiplier = if (frameGenActive) savedMultiplier else 1,
                 flowScale = flowScale(container),
                 performanceMode = performanceMode(container) && frameGenActive,
+                fpsCap = if (frameGenActive) baseFpsCap(container) else 0,
             )
             val ok = FileUtils.writeString(configFile, configText)
             if (ok && configFile.exists()) {
@@ -300,7 +304,6 @@ object LsfgVkManager {
             if (performanceMode(container)) "on" else "off"
         )
 
-        applyRealFrameCap(container, envVars)
         return true
     }
 
@@ -315,28 +318,6 @@ object LsfgVkManager {
             manifest.delete()
             Timber.tag(TAG).d("Removed LSFG manifest to disable layer")
         }
-    }
-
-    /**
-     * Cap the REAL (pre-LSFG) render rate so frame generation saves power instead of
-     * burning GPU. The cap is currently hardcoded to LSFG_BASE_FPS_CAP fps: the game renders
-     * at most that many frames/s via DXVK_FRAME_RATE/VKD3D_FRAME_RATE and LSFG interpolates
-     * the output up to ~LSFG_BASE_FPS_CAP*multiplier displayed frames/s.
-     *
-     * DXVK/VKD3D read these at process start. They are set here, at the tail of
-     * applyLaunchEnv, which runs after the launch flow strips DXVK_FRAME_RATE
-     * (setupXEnvironment), so the value survives to execve. Only DXVK/VKD3D titles are
-     * affected; other graphics backends ignore these vars. See TECH_DEBT.md.
-     */
-    private fun applyRealFrameCap(container: Container, envVars: EnvVars) {
-        val mult = multiplier(container)
-        if (mult < 2) return
-        envVars.put("DXVK_FRAME_RATE", LSFG_BASE_FPS_CAP.toString())
-        envVars.put("VKD3D_FRAME_RATE", LSFG_BASE_FPS_CAP.toString())
-        Timber.tag(TAG).i(
-            "LSFG real-frame cap: DXVK/VKD3D_FRAME_RATE=%d (LSFG x%d -> ~%d displayed)",
-            LSFG_BASE_FPS_CAP, mult, LSFG_BASE_FPS_CAP * mult
-        )
     }
 
     // ---- DLL discovery -----------------------------------------------------
@@ -362,6 +343,7 @@ object LsfgVkManager {
         multiplier: Int,
         flowScale: Float,
         performanceMode: Boolean,
+        fpsCap: Int,
     ): String = buildString {
         appendLine("version = 1")
         appendLine()
@@ -379,6 +361,7 @@ object LsfgVkManager {
             appendLine("multiplier = $effectiveMultiplier")
             appendLine("flow_scale = ${formatFlowScale(flowScale)}")
             appendLine("performance_mode = ${if (enabled && performanceMode) "true" else "false"}")
+            appendLine("fps_cap = ${fpsCap.coerceAtLeast(0)}")
             appendLine("hdr_mode = false")
             appendLine("experimental_present_mode = ${tomlString("fifo")}")
         }
@@ -443,6 +426,7 @@ object LsfgVkManager {
             }
             val effectiveFlowScale = flowScale.coerceIn(0.25f, 1.0f)
             val effectivePerfMode = performanceMode && enabled
+            val effectiveFpsCap = if (effectiveMultiplier >= 2) baseFpsCap(container) else 0
 
             val configText = buildString {
                 appendLine("version = 1")
@@ -458,6 +442,7 @@ object LsfgVkManager {
                 appendLine("multiplier = $effectiveMultiplier")
                 appendLine("flow_scale = ${formatFlowScale(effectiveFlowScale)}")
                 appendLine("performance_mode = ${if (effectivePerfMode) "true" else "false"}")
+                appendLine("fps_cap = $effectiveFpsCap")
                 appendLine("hdr_mode = false")
                 appendLine("experimental_present_mode = ${tomlString("fifo")}")
             }

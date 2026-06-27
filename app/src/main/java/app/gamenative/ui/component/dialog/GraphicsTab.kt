@@ -509,6 +509,28 @@ private fun LsfgSection(state: ContainerConfigState) {
                         state.config.value = config.copy(lsfgEnabled = it)
                     },
                 )
+                if (config.lsfgEnabled) {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        Text(text = stringResource(R.string.lsfg_base_fps_cap))
+                        Slider(
+                            value = config.lsfgBaseFpsCap.toFloat(),
+                            onValueChange = { newValue ->
+                                val clamped = newValue.roundToInt().coerceIn(0, 120)
+                                state.config.value = state.config.value.copy(lsfgBaseFpsCap = clamped)
+                            },
+                            valueRange = 0f..120f,
+                            colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
+                        )
+                        Text(
+                            text = if (config.lsfgBaseFpsCap <= 0) {
+                                stringResource(R.string.lsfg_uncapped)
+                            } else {
+                                "${config.lsfgBaseFpsCap} fps"
+                            },
+                        )
+                        Text(text = stringResource(R.string.lsfg_base_fps_cap_desc))
+                    }
+                }
             }
             ownsApp -> {
                 // State 2: User owns Lossless Scaling but hasn't installed it yet

@@ -565,7 +565,8 @@ fun XServerScreen(
     fun scanoutPacingIntervalNs(): Long {
         if (!isLsfgAvailable || lsfgMultiplier < 2) return 0L
         val refresh = if (detectedMaxRefreshRateHz > 0) detectedMaxRefreshRateHz else 60
-        val outputFps = (LsfgVkManager.LSFG_BASE_FPS_CAP * lsfgMultiplier).coerceAtMost(refresh)
+        val baseCap = LsfgVkManager.baseFpsCap(container)
+        val outputFps = if (baseCap > 0) (baseCap * lsfgMultiplier).coerceAtMost(refresh) else refresh
         return if (outputFps > 0) 1_000_000_000L / outputFps else 0L
     }
 

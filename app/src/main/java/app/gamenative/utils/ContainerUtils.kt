@@ -346,6 +346,7 @@ object ContainerUtils {
             sharpnessDenoise = container.getExtra("sharpnessDenoise", "100").toIntOrNull() ?: 100,
             // LSFG Vulkan frame generation
             lsfgEnabled = container.getExtra(LsfgVkManager.EXTRA_ARMED, "false").toBoolean(),
+            lsfgBaseFpsCap = container.getExtra(LsfgVkManager.EXTRA_BASE_FPS_CAP, "30").toIntOrNull() ?: 30,
         )
     }
 
@@ -527,6 +528,7 @@ object ContainerUtils {
         container.putExtra("sharpnessDenoise", containerData.sharpnessDenoise.toString())
         // LSFG Vulkan frame generation
         container.putExtra(LsfgVkManager.EXTRA_ARMED, containerData.lsfgEnabled.toString())
+        container.putExtra(LsfgVkManager.EXTRA_BASE_FPS_CAP, containerData.lsfgBaseFpsCap.toString())
         try {
             container.language = containerData.language
         } catch (e: Exception) {
