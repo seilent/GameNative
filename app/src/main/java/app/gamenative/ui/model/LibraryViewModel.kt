@@ -351,6 +351,9 @@ class LibraryViewModel @Inject constructor(
         _state.update { it.copy(isOptionsPanelOpen = isOpen) }
     }
 
+    private fun isInstallPathAvailable(installPath: String): Boolean =
+        installPath.isNotBlank() && (File(installPath).exists() || File(installPath).parentFile?.exists() == true)
+
     private fun isSteamOnly(): Boolean =
         !GOGService.hasStoredCredentials(context) &&
             !EpicService.hasStoredCredentials(context) &&
@@ -735,7 +738,7 @@ class LibraryViewModel @Inject constructor(
                         isShared = false,
                         gameSource = GameSource.GOG,
                     ),
-                    isInstalled = game.isInstalled,
+                    isInstalled = game.isInstalled && isInstallPathAvailable(game.installPath),
                 )
             }
 
@@ -767,7 +770,7 @@ class LibraryViewModel @Inject constructor(
                         isShared = false,
                         gameSource = GameSource.EPIC,
                     ),
-                    isInstalled = game.isInstalled,
+                    isInstalled = game.isInstalled && isInstallPathAvailable(game.installPath),
                 )
             }
 
@@ -802,7 +805,7 @@ class LibraryViewModel @Inject constructor(
                         isShared = false,
                         gameSource = GameSource.AMAZON,
                     ),
-                    isInstalled = game.isInstalled,
+                    isInstalled = game.isInstalled && isInstallPathAvailable(game.installPath),
                 )
             }
 
