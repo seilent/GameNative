@@ -584,6 +584,7 @@
     <string name="install_wifi_only_enabled">Install over WiFi only enabled</string>
     <string name="installation_progress">Installation Progress</string>
     <string name="downloading">Downloading...</string>
+    <string name="verifying">Verifying...</string>
     <string name="calculating_time">Calculating...</string>
     <string name="download_failed_try_again">Download failed. Please try again.</string>
     <string name="update_available">Update Available</string>

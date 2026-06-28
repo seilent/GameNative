@@ -730,6 +730,7 @@ private fun DownloadItemCard(
         DownloadItemStatus.RESUMABLE,
         -> PluviaTheme.colors.accentWarning
         DownloadItemStatus.DOWNLOADING -> PluviaTheme.colors.statusDownloading
+        DownloadItemStatus.VERIFYING -> PluviaTheme.colors.statusDownloading
     }
 
     GlassSurface(
@@ -1031,6 +1032,7 @@ private fun sourceLabel(gameSource: GameSource): String = when (gameSource) {
 @Composable
 private fun statusLabel(status: DownloadItemStatus): String = when (status) {
     DownloadItemStatus.DOWNLOADING -> stringResource(R.string.downloading)
+    DownloadItemStatus.VERIFYING -> stringResource(R.string.verifying)
     DownloadItemStatus.PAUSED -> stringResource(R.string.downloads_status_paused)
     DownloadItemStatus.RESUMABLE -> stringResource(R.string.downloads_resume_available)
     DownloadItemStatus.COMPLETED -> stringResource(R.string.downloads_status_complete)
@@ -1059,6 +1061,7 @@ private fun sourceContentColor(gameSource: GameSource): Color = when (gameSource
 @Composable
 private fun statusContainerColor(status: DownloadItemStatus): Color = when (status) {
     DownloadItemStatus.DOWNLOADING -> PluviaTheme.colors.statusDownloading.copy(alpha = 0.15f)
+    DownloadItemStatus.VERIFYING -> PluviaTheme.colors.statusDownloading.copy(alpha = 0.15f)
     DownloadItemStatus.PAUSED,
     DownloadItemStatus.RESUMABLE,
     -> GlassFill
@@ -1071,6 +1074,7 @@ private fun statusContainerColor(status: DownloadItemStatus): Color = when (stat
 @Composable
 private fun statusContentColor(status: DownloadItemStatus): Color = when (status) {
     DownloadItemStatus.DOWNLOADING -> PluviaTheme.colors.statusDownloading
+    DownloadItemStatus.VERIFYING -> PluviaTheme.colors.statusDownloading
     DownloadItemStatus.PAUSED,
     DownloadItemStatus.RESUMABLE,
     -> MaterialTheme.colorScheme.onSurface

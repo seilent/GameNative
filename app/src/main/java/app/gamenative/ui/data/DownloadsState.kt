@@ -4,6 +4,7 @@ import app.gamenative.data.GameSource
 
 enum class DownloadItemStatus {
     DOWNLOADING,
+    VERIFYING,
     PAUSED,
     RESUMABLE,
     COMPLETED,
@@ -40,7 +41,7 @@ data class DownloadItemState(
             )
 
     val canCancel: Boolean
-        get() = status == DownloadItemStatus.DOWNLOADING || isPartial
+        get() = status == DownloadItemStatus.DOWNLOADING || status == DownloadItemStatus.VERIFYING || isPartial
 
     val isFinished: Boolean
         get() = !isPartial && (

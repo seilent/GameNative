@@ -1828,6 +1828,7 @@ class SteamService : Service(), IChallengeUrlChanged {
                 // downloadApp call returns the stale DownloadInfo from the still-populated
                 // map (line ~1666 short-circuit).
                 downloadJobs[appId] = di
+                di.setVerifying(externalStorageReady)
                 notifyDownloadStarted(appId)
                 instance?.notifierOrNull?.trackDownload(di, getAppInfoOf(appId)?.name.orEmpty(), NotificationHelper.NOTIFICATION_ID_STEAM)
 
@@ -1889,7 +1890,7 @@ class SteamService : Service(), IChallengeUrlChanged {
 
                         // Create listeners for DLC apps
                         val depotIdToIndex = selectedDepots.keys.mapIndexed { index, depotId -> depotId to index }.toMap()
-                        val listener = AppDownloadListener(di, depotIdToIndex)
+                        val listener = AppDownloadListener(di, depotIdToIndex, stagingRootPath != null)
                         depotDownloader.addListener(listener)
 
                         val branchPassword = instance?.steamUnlockedBranchDao
@@ -2243,6 +2244,7 @@ class SteamService : Service(), IChallengeUrlChanged {
         private class AppDownloadListener(
             private val downloadInfo: DownloadInfo,
             private val depotIdToIndex: Map<Int, Int>,
+            private val staging: Boolean,
         ) : IDownloadListener {
             // Track cumulative compressed (network) bytes per depot to calculate deltas.
             // compressedBytes from onChunkCompleted is cumulative per depot, and matches the
@@ -2286,6 +2288,7 @@ class SteamService : Service(), IChallengeUrlChanged {
                 compressedBytes: Long,
                 uncompressedBytes: Long,
             ) {
+                downloadInfo.setVerifying(false)
                 val isFirstCallForDepot = !depotCumulativeCompressedBytes.containsKey(depotId)
 
                 val previousBytes = depotCumulativeCompressedBytes[depotId] ?: 0L
@@ -2296,11 +2299,23 @@ class SteamService : Service(), IChallengeUrlChanged {
                     downloadInfo.updateBytesDownloaded(deltaBytes, System.currentTimeMillis())
                 }
 
-                depotIdToIndex[depotId]?.let { index ->
-                    downloadInfo.setProgress(depotPercentComplete, index)
+                if (!staging) {
+                    depotIdToIndex[depotId]?.let { index ->
+                        downloadInfo.setProgress(depotPercentComplete, index)
+                    }
                 }
 
                 // Persist progress snapshot
+                downloadInfo.persistProgressSnapshot()
+            }
+
+            override fun onFileFinalized(depotId: Int, depotPercentFinalized: Float) {
+                if (!staging) {
+                    return
+                }
+                depotIdToIndex[depotId]?.let { index ->
+                    downloadInfo.setProgress(depotPercentFinalized, index)
+                }
                 downloadInfo.persistProgressSnapshot()
             }
 

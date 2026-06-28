@@ -64,11 +64,13 @@ class DownloadsViewModel @Inject constructor(
         val progressListener: (Float) -> Unit,
         val statusJob: Job,
         val syncingJob: Job,
+        val verifyingJob: Job,
     ) {
         fun dispose() {
             info.removeProgressListener(progressListener)
             statusJob.cancel()
             syncingJob.cancel()
+            verifyingJob.cancel()
         }
     }
 
@@ -290,11 +292,12 @@ class DownloadsViewModel @Inject constructor(
         val isRunning = info.isActive() || info.isPostInstallSyncing()
         val status = when {
             rawProgress < 0f || statusMessage?.startsWith("Failed", ignoreCase = true) == true -> DownloadItemStatus.FAILED
+            isRunning && info.isVerifying() -> DownloadItemStatus.VERIFYING
             isRunning -> DownloadItemStatus.DOWNLOADING
             else -> DownloadItemStatus.PAUSED
         }
 
-        if (status == DownloadItemStatus.DOWNLOADING) {
+        if (status == DownloadItemStatus.DOWNLOADING || status == DownloadItemStatus.VERIFYING) {
             recentFailureMessages.remove(key)
         } else if (status == DownloadItemStatus.FAILED) {
             recentFailureMessages[key] = failureMessage(statusMessage)
@@ -428,11 +431,18 @@ class DownloadsViewModel @Inject constructor(
                 }
             }
 
+            val verifyingJob = viewModelScope.launch(Dispatchers.Default) {
+                binding.info.getVerifyingFlow().collect {
+                    updateObservedDownloadItem(binding)
+                }
+            }
+
             observedDownloads[key] = ObservedDownload(
                 info = binding.info,
                 progressListener = progressListener,
                 statusJob = statusJob,
                 syncingJob = syncingJob,
+                verifyingJob = verifyingJob,
             )
         }
     }
