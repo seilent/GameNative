@@ -135,11 +135,9 @@ class LibraryViewModel @Inject constructor(
     // Cached recommendation (fetched once at startup)
     @Volatile private var cachedRecommendation: RecommendedGame? = null
 
-    // Track debounce job for search
     private var searchDebounceJob: Job? = null
-    private val SEARCH_DEBOUNCE_MS = 500L // 500ms debounce
+    private val SEARCH_DEBOUNCE_MS = 500L
 
-    // Cache GPU name to avoid repeated calls
     private val gpuName: String by lazy {
         try {
             val gpu = GPUInformation.getRenderer(context)
