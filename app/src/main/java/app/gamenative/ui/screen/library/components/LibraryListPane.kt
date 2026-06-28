@@ -189,9 +189,25 @@ internal fun LibraryListPane(
     }
 
     var targetOfScroll by remember { mutableIntStateOf(-1) }
+    var prevScrollTarget by remember { mutableIntStateOf(-1) }
     LaunchedEffect(targetOfScroll) {
-        if (targetOfScroll != -1) {
-            listState.animateScrollToItem(targetOfScroll, -100)
+        if (targetOfScroll == -1) return@LaunchedEffect
+        val scrollingUp = prevScrollTarget != -1 && targetOfScroll < prevScrollTarget
+        prevScrollTarget = targetOfScroll
+        val info = listState.layoutInfo
+        val item = info.visibleItemsInfo.firstOrNull { it.index == targetOfScroll }
+        val fullyVisible = item != null &&
+            item.offset.y >= info.viewportStartOffset &&
+            item.offset.y + item.size.height <= info.viewportEndOffset
+        if (!fullyVisible) {
+            val itemHeight = info.visibleItemsInfo.firstOrNull()?.size?.height ?: 0
+            val viewportHeight = info.viewportEndOffset - info.viewportStartOffset
+            val offset = if (scrollingUp) {
+                ((viewportHeight - itemHeight - 120) * 0.7f).toInt().coerceAtLeast(120)
+            } else {
+                -50
+            }
+            listState.animateScrollToItem(targetOfScroll, -offset)
         }
     }
 
