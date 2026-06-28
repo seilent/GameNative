@@ -27,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -67,6 +69,7 @@ fun Scrollbar(
     var isVisible by remember { mutableStateOf(false) }
     var isDragging by remember { mutableStateOf(false) }
     var isTouchScrolling by remember { mutableStateOf(false) }
+    val inputMode = LocalInputModeManager.current
     var containerHeight by remember { mutableFloatStateOf(0f) }
 
     // Drag state - when dragging, thumb follows gesture directly instead of list state
@@ -168,7 +171,7 @@ fun Scrollbar(
 
     // Track touch scrolling state
     LaunchedEffect(isScrollInProgress) {
-        if (isScrollInProgress && !isDragging) {
+        if (isScrollInProgress && !isDragging && inputMode.inputMode == InputMode.Touch) {
             isTouchScrolling = true
         } else if (!isScrollInProgress) {
             delay(300)
