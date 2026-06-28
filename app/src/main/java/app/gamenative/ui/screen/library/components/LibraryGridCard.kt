@@ -63,9 +63,6 @@ import app.gamenative.ui.component.GameStatsRow
 import app.gamenative.ui.data.GameCardStats
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.theme.GlassFill
-import app.gamenative.ui.theme.GlassFillStrong
-import app.gamenative.ui.theme.Motion
-import androidx.compose.animation.core.animateFloatAsState
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ListItemImage
@@ -106,17 +103,13 @@ internal fun GridViewCard(
     val topOverlayPadding = if (isCapsule) 8.dp else 4.dp
     val cardContentBottomPadding = if (isCapsule) 12.dp else 8.dp
     val topIconPadding = if (isCapsule) 10.dp else 8.dp
-    val glowColor = LocalGameAccent.current
-    val overlayAlpha by animateFloatAsState(
-        targetValue = if (isFocused) 1f else 0f,
-        animationSpec = Motion.Fade,
-        label = "overlayAlpha",
-    )
+    val accentColor = if (isFocused || appInfo.isRecommended || appInfo.isShared) LocalGameAccent.current else Color.Transparent
+    val overlayAlpha = if (isFocused) 1f else 0f
     val focusHaloModifier = if (isFocused && showFocusGlow) {
         Modifier.drawWithCache {
             val glowBrush = Brush.radialGradient(
                 colors = listOf(
-                    glowColor.copy(alpha = 0.3f),
+                    accentColor.copy(alpha = 0.3f),
                     Color.Transparent,
                 ),
                 radius = size.maxDimension * 0.7f,
@@ -133,7 +126,7 @@ internal fun GridViewCard(
     } else {
         Modifier
     }
-    val focusBorderBrush = SolidColor(LocalGameAccent.current)
+    val focusBorderBrush = SolidColor(accentColor)
 
     Box(
         modifier = modifier
@@ -166,30 +159,25 @@ internal fun GridViewCard(
                 isFocused -> BorderStroke(2.dp, focusBorderBrush)
                 appInfo.isRecommended -> BorderStroke(
                     1.dp,
-                    LocalGameAccent.current.copy(alpha = 0.4f),
+                    accentColor.copy(alpha = 0.4f),
                 )
                 else -> null
             },
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // Game image (primary + optional fallback for Steam header/hero)
+                val cacheKey = remember(appInfo.appId, paneType, imageRefreshCounter) {
+                    "${appInfo.appId}:${paneType}:${imageRefreshCounter}"
+                }
                 val imageUrls by produceState(
-                    initialValue = GridImageUrls("", ""),
-                    key1 = appInfo.appId,
-                    key2 = paneType,
-                    key3 = imageRefreshCounter,
+                    initialValue = gridImageUrlCache[cacheKey] ?: GridImageUrls("", ""),
+                    key1 = cacheKey,
                 ) {
-                    val cacheKey = "${appInfo.appId}:${paneType}:${imageRefreshCounter}"
-                    val cached = gridImageUrlCache[cacheKey]
-                    if (cached != null) {
-                        value = cached
-                    } else {
-                        val result = withContext(Dispatchers.IO) {
-                            getGridImageUrl(context, appInfo, paneType)
-                        }
-                        gridImageUrlCache[cacheKey] = result
-                        value = result
+                    if (gridImageUrlCache.containsKey(cacheKey)) return@produceState
+                    val result = withContext(Dispatchers.IO) {
+                        getGridImageUrl(context, appInfo, paneType)
                     }
+                    gridImageUrlCache[cacheKey] = result
+                    value = result
                 }
 
                 var currentImageUrl by remember(
@@ -226,6 +214,7 @@ internal fun GridViewCard(
                         .then(gridHeroZoom),
                     contentScale = getGridContentScale(paneType),
                     image = { currentImageUrl },
+                    size = null,
                     loading = {},
                     onFailure = {
                         if (imageUrls.fallback.isNotEmpty() && currentImageUrl == imageUrls.primary) {
@@ -268,7 +257,7 @@ internal fun GridViewCard(
                         .fillMaxWidth()
                         .alpha(overlayAlpha)
                         .background(Color.Black.copy(alpha = 0.5f))
-                        .background(LocalGameAccent.current.copy(alpha = 0.25f))
+                        .background(accentColor.copy(alpha = 0.25f))
                         .padding(horizontal = 10.dp, vertical = cardContentBottomPadding),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
@@ -318,7 +307,7 @@ internal fun GridViewCard(
                             Icon(
                                 imageVector = Icons.Filled.Face4,
                                 contentDescription = stringResource(R.string.library_family_shared),
-                                tint = LocalGameAccent.current,
+                                tint = accentColor,
                                 modifier = Modifier.size(14.dp),
                             )
                         }

@@ -236,12 +236,16 @@ internal fun LibraryListPane(
                                 bottom = 72.dp,
                             ),
                         ) {
+                            val appInfoList = state.appInfoList
+                            val compatibilityMap = state.compatibilityMap
+                            val imageRefreshCounter = state.imageRefreshCounter
+                            val totalAppsInFilter = state.totalAppsInFilter
                             items(
-                                count = state.appInfoList.size,
-                                key = { listIndex -> state.appInfoList[listIndex].appId },
+                                count = appInfoList.size,
+                                key = { listIndex -> appInfoList[listIndex].appId },
                                 contentType = { "game" },
                             ) { listIndex ->
-                                val item = state.appInfoList[listIndex]
+                                val item = appInfoList[listIndex]
 
                                 Box {
                                     val appItemModifier = if (firstGridItemFocusRequester != null &&
@@ -262,14 +266,14 @@ internal fun LibraryListPane(
                                         onClick = { onFocusedIndexChanged(item.index); onNavigate(item.appId) },
                                         paneType = currentLayout,
                                         onFocus = { targetOfScroll = item.index; onFocusedIndexChanged(item.index) },
-                                        imageRefreshCounter = state.imageRefreshCounter,
-                                        compatibilityStatus = state.compatibilityMap[item.name],
+                                        imageRefreshCounter = imageRefreshCounter,
+                                        compatibilityStatus = compatibilityMap[item.name],
                                         gameStats = state.statsFor(item),
                                         enableFocusScale = false,
                                     )
                                 }
                             }
-                            if (state.appInfoList.size < state.totalAppsInFilter) {
+                            if (appInfoList.size < totalAppsInFilter) {
                                 item {
                                     Box(
                                         modifier = Modifier

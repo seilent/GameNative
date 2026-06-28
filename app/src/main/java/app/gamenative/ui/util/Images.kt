@@ -31,15 +31,14 @@ internal fun ListItemImage(
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier.clip(CircleShape),
     contentDescription: String? = null,
-    size: Dp = 40.dp,
+    size: Dp? = 40.dp,
     contentScale: ContentScale = ContentScale.Fit,
     image: () -> Any?,
     onFailure: () -> Unit = {},
     loading: @Composable () -> Unit = { CircularProgressIndicator(color = LocalGameAccent.current) },
 ) {
     CoilImage(
-        modifier = modifier
-            .size(size)
+        modifier = (if (size != null) modifier.size(size) else modifier)
             .then(imageModifier),
         imageModel = image,
         imageOptions = ImageOptions(

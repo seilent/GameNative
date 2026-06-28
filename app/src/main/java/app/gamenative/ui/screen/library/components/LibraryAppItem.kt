@@ -108,12 +108,7 @@ internal fun AppItem(
         rememberUpdatedState(1f)
     }
 
-    // Unfocused cards recede so the focused one pops and the blurred backdrop bleeds through.
-    val cardAlpha by animateFloatAsState(
-        targetValue = if (isFocused) 1f else 0.75f,
-        animationSpec = Motion.Fade,
-        label = "cardAlpha",
-    )
+    val cardAlpha = if (isFocused) 1f else 0.75f
 
     when (paneType) {
         PaneType.LIST -> ListViewCard(
