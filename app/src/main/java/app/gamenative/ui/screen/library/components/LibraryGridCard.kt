@@ -41,6 +41,8 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
@@ -164,7 +166,11 @@ internal fun GridViewCard(
                 else -> null
             },
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clearAndSetSemantics { contentDescription = appInfo.name },
+            ) {
                 val cacheKey = remember(appInfo.appId, paneType, imageRefreshCounter) {
                     "${appInfo.appId}:${paneType}:${imageRefreshCounter}"
                 }
