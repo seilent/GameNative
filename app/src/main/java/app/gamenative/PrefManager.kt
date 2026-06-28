@@ -1207,6 +1207,13 @@ object PrefManager {
             setPref(EXTERNAL_STORAGE_PATH, value)
         }
 
+    private val DEFAULT_STORAGE_TARGET_ID = stringPreferencesKey("default_storage_target_id")
+    var defaultStorageTargetId: String
+        get() = getPref(DEFAULT_STORAGE_TARGET_ID, "")
+        set(value) {
+            setPref(DEFAULT_STORAGE_TARGET_ID, value)
+        }
+
     private val FRONTEND_SYNC_DIR_STEAM = stringPreferencesKey("frontend_sync_dir_steam")
     private val FRONTEND_SYNC_DIR_EPIC = stringPreferencesKey("frontend_sync_dir_epic")
     private val FRONTEND_SYNC_DIR_GOG = stringPreferencesKey("frontend_sync_dir_gog")
