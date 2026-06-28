@@ -46,6 +46,7 @@ import app.gamenative.enums.Marker
 import app.gamenative.enums.OS
 import app.gamenative.enums.OSArch
 import app.gamenative.enums.PathType
+import okio.Path.Companion.toPath
 import app.gamenative.enums.SaveLocation
 import app.gamenative.enums.SyncResult
 import app.gamenative.events.AndroidEvent
@@ -1849,7 +1850,29 @@ class SteamService : Service(), IChallengeUrlChanged {
                         Timber.i("maxDownloads: $maxDownloads")
                         Timber.i("maxDecompress: $maxDecompress")
 
+                        DownloadGate.withSlot(di) {
                         // Create DepotDownloader instance
+                        // When installing to external (slow exFAT/FUSE) storage, stage the
+                        // download+decompress on fast internal storage and let JavaSteam copy
+                        // each completed file out to external sequentially. Bounded by a byte
+                        // budget so internal never holds the whole game.
+                        val stagingRootPath = if (externalStorageReady) {
+                            (DownloadService.baseDataDirPath + "/depot_staging").toPath()
+                        } else {
+                            null
+                        }
+                        val stagingBudgetBytes = if (stagingRootPath != null) {
+                            val freeInternal = java.io.File(DownloadService.baseDataDirPath).usableSpace
+                            minOf(2L shl 30, (freeInternal / 2).coerceAtLeast(256L shl 20))
+                        } else {
+                            1L shl 30
+                        }
+                        if (stagingRootPath != null) {
+                            runCatching {
+                                java.io.File(DownloadService.baseDataDirPath, "depot_staging").deleteRecursively()
+                            }
+                        }
+
                         val depotDownloader = DepotDownloader(
                             instance!!.steamClient!!,
                             licenses,
@@ -1860,6 +1883,8 @@ class SteamService : Service(), IChallengeUrlChanged {
                             parentJob = coroutineContext[Job],
                             autoStartDownload = false,
                             filesystem = CaseInsensitiveFileSystem(showDebugLog = false),
+                            stagingRoot = stagingRootPath,
+                            maxStagingBytes = stagingBudgetBytes,
                         )
 
                         // Create listeners for DLC apps
@@ -1914,6 +1939,7 @@ class SteamService : Service(), IChallengeUrlChanged {
 
                         // Close the downloader
                         depotDownloader.close()
+                        }
 
                         val appConfig = getAppInfoOf(appId)?.config
                         if (appConfig?.steamControllerTemplateIndex == 1) {
