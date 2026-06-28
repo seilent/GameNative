@@ -618,20 +618,30 @@ class SteamService : Service(), IChallengeUrlChanged {
             return (directDepotIds + sharedDepotIds).takeIf { it.isNotEmpty() }
         }
 
-        /**
-         * Batch-load licensed depot IDs for many apps in a single DB query.
-         * Returns appId → depotIds; missing entries mean license unknown (fall back to unfiltered).
-         */
+        @Volatile private var cachedLicensedDepotMap: Map<Int, Set<Int>>? = null
+        @Volatile private var cachedLicensedDepotMapPkgIds: List<Int>? = null
+
+        fun invalidateLicensedDepotMapCache() {
+            cachedLicensedDepotMap = null
+            cachedLicensedDepotMapPkgIds = null
+        }
+
         fun buildLicensedDepotMap(apps: List<SteamApp>): Map<Int, Set<Int>> {
             val pkgIds = apps.map { it.packageId }.filter { it != INVALID_PKG_ID }.distinct()
+            if (pkgIds == cachedLicensedDepotMapPkgIds && cachedLicensedDepotMap != null) {
+                return cachedLicensedDepotMap!!
+            }
             val licenses = runBlocking(Dispatchers.IO) {
                 instance?.licenseDao?.findLicenses(pkgIds) ?: emptyList()
             }
             val pkgToDepots = licenses.associate { it.packageId to it.depotIds.toSet() }
-            return apps.mapNotNull { app ->
+            val result = apps.mapNotNull { app ->
                 val depots = pkgToDepots[app.packageId]?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
                 app.id to depots
             }.toMap()
+            cachedLicensedDepotMapPkgIds = pkgIds
+            cachedLicensedDepotMap = result
+            return result
         }
 
         fun getAppInfoOf(appId: Int): SteamApp? {
@@ -4225,6 +4235,8 @@ class SteamService : Service(), IChallengeUrlChanged {
                     val packageIds = licensesToRemove.map { it.packageId }
                     licenseDao.deleteStaleLicenses(packageIds)
                 }
+
+                invalidateLicensedDepotMapCache()
 
                 // Get PICS information with the current license database.
                 licenseDao.getAllLicenses()

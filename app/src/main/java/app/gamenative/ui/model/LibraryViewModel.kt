@@ -48,6 +48,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.EnumSet
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.min
@@ -152,6 +153,11 @@ class LibraryViewModel @Inject constructor(
     }
 
     init {
+        val hasInstalledGames = DownloadService.getDownloadDirectoryApps().isNotEmpty()
+        if (hasInstalledGames) {
+            _state.update { it.copy(currentTab = LibraryTab.INSTALLED) }
+        }
+
         viewModelScope.launch(Dispatchers.IO) {
             if (gpuName != "Unknown GPU") {
                 DeviceGameStatsCache.refreshIfStale(
@@ -351,8 +357,23 @@ class LibraryViewModel @Inject constructor(
         _state.update { it.copy(isOptionsPanelOpen = isOpen) }
     }
 
-    private fun isInstallPathAvailable(installPath: String): Boolean =
-        installPath.isNotBlank() && (File(installPath).exists() || File(installPath).parentFile?.exists() == true)
+    @Volatile private var installPathCache: Map<String, Boolean> = emptyMap()
+    @Volatile private var installPathCacheTime: Long = 0L
+    private val INSTALL_PATH_CACHE_TTL = 10_000L
+
+    private fun isInstallPathAvailable(installPath: String): Boolean {
+        if (installPath.isBlank()) return false
+        val now = System.currentTimeMillis()
+        if (now - installPathCacheTime > INSTALL_PATH_CACHE_TTL) {
+            installPathCache = emptyMap()
+            installPathCacheTime = now
+        }
+        return installPathCache.getOrElse(installPath) {
+            val result = File(installPath).exists() || File(installPath).parentFile?.exists() == true
+            installPathCache = installPathCache + (installPath to result)
+            result
+        }
+    }
 
     private fun isSteamOnly(): Boolean =
         !GOGService.hasStoredCredentials(context) &&
@@ -1002,12 +1023,12 @@ class LibraryViewModel @Inject constructor(
         return job
     }
 
-    /**
-     * Compares the game name against the search query using an exact match
-     * and then again using a normalized form with diacritics removed.
-     */
+    private val unaccentCache = ConcurrentHashMap<String, String>()
+
     private fun matches(gameName: String, searchQuery:String): Boolean {
-        return gameName.contains(searchQuery, ignoreCase = true) || gameName.unaccent().contains(searchQuery, ignoreCase = true)
+        if (gameName.contains(searchQuery, ignoreCase = true)) return true
+        val unaccented = unaccentCache.getOrPut(gameName) { gameName.unaccent() }
+        return unaccented.contains(searchQuery, ignoreCase = true)
     }
 
     /**
