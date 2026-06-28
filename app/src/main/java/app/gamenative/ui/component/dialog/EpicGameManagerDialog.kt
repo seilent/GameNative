@@ -31,11 +31,16 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import app.gamenative.ui.component.BlurredBackdrop
+import app.gamenative.ui.component.StorageTargetDropdown
+import app.gamenative.service.storage.StorageManager
+import app.gamenative.service.storage.StorageTarget
 import app.gamenative.ui.theme.GlassFillStrong
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -69,7 +74,7 @@ import java.util.Locale
 fun EpicGameManagerDialog(
     visible: Boolean,
     onGetDisplayInfo: @Composable (Context) -> GameDisplayInfo,
-    onInstall: (List<Int>) -> Unit,
+    onInstall: (List<Int>, StorageTarget?) -> Unit,
     onDismissRequest: () -> Unit
 ) {
     val context = LocalContext.current
@@ -77,6 +82,7 @@ fun EpicGameManagerDialog(
 
     val allDownloadableGames = remember { mutableStateListOf<EpicGame>() }
     val selectedGameIds = remember { mutableStateMapOf<Int, Boolean>() }
+    var selectedTarget by remember { mutableStateOf(StorageManager.defaultInstallTarget(context)) }
 
     val displayInfo = onGetDisplayInfo(context)
     val gameId = displayInfo.gameId
@@ -337,6 +343,13 @@ fun EpicGameManagerDialog(
                         Column(
                             modifier = Modifier.fillMaxWidth()
                         ) {
+                            StorageTargetDropdown(
+                                selectedTarget = selectedTarget,
+                                onTargetSelected = { selectedTarget = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
+                            )
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -357,7 +370,7 @@ fun EpicGameManagerDialog(
                                             .filter { it.value }
                                             .keys
                                             .toList()
-                                        onInstall(selectedIds)
+                                        onInstall(selectedIds, selectedTarget)
                                     }
                                 ) {
                                     Text(stringResource(R.string.install))

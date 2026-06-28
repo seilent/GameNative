@@ -24,10 +24,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
 import app.gamenative.ui.theme.GlassFillStrong
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -39,8 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
+import app.gamenative.service.storage.StorageManager
+import app.gamenative.service.storage.StorageTarget
 import app.gamenative.ui.component.BlurredBackdrop
 import app.gamenative.ui.component.LoadingScreen
+import app.gamenative.ui.component.StorageTargetDropdown
 import app.gamenative.ui.component.topbar.BackButton
 import app.gamenative.ui.data.GameDisplayInfo
 import app.gamenative.ui.theme.LocalGameAccent
@@ -50,12 +57,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * Full-screen install confirmation dialog for Amazon games.
- *
- * Mirrors the layout of [GameManagerDialog] used for Steam games so both platforms
- * present a consistent pre-install experience.
- */
 @Composable
 fun AmazonInstallDialog(
     visible: Boolean,
@@ -64,10 +65,13 @@ fun AmazonInstallDialog(
     installSize: String,
     availableSpace: String,
     installEnabled: Boolean,
-    onInstall: () -> Unit,
+    onInstall: (StorageTarget?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     if (!visible) return
+
+    val context = LocalContext.current
+    var selectedTarget by remember { mutableStateOf(StorageManager.defaultInstallTarget(context)) }
 
     val sizeDisplay = stringResource(
         R.string.steam_install_space,
@@ -203,7 +207,13 @@ fun AmazonInstallDialog(
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
             )
 
-            // ── Bottom: size summary + action buttons ─────────────────────
+            StorageTargetDropdown(
+                selectedTarget = selectedTarget,
+                onTargetSelected = { selectedTarget = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -222,7 +232,7 @@ fun AmazonInstallDialog(
                     Button(
                         colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                         enabled = installEnabled,
-                        onClick = onInstall,
+                        onClick = { onInstall(selectedTarget) },
                     ) {
                         Text(stringResource(R.string.install))
                     }

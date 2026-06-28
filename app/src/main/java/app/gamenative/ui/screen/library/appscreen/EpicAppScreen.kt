@@ -24,6 +24,7 @@ import app.gamenative.data.LibraryItem
 import app.gamenative.service.DownloadService
 import app.gamenative.service.epic.EpicCloudSavesManager
 import app.gamenative.service.epic.EpicConstants
+import app.gamenative.service.storage.StorageTarget
 import app.gamenative.service.epic.EpicService
 import app.gamenative.ui.data.AppMenuOption
 import app.gamenative.ui.data.GameDisplayInfo
@@ -378,7 +379,7 @@ class EpicAppScreen : BaseAppScreen() {
      * @param scope Lifecycle-aware CoroutineScope from the calling composable
      * @param selectedGameIds List of game IDs to download (base game + selected DLCs)
      */
-    private fun performDownload(scope: CoroutineScope, context: Context, libraryItem: LibraryItem, selectedGameIds: List<Int>, onClickPlay: (Boolean) -> Unit) {
+    private fun performDownload(scope: CoroutineScope, context: Context, libraryItem: LibraryItem, selectedGameIds: List<Int>, target: StorageTarget?, onClickPlay: (Boolean) -> Unit) {
         Timber.tag(TAG).i("Starting Epic game download: ${libraryItem.gameId} with ${selectedGameIds.size} items (including DLCs)")
         scope.launch(Dispatchers.IO) {
             try {
@@ -391,7 +392,11 @@ class EpicAppScreen : BaseAppScreen() {
                 }
 
                 // Get install path
-                val installPath = EpicConstants.getGameInstallPath(context, game.appName)
+                val installPath = if (target != null) {
+                    EpicConstants.getGameInstallPath(context, game.appName, target)
+                } else {
+                    EpicConstants.getGameInstallPath(context, game.appName)
+                }
                 Timber.tag(TAG).d("Downloading Epic game to: $installPath")
 
                 // Determine if we should download DLCs (if more than just the base game is selected)
@@ -410,7 +415,7 @@ class EpicAppScreen : BaseAppScreen() {
                 // Pass the selected DLC IDs (excluding the base game). Use container language for install-tag selection.
                 val dlcIds = selectedGameIds.filter { it != libraryItem.gameId }
                 val containerData = loadContainerData(context, libraryItem)
-                val result = EpicService.downloadGame(context, libraryItem.gameId, dlcIds, installPath, containerData.language)
+                val result = EpicService.downloadGame(context, libraryItem.gameId, dlcIds, installPath, containerData.language, target = target)
 
                 if (result.isSuccess) {
                     Timber.tag(TAG).i("Epic game download started successfully: ${libraryItem.gameId}")
@@ -800,7 +805,7 @@ class EpicAppScreen : BaseAppScreen() {
                 app.gamenative.ui.enums.DialogType.INSTALL_APP -> {
                     {
                         BaseAppScreen.hideInstallDialog(appId)
-                        performDownload(scope, context, libraryItem, listOf(libraryItem.gameId)) {}
+                        performDownload(scope, context, libraryItem, listOf(libraryItem.gameId), null) {}
                     }
                 }
                 app.gamenative.ui.enums.DialogType.CANCEL_APP_DOWNLOAD -> {
@@ -855,9 +860,9 @@ class EpicAppScreen : BaseAppScreen() {
                 onGetDisplayInfo = { context ->
                     getGameDisplayInfo(context, libraryItem)
                 },
-                onInstall = { selectedGameIds ->
+                onInstall = { selectedGameIds, target ->
                     hideGameManagerDialog(gameId)
-                    performDownload(scope, context, libraryItem, selectedGameIds) {}
+                    performDownload(scope, context, libraryItem, selectedGameIds, target) {}
                 },
                 onDismissRequest = {
                     hideGameManagerDialog(gameId)

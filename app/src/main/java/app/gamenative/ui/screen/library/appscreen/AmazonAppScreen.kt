@@ -26,6 +26,7 @@ import app.gamenative.data.LibraryItem
 import app.gamenative.events.AndroidEvent
 import app.gamenative.service.DownloadService
 import app.gamenative.service.amazon.AmazonConstants
+import app.gamenative.service.storage.StorageTarget
 import app.gamenative.service.amazon.AmazonService
 import app.gamenative.ui.component.dialog.AmazonInstallDialog
 import app.gamenative.ui.component.dialog.MessageDialog
@@ -293,7 +294,7 @@ override fun isInstalled(context: Context, libraryItem: LibraryItem): Boolean =
         }
     }
 
-    private fun performDownload(context: Context, libraryItem: LibraryItem) {
+    private fun performDownload(context: Context, libraryItem: LibraryItem, target: StorageTarget? = null) {
         val productId = productIdOf(libraryItem)
         CoroutineScope(Dispatchers.IO).launch {
             val game = AmazonService.getAmazonGameOf(productId) ?: run {
@@ -301,10 +302,14 @@ override fun isInstalled(context: Context, libraryItem: LibraryItem): Boolean =
                 SnackbarManager.show("Game not found — try syncing library")
                 return@launch
             }
-            val installPath = AmazonConstants.getGameInstallPath(context, game.title)
+            val installPath = if (target != null) {
+                AmazonConstants.getGameInstallPath(context, game.title, target)
+            } else {
+                AmazonConstants.getGameInstallPath(context, game.title)
+            }
             Timber.tag(TAG).i("Downloading '${game.title}' → $installPath")
 
-            val result = AmazonService.downloadGame(context, productId, installPath)
+            val result = AmazonService.downloadGame(context, productId, installPath, target = target)
             if (result.isFailure) {
                 val msg = result.exceptionOrNull()?.message ?: "Unknown error"
                 Timber.tag(TAG).e("downloadGame failed: $msg")
@@ -700,9 +705,9 @@ override fun isInstalled(context: Context, libraryItem: LibraryItem): Boolean =
                 installSize = currentInstallData.installSize,
                 availableSpace = currentInstallData.availableSpace,
                 installEnabled = currentInstallData.installEnabled,
-                onInstall = {
+                onInstall = { target ->
                     hideAmazonInstallDialog(appId)
-                    performDownload(context, libraryItem)
+                    performDownload(context, libraryItem, target)
                 },
                 onDismiss = {
                     hideAmazonInstallDialog(appId)

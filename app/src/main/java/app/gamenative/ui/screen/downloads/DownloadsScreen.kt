@@ -87,6 +87,8 @@ import app.gamenative.ui.screen.settings.ContainerStorageManagerContent
 import app.gamenative.ui.screen.settings.ContainerStorageManagerTransientUi
 import app.gamenative.ui.screen.settings.rememberContainerStorageManagerUiState
 import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.component.StorageTargetTabs
+import app.gamenative.service.storage.StorageManager
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.Motion
@@ -242,15 +244,32 @@ fun HomeDownloadsScreen(
                                 .padding(20.dp),
                         )
 
-                        DownloadsSection.Storage -> ContainerStorageManagerContent(
-                            state = storageManagerState,
-                            onOpenGame = { gameSource, appId, name, iconUrl ->
-                                openGame(gameSource, appId.removePrefix("${gameSource.name}_"), name, iconUrl)
-                            },
+                        DownloadsSection.Storage -> Column(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(20.dp),
-                        )
+                        ) {
+                            val context = LocalContext.current
+                            var selectedStorageTargetId by rememberSaveable {
+                                mutableStateOf(StorageManager.defaultInstallTarget(context).id)
+                            }
+
+                            StorageTargetTabs(
+                                selectedTargetId = selectedStorageTargetId,
+                                onSelectTarget = { selectedStorageTargetId = it.id },
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            ContainerStorageManagerContent(
+                                state = storageManagerState,
+                                onOpenGame = { gameSource, appId, name, iconUrl ->
+                                    openGame(gameSource, appId.removePrefix("${gameSource.name}_"), name, iconUrl)
+                                },
+                                targetFilter = StorageManager.targetById(context, selectedStorageTargetId),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                            )
+                        }
                     }
                 }
             }

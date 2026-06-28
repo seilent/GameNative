@@ -21,6 +21,7 @@ import app.gamenative.data.LibraryItem
 import app.gamenative.enums.Marker
 import app.gamenative.service.DownloadService
 import app.gamenative.service.gog.GOGConstants
+import app.gamenative.service.storage.StorageManager
 import app.gamenative.service.gog.GOGService
 import app.gamenative.utils.MarkerUtils
 import java.io.File
@@ -328,16 +329,15 @@ class GOGAppScreen : BaseAppScreen() {
         Timber.i("Starting GOG game download: ${libraryItem.appId}")
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Get install path
-                val installPath = GOGConstants.getGameInstallPath(libraryItem.name)
+                val target = StorageManager.defaultInstallTarget(context)
+                val installPath = GOGConstants.getGameInstallPath(libraryItem.name, target)
                 val containerData = loadContainerData(context, libraryItem)
 
                 Timber.d("Downloading GOG game to: $installPath")
 
                 SnackbarManager.show("Starting download for ${libraryItem.name}...")
 
-                // Start download - GOGService will handle monitoring, database updates, verification, and events
-                val result = GOGService.downloadGame(context, gameId, installPath, containerData.language)
+                val result = GOGService.downloadGame(context, gameId, installPath, containerData.language, target = target)
 
                 if (result.isSuccess) {
                     Timber.i("GOG download started successfully for: $gameId")

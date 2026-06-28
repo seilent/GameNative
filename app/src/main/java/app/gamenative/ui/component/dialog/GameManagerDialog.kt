@@ -30,6 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
@@ -53,8 +55,11 @@ import app.gamenative.R
 import app.gamenative.data.DepotInfo
 import app.gamenative.service.SteamService
 import app.gamenative.service.SteamService.Companion.INVALID_APP_ID
+import app.gamenative.service.storage.StorageManager
+import app.gamenative.service.storage.StorageTarget
 import app.gamenative.ui.component.BlurredBackdrop
 import app.gamenative.ui.component.LoadingScreen
+import app.gamenative.ui.component.StorageTargetDropdown
 import app.gamenative.ui.component.topbar.BackButton
 import app.gamenative.ui.data.GameDisplayInfo
 import app.gamenative.ui.internal.fakeAppInfo
@@ -82,7 +87,7 @@ data class InstallSizeInfo(
 fun GameManagerDialog(
     visible: Boolean,
     onGetDisplayInfo: @Composable (Context) -> GameDisplayInfo,
-    onInstall: (List<Int>) -> Unit,
+    onInstall: (List<Int>, StorageTarget?) -> Unit,
     onDismissRequest: () -> Unit
 ) {
     val context = LocalContext.current
@@ -92,6 +97,7 @@ fun GameManagerDialog(
     val allDownloadableApps = remember { mutableStateListOf<Pair<Int, DepotInfo>>() }
     val selectedAppIds = remember { mutableStateMapOf<Int, Boolean>() }
     val enabledAppIds = remember { mutableStateMapOf<Int, Boolean>() }
+    var selectedTarget by remember { mutableStateOf(StorageManager.defaultInstallTarget(context)) }
 
     val displayInfo = onGetDisplayInfo(context)
     val gameId = displayInfo.gameId
@@ -478,6 +484,13 @@ fun GameManagerDialog(
                         Column(
                             modifier = Modifier.fillMaxWidth()
                         ) {
+                            StorageTargetDropdown(
+                                selectedTarget = selectedTarget,
+                                onTargetSelected = { selectedTarget = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
+                            )
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -496,7 +509,7 @@ fun GameManagerDialog(
                                     onClick = {
                                         onInstall(selectedAppIds
                                             .filter { selectedId -> selectedId.key in enabledAppIds.filter { enabledId -> enabledId.value } }
-                                            .filter { selectedId -> selectedId.value }.keys.toList())
+                                            .filter { selectedId -> selectedId.value }.keys.toList(), selectedTarget)
                                     }
                                 ) {
                                     Text(stringResource(R.string.install))
@@ -536,7 +549,7 @@ fun Preview_GameManagerDialog() {
             onGetDisplayInfo = {
                 return@GameManagerDialog displayInfo
             },
-            onInstall = {},
+            onInstall = { _, _ -> },
             onDismissRequest = {}
         )
     }
