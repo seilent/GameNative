@@ -134,6 +134,7 @@ object PrefManager {
 
     @Suppress("SameParameterValue")
     private fun <T> setPref(key: Preferences.Key<T>, value: T) {
+        if (cachedPrefs?.get(key) == value) return
         cachedPrefs = (cachedPrefs ?: emptyPreferences()).toMutablePreferences().apply { this[key] = value }
         scope.launch {
             dataStore.edit { pref -> pref[key] = value }
