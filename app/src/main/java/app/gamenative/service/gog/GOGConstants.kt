@@ -3,6 +3,8 @@ package app.gamenative.service.gog
 import android.content.Context
 import android.net.Uri
 import app.gamenative.PrefManager
+import app.gamenative.service.storage.StorageManager
+import app.gamenative.service.storage.StorageTarget
 import java.io.File
 import java.nio.file.Paths
 import java.security.SecureRandom
@@ -123,28 +125,23 @@ object GOGConstants {
      * External GOG games installation path (similar to Steam's external path)
      * {externalStoragePath}/GOG/games/common/
      */
+    fun gogGamesPathOn(target: StorageTarget): String =
+        Paths.get(target.rootPath, "GOG", "games", "common").toString().also { File(it).mkdirs() }
+
     val externalGOGGamesPath: String
-        get() {
-            val path = Paths.get(PrefManager.externalStoragePath, "GOG", "games", "common").toString()
-            // Ensure directory exists for StatFs
-            File(path).mkdirs()
-            return path
-        }
+        get() = Paths.get(PrefManager.externalStoragePath, "GOG", "games", "common").toString().also { File(it).mkdirs() }
 
     val defaultGOGGamesPath: String
-        get() {
-            return if (PrefManager.useExternalStorage && File(PrefManager.externalStoragePath).exists()) {
-                Timber.i("GOG using external storage: $externalGOGGamesPath")
-                externalGOGGamesPath
-            } else {
-                Timber.i("GOG using internal storage: $internalGOGGamesPath")
-                internalGOGGamesPath
-            }
-        }
+        get() = gogGamesPathOn(StorageManager.defaultInstallTarget(appContext!!))
 
-    fun getGameInstallPath(gameTitle: String): String {
-        // Sanitize game title for filesystem
+    fun getGameInstallPath(gameTitle: String): String =
+        getGameInstallPath(gameTitle, StorageManager.defaultInstallTarget(appContext!!))
+
+    fun getGameInstallPath(gameTitle: String, target: StorageTarget): String {
         val sanitizedTitle = gameTitle.replace(Regex("[^a-zA-Z0-9 ]"), "").trim()
-        return Paths.get(defaultGOGGamesPath, sanitizedTitle).toString()
+        return Paths.get(gogGamesPathOn(target), sanitizedTitle).toString()
     }
+
+    fun allGogGamesPaths(): List<String> =
+        StorageManager.allTargets(appContext!!).map { gogGamesPathOn(it) }.distinct()
 }

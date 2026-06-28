@@ -2,6 +2,8 @@ package app.gamenative.service.epic
 
 import android.net.Uri
 import app.gamenative.PrefManager
+import app.gamenative.service.storage.StorageManager
+import app.gamenative.service.storage.StorageTarget
 import java.io.File
 import java.nio.file.Paths
 import java.security.SecureRandom
@@ -125,31 +127,18 @@ object EpicConstants {
         return path
     }
 
-    /**
-     * Default Epic games installation path - uses external storage if available
-     */
-    fun defaultEpicGamesPath(context: android.content.Context): String {
-        return if (PrefManager.useExternalStorage && File(PrefManager.externalStoragePath).exists()) {
-            val path = externalEpicGamesPath()
-            Timber.i("Epic using external storage: $path")
-            path
-        } else {
-            val path = internalEpicGamesPath(context)
-            Timber.i("Epic using internal storage: $path")
-            // Ensure directory exists for StatFs
-            File(path).mkdirs()
-            path
-        }
-    }
+    fun epicGamesPathOn(target: StorageTarget): String =
+        Paths.get(target.rootPath, "Epic", "games").toString().also { File(it).mkdirs() }
 
-    /**
-     * Get the installation path for a specific Epic game
-     * Sanitizes the game title to be filesystem-safe
-     */
-    fun getGameInstallPath(context: android.content.Context, gameTitle: String): String {
-        // Sanitize game title for filesystem
+    fun defaultEpicGamesPath(context: android.content.Context): String =
+        epicGamesPathOn(StorageManager.defaultInstallTarget(context))
+
+    fun getGameInstallPath(context: android.content.Context, gameTitle: String): String =
+        getGameInstallPath(context, gameTitle, StorageManager.defaultInstallTarget(context))
+
+    fun getGameInstallPath(context: android.content.Context, gameTitle: String, target: StorageTarget): String {
         val sanitizedTitle = gameTitle.replace(Regex("[^a-zA-Z0-9 \\-_]"), "").trim()
-        return Paths.get(defaultEpicGamesPath(context), sanitizedTitle).toString()
+        return Paths.get(epicGamesPathOn(target), sanitizedTitle).toString()
     }
 
     /**

@@ -7,6 +7,7 @@ import android.content.pm.ServiceInfo
 import android.os.IBinder
 import app.gamenative.data.DownloadInfo
 import app.gamenative.service.DownloadGate
+import app.gamenative.service.storage.StorageTarget
 import app.gamenative.data.GOGCredentials
 import app.gamenative.data.GOGGame
 import app.gamenative.data.LaunchInfo
@@ -216,12 +217,7 @@ class GOGService : Service() {
         }
 
         private fun getPartialInstallPaths(): Set<String> {
-            val roots = buildList {
-                add(GOGConstants.internalGOGGamesPath)
-                if (app.gamenative.PrefManager.externalStoragePath.isNotBlank()) {
-                    add(GOGConstants.externalGOGGamesPath)
-                }
-            }.distinct()
+            val roots = GOGConstants.allGogGamesPaths()
 
             return roots.asSequence()
                 .flatMap { root -> app.gamenative.utils.MarkerUtils.findResumablePartialInstalls(root).asSequence() }
@@ -339,7 +335,7 @@ class GOGService : Service() {
                 ?: Result.failure(Exception("Service not available"))
         }
 
-        fun downloadGame(context: Context, gameId: String, installPath: String, containerLanguage: String): Result<DownloadInfo?> {
+        fun downloadGame(context: Context, gameId: String, installPath: String, containerLanguage: String, target: StorageTarget? = null): Result<DownloadInfo?> {
             val instance = getInstance() ?: return Result.failure(Exception("Service not available"))
 
             // Create DownloadInfo for progress tracking

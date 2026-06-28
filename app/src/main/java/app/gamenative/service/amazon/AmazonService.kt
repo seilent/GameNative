@@ -7,6 +7,7 @@ import android.content.pm.ServiceInfo
 import android.os.IBinder
 import app.gamenative.PluviaApp
 import app.gamenative.service.DownloadGate
+import app.gamenative.service.storage.StorageTarget
 import app.gamenative.R
 import app.gamenative.data.AmazonCredentials
 import app.gamenative.data.AmazonGame
@@ -422,6 +423,7 @@ class AmazonService : Service() {
             context: Context,
             productId: String,
             installPath: String,
+            target: StorageTarget? = null,
         ): Result<DownloadInfo> {
             val instance = getInstance()
                 ?: return Result.failure(Exception("Amazon service is not running"))

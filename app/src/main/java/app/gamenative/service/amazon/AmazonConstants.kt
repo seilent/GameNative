@@ -3,6 +3,8 @@ package app.gamenative.service.amazon
 import android.content.Context
 import android.net.Uri
 import app.gamenative.PrefManager
+import app.gamenative.service.storage.StorageManager
+import app.gamenative.service.storage.StorageTarget
 import java.io.File
 import java.nio.file.Paths
 import timber.log.Timber
@@ -63,23 +65,19 @@ object AmazonConstants {
         return path
     }
 
-    fun defaultAmazonGamesPath(context: Context): String {
-        return if (PrefManager.useExternalStorage && File(PrefManager.externalStoragePath).exists()) {
-            val path = externalAmazonGamesPath()
-            Timber.i("Amazon using external storage: $path")
-            path
-        } else {
-            val path = internalAmazonGamesPath(context)
-            Timber.i("Amazon using internal storage: $path")
-            path
-        }
-    }
+    fun amazonGamesPathOn(target: StorageTarget): String =
+        Paths.get(target.rootPath, "Amazon", "games").toString().also { File(it).mkdirs() }
 
-    /** Return the install directory for a specific Amazon game title. */
-    fun getGameInstallPath(context: Context, gameTitle: String): String {
+    fun defaultAmazonGamesPath(context: Context): String =
+        amazonGamesPathOn(StorageManager.defaultInstallTarget(context))
+
+    fun getGameInstallPath(context: Context, gameTitle: String): String =
+        getGameInstallPath(context, gameTitle, StorageManager.defaultInstallTarget(context))
+
+    fun getGameInstallPath(context: Context, gameTitle: String, target: StorageTarget): String {
         val sanitized = gameTitle.replace(Regex("[^a-zA-Z0-9 \\-_]"), "").trim()
         val dirName = sanitized.ifEmpty { "game_${gameTitle.hashCode().toUInt()}" }
-        return Paths.get(defaultAmazonGamesPath(context), dirName).toString()
+        return Paths.get(amazonGamesPathOn(target), dirName).toString()
     }
 
     /** Build the Amazon OAuth login URL for a PKCE challenge and dynamic clientId. */

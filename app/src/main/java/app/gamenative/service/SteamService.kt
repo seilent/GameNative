@@ -46,6 +46,8 @@ import app.gamenative.enums.Marker
 import app.gamenative.enums.OS
 import app.gamenative.enums.OSArch
 import app.gamenative.enums.PathType
+import app.gamenative.service.storage.StorageManager
+import app.gamenative.service.storage.StorageTarget
 import okio.Path.Companion.toPath
 import app.gamenative.enums.SaveLocation
 import app.gamenative.enums.SyncResult
@@ -477,6 +479,9 @@ class SteamService : Service(), IChallengeUrlChanged {
                 }
                 return paths.distinct()
             }
+
+        fun appInstallPathOn(target: StorageTarget): String =
+            Paths.get(target.rootPath, "Steam", "steamapps", "common").pathString
 
         private val internalAppStagingPath: String
             get() {
@@ -1075,7 +1080,8 @@ class SteamService : Service(), IChallengeUrlChanged {
             return firstExisting
         }
 
-        fun getAppDirPath(gameId: Int): String {
+        @JvmOverloads
+        fun getAppDirPath(gameId: Int, target: StorageTarget? = null): String {
             val info = getAppInfoOf(gameId)
 
             // For installed game, check whether it has customInstallPath and return it
@@ -1092,11 +1098,10 @@ class SteamService : Service(), IChallengeUrlChanged {
             val resolved = resolveExistingAppDir(allInstallPaths, names)
             if (resolved != null) return resolved
 
-            // nothing on disk yet — default to preferred install location
-            if (PrefManager.useExternalStorage) {
-                return Paths.get(externalAppInstallPath, appName).pathString
-            }
-            return Paths.get(internalAppInstallPath, appName).pathString
+            val resolvedTarget = target ?: instance?.applicationContext?.let {
+                StorageManager.defaultInstallTarget(it)
+            } ?: StorageManager.internalTarget()
+            return Paths.get(appInstallPathOn(resolvedTarget), appName).pathString
         }
 
         private fun isExecutable(flags: Any): Boolean = when (flags) {
@@ -1394,7 +1399,7 @@ class SteamService : Service(), IChallengeUrlChanged {
             }
         }
 
-        fun downloadApp(appId: Int, dlcAppIds: List<Int>, branch: String = "public", isUpdateOrVerify: Boolean): DownloadInfo? {
+        fun downloadApp(appId: Int, dlcAppIds: List<Int>, branch: String = "public", isUpdateOrVerify: Boolean, target: StorageTarget? = null): DownloadInfo? {
             if (!checkWifiOrNotify()) return null
             return getAppInfoOf(appId)?.let { appInfo ->
                 val container = ContainerManager(instance!!.applicationContext).getContainerById("STEAM_${appId}")
@@ -1413,7 +1418,8 @@ class SteamService : Service(), IChallengeUrlChanged {
                     userSelectedDlcAppIds = dlcAppIds,
                     branch = branch,
                     containerLanguage = containerLanguage,
-                    isUpdateOrVerify = isUpdateOrVerify)
+                    isUpdateOrVerify = isUpdateOrVerify,
+                    target = target)
             }
         }
 
@@ -1713,8 +1719,9 @@ class SteamService : Service(), IChallengeUrlChanged {
             branch: String,
             containerLanguage: String,
             isUpdateOrVerify: Boolean,
+            target: StorageTarget? = null,
         ): DownloadInfo? {
-            val appDirPath = getAppDirPath(appId)
+            val appDirPath = getAppDirPath(appId, target)
 
             if (!checkWifiOrNotify()) return null
             if (downloadJobs.contains(appId)) return getAppDownloadInfo(appId)
@@ -1857,7 +1864,7 @@ class SteamService : Service(), IChallengeUrlChanged {
                         // download+decompress on fast internal storage and let JavaSteam copy
                         // each completed file out to external sequentially. Bounded by a byte
                         // budget so internal never holds the whole game.
-                        val stagingRootPath = if (externalStorageReady) {
+                        val stagingRootPath = if (!appDirPath.startsWith(DownloadService.baseDataDirPath)) {
                             (DownloadService.baseDataDirPath + "/depot_staging").toPath()
                         } else {
                             null
