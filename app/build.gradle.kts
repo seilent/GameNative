@@ -174,13 +174,13 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         create("release-signed") {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = signingConfigs.getByName("pluvia")
         }
         create("release-gold") {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = signingConfigs.getByName("pluvia")
             applicationIdSuffix = ".gold"
             buildConfigField("boolean", "GOLD", "true")
@@ -329,7 +329,7 @@ dependencies {
     implementation("androidx.browser:browser:1.8.0")
 
     // JavaSteam
-    val localBuild = false // Change to 'true' needed when building JavaSteam manually
+    val localBuild = true // Change to 'true' needed when building JavaSteam manually
     if (localBuild) {
         implementation(files("../../JavaSteam/build/libs/javasteam-1.8.0.1-20-SNAPSHOT.jar"))
         implementation(files("../../JavaSteam/javasteam-depotdownloader/build/libs/javasteam-depotdownloader-1.8.0.1-20-SNAPSHOT.jar"))
