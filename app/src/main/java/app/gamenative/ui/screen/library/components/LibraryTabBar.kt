@@ -2,6 +2,7 @@ package app.gamenative.ui.screen.library.components
 
 import android.view.KeyEvent
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -626,16 +627,19 @@ private fun TabItem(
             .padding(horizontal = 20.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
+        val targetTextColor = if (isSelected) LocalOnAccent.current else Color.White.copy(alpha = textAlpha)
+        val animatedTextColor by animateColorAsState(
+            targetValue = targetTextColor,
+            animationSpec = spring(dampingRatio = 1f, stiffness = 700f),
+            label = "tabTextColor",
+        )
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = when {
-                isSelected -> LocalOnAccent.current
-                else -> Color.White.copy(alpha = textAlpha)
-            },
+            color = animatedTextColor,
             textAlign = TextAlign.Center,
         )
     }
