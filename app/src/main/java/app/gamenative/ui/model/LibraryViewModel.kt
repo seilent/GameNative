@@ -1067,18 +1067,14 @@ class LibraryViewModel @Inject constructor(
 
                 Timber.tag("LibraryViewModel").d("Cached: ${cachedResults.size}, Uncached: ${uncachedGames.size}")
 
-                // Update state with cached results immediately (for instant UI update)
-                if (cachedResults.isNotEmpty()) {
-                    updateCompatibilityState(cachedResults)
-                }
-
-                // Only fetch if there are uncached games
                 if (uncachedGames.isEmpty()) {
                     Timber.tag("LibraryViewModel").d("All games in page are cached, skipping API call")
+                    if (cachedResults.isNotEmpty()) {
+                        updateCompatibilityState(cachedResults)
+                    }
                     return@launch
                 }
 
-                // Fetch uncached games in batches of 25
                 val batchSize = 25
                 val fetchedResults = mutableMapOf<String, GameCompatibilityService.GameCompatibilityResponse>()
 
@@ -1089,7 +1085,6 @@ class LibraryViewModel @Inject constructor(
 
                     if (batchResults != null) {
                         Timber.tag("LibraryViewModel").d("Received ${batchResults.size} results from API")
-                        // Cache all results using batch caching
                         GameCompatibilityCache.cacheAll(batchResults)
                         fetchedResults.putAll(batchResults)
                     } else {
@@ -1097,13 +1092,12 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
 
-                // Update state with newly fetched results
-                if (fetchedResults.isNotEmpty()) {
-                    updateCompatibilityState(fetchedResults)
-                    // Re-apply list filtering once new compatibility data is available
-                    if (_state.value.appInfoSortType.contains(AppFilter.COMPATIBLE)) {
-                        onFilterApps(paginationCurrentPage)
-                    }
+                val allResults = cachedResults + fetchedResults
+                if (allResults.isNotEmpty()) {
+                    updateCompatibilityState(allResults)
+                }
+                if (fetchedResults.isNotEmpty() && _state.value.appInfoSortType.contains(AppFilter.COMPATIBLE)) {
+                    onFilterApps(paginationCurrentPage)
                 }
             } catch (e: Exception) {
                 Timber.tag("LibraryViewModel").e(e, "Error fetching compatibility data: ${e.message}")
