@@ -87,6 +87,7 @@ import app.gamenative.ui.component.LibraryActions
 import app.gamenative.ui.components.rememberCustomGameFolderPicker
 import app.gamenative.ui.components.requestPermissionsForPath
 import app.gamenative.ui.data.LibraryState
+import app.gamenative.ui.data.LibraryDecorations
 import app.gamenative.ui.enums.AppFilter
 import app.gamenative.ui.enums.LibraryTab
 import app.gamenative.ui.enums.LibraryTabItem
@@ -136,10 +137,12 @@ fun HomeLibraryScreen(
     isOffline: Boolean = false,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val decorations by viewModel.decorations.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LibraryScreenContent(
         state = state,
+        decorations = decorations,
         listState = viewModel.listState,
         sheetState = sheetState,
         onFilterChanged = viewModel::onFilterChanged,
@@ -171,6 +174,7 @@ fun HomeLibraryScreen(
 @Composable
 private fun LibraryScreenContent(
     state: LibraryState,
+    decorations: LibraryDecorations,
     listState: LazyGridState,
     sheetState: SheetState,
     onFilterChanged: (AppFilter) -> Unit,
@@ -1017,6 +1021,7 @@ private fun LibraryScreenContent(
                     if (currentPaneType == PaneType.CAROUSEL) {
                         LibraryCarouselPane(
                             state = state,
+                            decorations = decorations,
                             listState = carouselListState,
                             onPageChange = onPageChange,
                             onNavigate = { appId ->
@@ -1032,6 +1037,7 @@ private fun LibraryScreenContent(
                     } else {
                         LibraryListPane(
                             state = state,
+                            decorations = decorations,
                             listState = listState,
                             currentLayout = currentPaneType,
                             firstGridItemFocusRequester = gridFirstItemFocusRequester,
@@ -1331,13 +1337,16 @@ private fun Preview_LibraryScreenContent() {
                         iconHash = item.iconHash,
                     )
                 },
-                // Add compatibility map for preview
-                compatibilityMap = mapOf(
-                    "Game 0" to GameCompatibilityStatus.COMPATIBLE,
-                    "Game 1" to GameCompatibilityStatus.GPU_COMPATIBLE,
-                    "Game 2" to GameCompatibilityStatus.NOT_COMPATIBLE,
-                    "Game 3" to GameCompatibilityStatus.UNKNOWN,
-                ),
+            ),
+        )
+    }
+    val decorations = remember {
+        LibraryDecorations(
+            compatibilityMap = mapOf(
+                "Game 0" to GameCompatibilityStatus.COMPATIBLE,
+                "Game 1" to GameCompatibilityStatus.GPU_COMPATIBLE,
+                "Game 2" to GameCompatibilityStatus.NOT_COMPATIBLE,
+                "Game 3" to GameCompatibilityStatus.UNKNOWN,
             ),
         )
     }
@@ -1345,6 +1354,7 @@ private fun Preview_LibraryScreenContent() {
         LibraryScreenContent(
             listState = rememberLazyGridState(),
             state = state,
+            decorations = decorations,
             sheetState = sheetState,
             onIsSearching = {},
             onSearchQuery = {},

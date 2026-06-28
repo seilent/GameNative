@@ -16,6 +16,7 @@ import app.gamenative.data.LibraryItem
 import app.gamenative.data.RecommendationRepository
 import app.gamenative.data.RecommendedGame
 import app.gamenative.ui.data.LibraryState
+import app.gamenative.ui.data.LibraryDecorations
 import app.gamenative.ui.enums.AppFilter
 import app.gamenative.ui.screen.library.AppScreen
 import app.gamenative.ui.screen.library.RecommendedGameScreen
@@ -42,6 +43,7 @@ internal fun LibraryDetailPane(
 
             LibraryListPane(
                 state = emptyState,
+                decorations = LibraryDecorations(),
                 listState = listState,
                 currentLayout = PrefManager.libraryLayout,
                 onPageChange = {},

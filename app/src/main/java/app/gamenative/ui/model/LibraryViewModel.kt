@@ -29,6 +29,7 @@ import app.gamenative.service.amazon.AmazonService
 import app.gamenative.service.epic.EpicService
 import app.gamenative.service.gog.GOGService
 import app.gamenative.ui.data.LibraryState
+import app.gamenative.ui.data.LibraryDecorations
 import app.gamenative.ui.data.statsFor
 import app.gamenative.ui.enums.AppFilter
 import app.gamenative.ui.enums.LibraryTab
@@ -82,6 +83,9 @@ class LibraryViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(LibraryState(isLoading = true))
     val state: StateFlow<LibraryState> = _state.asStateFlow()
+
+    private val _decorations = MutableStateFlow(LibraryDecorations())
+    val decorations: StateFlow<LibraryDecorations> = _decorations.asStateFlow()
 
     // Keep the library scroll state. This will last longer as the VM will stay alive.
     var listState: LazyGridState by mutableStateOf(LazyGridState(0, 0))
@@ -172,7 +176,7 @@ class LibraryViewModel @Inject constructor(
             } else {
                 Timber.tag("LibraryViewModel").w("Skipping device/GPU game stats fetch - GPU name is unknown")
             }
-            _state.update {
+            _decorations.update {
                 it.copy(
                     deviceGameStats = DeviceGameStatsCache.getAll(),
                     gpuGameStats = GpuGameStatsCache.getAll(),
@@ -527,6 +531,10 @@ class LibraryViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isRefreshing = false,
+                    )
+                }
+                _decorations.update {
+                    it.copy(
                         deviceGameStats = DeviceGameStatsCache.getAll(),
                         gpuGameStats = GpuGameStatsCache.getAll(),
                     )
@@ -586,7 +594,7 @@ class LibraryViewModel @Inject constructor(
         val proven = filters.contains(AppFilter.PROVEN_GPU)
         if (!playable && !fiveStar && !fiveStarGpu && !proven) return true
 
-        val stats = state.statsFor(source, name)
+        val stats = _decorations.value.statsFor(source, name)
         if (playable && (stats?.fps ?: 0) < PLAYABLE_FPS_THRESHOLD) return false
         if (fiveStar && (stats?.reviewsDevice ?: 0) < 1) return false
         if (fiveStarGpu && (stats?.reviewsGpu ?: 0) < 1) return false
@@ -881,7 +889,7 @@ class LibraryViewModel @Inject constructor(
                 currentTab.showAmazon
             }) && AmazonService.hasStoredCredentials(context)
 
-            // Combine both lists and apply sort option
+            val sortDecorations = _decorations.value
             val sortComparator: Comparator<LibraryEntry> = when (currentState.currentSortOption) {
                 SortOption.INSTALLED_FIRST -> compareBy<LibraryEntry> { entry ->
                     if (entry.isInstalled) 0 else 1
@@ -902,19 +910,19 @@ class LibraryViewModel @Inject constructor(
                     .thenBy { it.nameLower }
 
                 SortOption.FPS_HIGH -> compareByDescending<LibraryEntry> {
-                    currentState.statsFor(it.item)?.fps ?: -1
+                    sortDecorations.statsFor(it.item)?.fps ?: -1
                 }.thenBy { it.nameLower }
 
                 SortOption.RUNS_HIGH -> compareByDescending<LibraryEntry> {
-                    currentState.statsFor(it.item)?.runsGpu ?: -1
+                    sortDecorations.statsFor(it.item)?.runsGpu ?: -1
                 }.thenBy { it.nameLower }
 
                 SortOption.REVIEWS_HIGH -> compareByDescending<LibraryEntry> {
-                    currentState.statsFor(it.item)?.reviewsDevice ?: -1
+                    sortDecorations.statsFor(it.item)?.reviewsDevice ?: -1
                 }.thenBy { it.nameLower }
 
                 SortOption.REVIEWS_GPU_HIGH -> compareByDescending<LibraryEntry> {
-                    currentState.statsFor(it.item)?.reviewsGpu ?: -1
+                    sortDecorations.statsFor(it.item)?.reviewsGpu ?: -1
                 }.thenBy { it.nameLower }
             }
 
@@ -1116,12 +1124,11 @@ class LibraryViewModel @Inject constructor(
             compatibilityStatusFor(response)
         }
 
-        // Update state with compatibility map (merge with existing)
-        _state.update { currentState ->
-            val mergedMap = currentState.compatibilityMap.toMutableMap()
+        _decorations.update { current ->
+            val mergedMap = current.compatibilityMap.toMutableMap()
             mergedMap.putAll(compatibilityMap)
-            Timber.tag("LibraryViewModel").d("Updated state with ${compatibilityMap.size} compatibility entries, total: ${mergedMap.size}")
-            currentState.copy(compatibilityMap = mergedMap)
+            Timber.tag("LibraryViewModel").d("Updated decorations with ${compatibilityMap.size} compatibility entries, total: ${mergedMap.size}")
+            current.copy(compatibilityMap = mergedMap)
         }
     }
 

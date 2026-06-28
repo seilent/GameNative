@@ -50,6 +50,7 @@ import androidx.compose.ui.zIndex
 import app.gamenative.R
 import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.data.LibraryState
+import app.gamenative.ui.data.LibraryDecorations
 import app.gamenative.ui.data.statsFor
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.theme.LocalGameAccent
@@ -187,6 +188,7 @@ private fun CarouselEmptyState(modifier: Modifier = Modifier) {
 @Composable
 internal fun LibraryCarouselPane(
     state: LibraryState,
+    decorations: LibraryDecorations,
     listState: LazyListState,
     onPageChange: (Int) -> Unit,
     onNavigate: (String) -> Unit,
@@ -464,8 +466,8 @@ internal fun LibraryCarouselPane(
                                             },
                                             paneType = PaneType.GRID_CAPSULE,
                                             imageRefreshCounter = state.imageRefreshCounter,
-                                            compatibilityStatus = state.compatibilityMap[item.name],
-                                            gameStats = state.statsFor(item),
+                                            compatibilityStatus = decorations.compatibilityMap[item.name],
+                                            gameStats = decorations.statsFor(item),
                                             showFocusGlow = false,
                                             enableFocusScale = false,
                                         )

@@ -52,6 +52,7 @@ import app.gamenative.service.gog.GOGService
 import app.gamenative.ui.enums.AppFilter
 import app.gamenative.ui.component.Scrollbar
 import app.gamenative.ui.data.LibraryState
+import app.gamenative.ui.data.LibraryDecorations
 import app.gamenative.ui.data.statsFor
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.internal.fakeAppInfo
@@ -116,6 +117,7 @@ private fun calculateInstalledCount(context: android.content.Context, state: Lib
 @Composable
 internal fun LibraryListPane(
     state: LibraryState,
+    decorations: LibraryDecorations,
     listState: LazyGridState,
     currentLayout: PaneType,
     firstGridItemFocusRequester: FocusRequester? = null,
@@ -237,7 +239,7 @@ internal fun LibraryListPane(
                             ),
                         ) {
                             val appInfoList = state.appInfoList
-                            val compatibilityMap = state.compatibilityMap
+                            val compatibilityMap = decorations.compatibilityMap
                             val imageRefreshCounter = state.imageRefreshCounter
                             val totalAppsInFilter = state.totalAppsInFilter
                             items(
@@ -268,7 +270,7 @@ internal fun LibraryListPane(
                                         onFocus = { targetOfScroll = item.index; onFocusedIndexChanged(item.index) },
                                         imageRefreshCounter = imageRefreshCounter,
                                         compatibilityStatus = compatibilityMap[item.name],
-                                        gameStats = state.statsFor(item),
+                                        gameStats = decorations.statsFor(item),
                                         enableFocusScale = false,
                                     )
                                 }
@@ -322,6 +324,7 @@ private fun Preview_LibraryListPane() {
             LibraryListPane(
                 listState = LazyGridState(2),
                 state = state,
+                decorations = LibraryDecorations(),
                 currentLayout = PaneType.GRID_HERO,
                 onPageChange = { },
                 onNavigate = { },

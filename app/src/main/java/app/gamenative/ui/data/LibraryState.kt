@@ -1,5 +1,6 @@
 package app.gamenative.ui.data
 
+import androidx.compose.runtime.Immutable
 import app.gamenative.PrefManager
 import app.gamenative.data.GameCompatibilityStatus
 import app.gamenative.data.GameSource
@@ -11,6 +12,7 @@ import app.gamenative.ui.enums.LibraryTabItem
 import app.gamenative.ui.enums.SortOption
 import java.util.EnumSet
 
+@Immutable
 data class LibraryState(
     val appInfoSortType: EnumSet<AppFilter> = PrefManager.libraryFilter,
     val appInfoList: List<LibraryItem> = emptyList(),
@@ -42,15 +44,6 @@ data class LibraryState(
     // Used to trigger UI recomposition to show newly downloaded images
     val imageRefreshCounter: Long = 0,
 
-    // Compatibility status map: game name -> compatibility status
-    val compatibilityMap: Map<String, GameCompatibilityStatus> = emptyMap(),
-
-    // Device-specific play stats, grouped by platform then game name
-    val deviceGameStats: Map<GameSource, Map<String, DeviceGameStats>> = emptyMap(),
-
-    // GPU-specific play stats (across all devices with this GPU), grouped by platform then game name
-    val gpuGameStats: Map<GameSource, Map<String, DeviceGameStats>> = emptyMap(),
-
     // Sort option for the library
     val currentSortOption: SortOption = PrefManager.librarySortOption,
 
@@ -76,6 +69,13 @@ data class LibraryState(
     val localCount: Int = 0,
 )
 
+@Immutable
+data class LibraryDecorations(
+    val compatibilityMap: Map<String, GameCompatibilityStatus> = emptyMap(),
+    val deviceGameStats: Map<GameSource, Map<String, DeviceGameStats>> = emptyMap(),
+    val gpuGameStats: Map<GameSource, Map<String, DeviceGameStats>> = emptyMap(),
+)
+
 /**
  * Stats shown on a library card. Runs and 5-star reviews are counts that default to 0 when their
  * dataset has no entry (absence means "none recorded"). FPS and session are device measurements
@@ -89,10 +89,10 @@ data class GameCardStats(
     val sessionSec: Int?,
 )
 
-fun LibraryState.statsFor(item: LibraryItem): GameCardStats? = statsFor(item.gameSource, item.name)
+fun LibraryDecorations.statsFor(item: LibraryItem): GameCardStats? = statsFor(item.gameSource, item.name)
 
 /** Combined device + GPU stats for a game, or null when neither dataset has an entry. */
-fun LibraryState.statsFor(source: GameSource, name: String): GameCardStats? {
+fun LibraryDecorations.statsFor(source: GameSource, name: String): GameCardStats? {
     val device = deviceGameStats[source]?.get(name)
     val gpu = gpuGameStats[source]?.get(name)
     if (device == null && gpu == null) return null
