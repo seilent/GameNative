@@ -26,6 +26,7 @@ import app.gamenative.R
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
 import com.winlator.inputcontrols.Binding
 import com.winlator.inputcontrols.ControlsProfile
 import com.winlator.inputcontrols.ExternalControllerBinding
@@ -618,7 +619,7 @@ private fun ControllerBindingItem(
                 Text(
                     text = bindingText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = PluviaTheme.colors.textMuted
                 )
             }
         }
@@ -642,7 +643,8 @@ private fun PhysicalControlPresets(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = LocalGameAccent.current.copy(alpha = 0.15f)
+            containerColor = LocalGameAccent.current.copy(alpha = 0.15f),
+            contentColor = Color.White
         )
     ) {
         Column(
@@ -653,7 +655,7 @@ private fun PhysicalControlPresets(
                 text = stringResource(R.string.quick_presets),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                color = Color.White
             )
 
             // Keyboard/Mouse presets

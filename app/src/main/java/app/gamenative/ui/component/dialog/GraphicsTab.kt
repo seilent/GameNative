@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,7 +22,6 @@ import app.gamenative.ui.component.settings.SettingsListDropdownSearchable
 import app.gamenative.ui.component.settings.SettingsMultiListDropdown
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
-import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.utils.LsfgVkManager
 import com.alorma.compose.settings.ui.SettingsGroup
 import app.gamenative.ui.component.settings.SettingsSwitchWithAction
@@ -218,7 +216,6 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
                             state.config.value = config.copy(sharpnessLevel = clamped)
                         },
                         valueRange = 0f..100f,
-                        colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                     )
                     Text(text = "${state.sharpnessLevel.value}%")
                 }
@@ -232,7 +229,6 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
                             state.config.value = config.copy(sharpnessDenoise = clamped)
                         },
                         valueRange = 0f..100f,
-                        colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                     )
                     Text(text = "${state.sharpnessDenoise.value}%")
                 }
@@ -519,7 +515,6 @@ private fun LsfgSection(state: ContainerConfigState) {
                                 state.config.value = state.config.value.copy(lsfgBaseFpsCap = clamped)
                             },
                             valueRange = 0f..120f,
-                            colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                         )
                         Text(
                             text = if (config.lsfgBaseFpsCap <= 0) {

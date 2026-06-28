@@ -54,6 +54,8 @@ fun LoadingDialog(
                             LinearProgressIndicator(
                                 progress = { progress },
                                 color = accent,
+                                gapSize = 0.dp,
+                                drawStopIndicator = {},
                             )
                         } else {
                             LinearProgressIndicator(color = accent)

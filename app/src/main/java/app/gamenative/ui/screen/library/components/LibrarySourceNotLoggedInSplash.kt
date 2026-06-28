@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 
 /**
  * Full-screen splash shown when the user is on a GOG/Epic/Amazon library tab
@@ -45,14 +46,17 @@ internal fun LibrarySourceNotLoggedInSplash(
         Text(
             text = stringResource(messageResId),
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = Color.White,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = onSignInClick,
             modifier = Modifier.padding(horizontal = 24.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = LocalGameAccent.current,
+                contentColor = LocalOnAccent.current,
+            ),
         ) {
             Text(stringResource(signInButtonLabelResId))
         }

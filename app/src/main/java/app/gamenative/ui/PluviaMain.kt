@@ -94,12 +94,17 @@ import app.gamenative.ui.screen.xserver.XServerScreen
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.LocalGameBackdrop
+import app.gamenative.ui.theme.LocalOnAccent
+import app.gamenative.ui.theme.LocalAccentContainer
+import app.gamenative.ui.theme.LocalAccentContainerBright
+import app.gamenative.ui.theme.LocalAccentMuted
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.util.SnackbarManager
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import app.gamenative.utils.BestConfigService
 import app.gamenative.utils.ContainerUtils
@@ -1124,6 +1129,7 @@ fun PluviaMain(
     }
 
     PluviaTheme(
+        accentArgb = state.gameAccentArgb,
         isDark = when (state.appTheme) {
             AppTheme.AUTO -> isSystemInDarkTheme()
             AppTheme.DAY -> false
@@ -1133,8 +1139,9 @@ fun PluviaMain(
         isAmoled = (state.appTheme == AppTheme.AMOLED),
         style = state.paletteStyle,
     ) {
-        val accent by animateColorAsState(Color(state.gameAccentArgb), Motion.AccentColor, label = "rootAccent")
-        CompositionLocalProvider(LocalGameAccent provides accent, LocalGameBackdrop provides state.gameBackdropUrl) {
+        CompositionLocalProvider(
+            LocalGameBackdrop provides state.gameBackdropUrl,
+        ) {
         Box(modifier = Modifier.fillMaxSize()) {
             BlurredBackdrop(
                 imageModel = state.gameBackdropUrl.ifBlank { null },
@@ -1536,7 +1543,7 @@ fun PluviaMain(
                         Text(
                             text = data.visuals.message,
                             modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = Color.White,
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }

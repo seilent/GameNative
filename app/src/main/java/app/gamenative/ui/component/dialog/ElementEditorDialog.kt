@@ -29,6 +29,7 @@ import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import app.gamenative.ui.component.settings.SettingsSwitchWithAction
@@ -267,7 +268,7 @@ fun ElementEditorDialog(
                             Text(
                                 text = stringResource(R.string.element_position_size, element.x.toInt(), element.y.toInt(), currentScale),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = PluviaTheme.colors.textMuted
                             )
                         }
                     },
@@ -340,7 +341,7 @@ fun ElementEditorDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 // Appearance Section
-                SettingsGroup(title = { Text(stringResource(R.string.appearance)) }) {
+                SettingsGroup(title = { Text(stringResource(R.string.appearance), color = Color.White) }) {
                     // Scale/Size - click to enter adjustment mode
                     SettingsMenuLink(
                         colors = settingsTileColors(),
@@ -460,7 +461,7 @@ fun ElementEditorDialog(
 
                 // Button Settings Section (only for BUTTON type)
                 if (types[currentTypeIndex] == ControlElement.Type.BUTTON) {
-                    SettingsGroup(title = { Text(stringResource(R.string.button_settings)) }) {
+                    SettingsGroup(title = { Text(stringResource(R.string.button_settings), color = Color.White) }) {
                         SettingsSwitchWithAction(
                             colors = settingsTileColorsAlt(),
                             title = { Text(stringResource(R.string.button_toggleable)) },
@@ -478,7 +479,7 @@ fun ElementEditorDialog(
                 // Bindings Section
                 // Use key() with bindingsRefreshKey to force recomposition when bindings change
                 key(bindingsRefreshKey) {
-                    SettingsGroup(title = { Text(stringResource(R.string.bindings)) }) {
+                    SettingsGroup(title = { Text(stringResource(R.string.bindings), color = Color.White) }) {
                         // Quick Presets for directional controls (D-Pad and Stick only)
                         if (element.type == ControlElement.Type.D_PAD || element.type == ControlElement.Type.STICK) {
                             VirtualControlPresets(
@@ -570,7 +571,7 @@ fun ElementEditorDialog(
 
                 // Range Button Settings Section (only for RANGE_BUTTON type)
                 if (types[currentTypeIndex] == ControlElement.Type.RANGE_BUTTON) {
-                    SettingsGroup(title = { Text(stringResource(R.string.range_button_settings)) }) {
+                    SettingsGroup(title = { Text(stringResource(R.string.range_button_settings), color = Color.White) }) {
                         // Key Range dropdown
                         SettingsListDropdown(
                             colors = settingsTileColors(),
@@ -638,7 +639,6 @@ fun ElementEditorDialog(
                                 valueRange = 1f..maxSegments.toFloat(),
                                 steps = (maxSegments - 2).coerceAtLeast(0),
                                 modifier = Modifier.weight(1f),
-                                colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                             )
                             Text(
                                 text = "$currentVisibleSegments",
@@ -664,7 +664,7 @@ fun ElementEditorDialog(
 
                 // Shooter Mode Settings Section (only for SHOOTER_MODE type)
                 if (types[currentTypeIndex] == ControlElement.Type.SHOOTER_MODE) {
-                    SettingsGroup(title = { Text(stringResource(R.string.shooter_mode_settings)) }) {
+                    SettingsGroup(title = { Text(stringResource(R.string.shooter_mode_settings), color = Color.White) }) {
                         // Movement Type dropdown
                         SettingsListDropdown(
                             colors = settingsTileColors(),
@@ -713,7 +713,6 @@ fun ElementEditorDialog(
                                 },
                                 valueRange = 0.1f..10.0f,
                                 modifier = Modifier.weight(1f),
-                                colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                             )
                             Text(
                                 text = String.format(Locale.US, "%.1fx", currentLookSensitivity),
@@ -745,7 +744,6 @@ fun ElementEditorDialog(
                                 },
                                 valueRange = 0.5f..3.0f,
                                 modifier = Modifier.weight(1f),
-                                colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                             )
                             Text(
                                 text = String.format(Locale.US, "%.1fx", currentJoystickSize),
@@ -757,7 +755,7 @@ fun ElementEditorDialog(
                 }
 
                 // Properties Section
-                SettingsGroup(title = { Text(stringResource(R.string.properties)) }) {
+                SettingsGroup(title = { Text(stringResource(R.string.properties), color = Color.White) }) {
                     SettingsMenuLink(
                         colors = settingsTileColors(),
                         title = { Text(stringResource(R.string.position)) },
@@ -975,7 +973,6 @@ private fun SizeAdjusterOverlay(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(32.dp),
-                    colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
                 )
 
                 // All 4 buttons in one row
@@ -1113,7 +1110,8 @@ private fun VirtualControlPresets(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = LocalGameAccent.current.copy(alpha = 0.15f)
+            containerColor = LocalGameAccent.current.copy(alpha = 0.15f),
+            contentColor = Color.White
         )
     ) {
         Column(
@@ -1125,7 +1123,7 @@ private fun VirtualControlPresets(
                 text = stringResource(R.string.quick_presets),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                color = Color.White
             )
 
             // Keyboard layouts

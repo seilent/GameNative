@@ -43,6 +43,8 @@ import com.alorma.compose.settings.ui.base.internal.SettingsTileDefaults
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
+import androidx.compose.ui.graphics.Color
 import com.alorma.compose.settings.ui.base.internal.SettingsTileScaffold
 
 @Composable
@@ -124,7 +126,7 @@ fun SettingsMultiListDropdown(
                         ) {
                             Text(
                                 text = text,
-                                color = if (isSelected) accent else MaterialTheme.colorScheme.onSurface,
+                                color = if (isSelected) accent else Color.White,
                             )
                             Checkbox(
                                 enabled = enabled,
@@ -151,7 +153,7 @@ fun SettingsMultiListDropdown(
                     Icons.Filled.ArrowDropDown
                 },
                 contentDescription = "Dropdown arrow",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = PluviaTheme.colors.textMuted,
             )
             if (action != null) {
                 Spacer(modifier.width(16.dp))

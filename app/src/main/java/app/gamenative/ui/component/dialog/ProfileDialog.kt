@@ -2,6 +2,9 @@ package app.gamenative.ui.component.dialog
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,11 +31,10 @@ import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -46,8 +48,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,7 +60,9 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.service.SteamService
 import app.gamenative.ui.screen.PluviaScreen
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalAccentContainer
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.SteamIconImage
@@ -152,43 +158,41 @@ fun ProfileDialog(
                                     .fillMaxWidth()
                                     .verticalScroll(scrollState)
                             ) {
-                                FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = { onNavigateRoute(PluviaScreen.Settings.route) }) {
-                                    Icon(imageVector = Icons.Default.Settings, contentDescription = null)
-                                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSize))
-                                    Text(text = stringResource(R.string.settings_text))
-                                }
+                                AccentActionButton(
+                                    icon = Icons.Default.Settings,
+                                    label = stringResource(R.string.settings_text),
+                                    onClick = { onNavigateRoute(PluviaScreen.Settings.route) },
+                                )
 
-                                FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = { uriHandler.openUri("https://discord.gg/2hKv4VfZfE") }) {
-                                    Icon(imageVector = Icons.AutoMirrored.Filled.Help, contentDescription = null)
-                                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSize))
-                                    Text(text = stringResource(R.string.help_and_support))
-                                }
+                                AccentActionButton(
+                                    icon = Icons.AutoMirrored.Filled.Help,
+                                    label = stringResource(R.string.help_and_support),
+                                    onClick = { uriHandler.openUri("https://discord.gg/2hKv4VfZfE") },
+                                )
 
-                                FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = { showSupporters = true }) {
-                                    Icon(imageVector = Icons.AutoMirrored.Filled.StarHalf, contentDescription = null)
-                                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSize))
-                                    Text(text = stringResource(R.string.hall_of_fame))
-                                }
+                                AccentActionButton(
+                                    icon = Icons.AutoMirrored.Filled.StarHalf,
+                                    label = stringResource(R.string.hall_of_fame),
+                                    onClick = { showSupporters = true },
+                                )
 
                                 if(isOffline) {
-                                    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = onGoOnline) {
-                                        Icon(imageVector = Icons.AutoMirrored.Filled.Login, contentDescription = null)
-                                        Spacer(modifier = Modifier.size(ButtonDefaults.IconSize))
-                                        Text(text = stringResource(R.string.go_online))
-                                    }
+                                    AccentActionButton(
+                                        icon = Icons.AutoMirrored.Filled.Login,
+                                        label = stringResource(R.string.go_online),
+                                        onClick = onGoOnline,
+                                    )
                                 } else {
-                                    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = {
-                                        onNavigateRoute(PluviaScreen.Home.route + "?offline=true")
-                                    }) {
-                                        Icon(imageVector = Icons.AutoMirrored.Filled.AirplaneTicket, contentDescription = null)
-                                        Spacer(modifier = Modifier.size(ButtonDefaults.IconSize))
-                                        Text(text = stringResource(R.string.go_offline))
-                                    }
-                                    FilledTonalButton(modifier = Modifier.fillMaxWidth(), onClick = onLogout) {
-                                        Icon(imageVector = Icons.AutoMirrored.Filled.Logout, contentDescription = null)
-                                        Spacer(modifier = Modifier.size(ButtonDefaults.IconSize))
-                                        Text(text = stringResource(R.string.log_out))
-                                    }
+                                    AccentActionButton(
+                                        icon = Icons.AutoMirrored.Filled.AirplaneTicket,
+                                        label = stringResource(R.string.go_offline),
+                                        onClick = { onNavigateRoute(PluviaScreen.Home.route + "?offline=true") },
+                                    )
+                                    AccentActionButton(
+                                        icon = Icons.AutoMirrored.Filled.Logout,
+                                        label = stringResource(R.string.log_out),
+                                        onClick = onLogout,
+                                    )
                                 }
                             }
                             
@@ -226,6 +230,42 @@ fun ProfileDialog(
     )
 
     SupportersDialog(visible = showSupporters, onDismiss = { showSupporters = false })
+}
+
+@Composable
+private fun AccentActionButton(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    val accent = LocalGameAccent.current
+    val accentContainer = LocalAccentContainer.current
+    val shape = RoundedCornerShape(12.dp)
+    var focused by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp)
+            .clip(shape)
+            .background(accentContainer, shape)
+            .then(
+                if (focused) Modifier.border(2.dp, accent, shape)
+                else Modifier.border(1.dp, GlassBorder, shape)
+            )
+            .onFocusChanged { focused = it.isFocused }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) { onClick() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(imageVector = icon, contentDescription = null, tint = Color.White)
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(text = label, color = Color.White, style = MaterialTheme.typography.labelLarge)
+        }
+    }
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)

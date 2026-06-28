@@ -48,7 +48,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -66,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -129,7 +129,7 @@ private fun SystemMenuItem(
         isDestructive && isFocused -> MaterialTheme.colorScheme.error
         isDestructive -> MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
         isFocused -> LocalGameAccent.current
-        else -> MaterialTheme.colorScheme.onSurface
+        else -> Color.White
     }
 
     Box(
@@ -219,7 +219,7 @@ private fun StatusOption(
             color = if (isFocused) {
                 LocalGameAccent.current
             } else {
-                MaterialTheme.colorScheme.onSurface
+                Color.White
             },
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
             modifier = Modifier.weight(1f),
@@ -378,7 +378,6 @@ fun SystemMenu(
                         .statusBarsPadding()
                         .padding(24.dp),
                 ) {
-                    // Header with close button
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -389,13 +388,29 @@ fun SystemMenu(
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontWeight = FontWeight.Bold,
                             ),
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = Color.White,
                         )
-                        IconButton(onClick = onDismiss) {
+                        var dismissFocused by remember { mutableStateOf(false) }
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .then(
+                                    if (dismissFocused) Modifier.border(2.dp, LocalGameAccent.current, CircleShape)
+                                    else Modifier
+                                )
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = onDismiss,
+                                )
+                                .onFocusChanged { dismissFocused = it.isFocused },
+                            contentAlignment = Alignment.Center,
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = stringResource(R.string.options_panel_close),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = PluviaTheme.colors.textMuted,
                             )
                         }
                     }
@@ -464,7 +479,7 @@ fun SystemMenu(
                                         imageVector = Icons.Default.Person,
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        tint = PluviaTheme.colors.textMuted,
                                     )
                                 }
                             }
@@ -475,7 +490,7 @@ fun SystemMenu(
                                     text = persona?.name ?: stringResource(R.string.default_user_name),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = Color.White,
                                     maxLines = 1,
                                 )
                                 Row(
@@ -495,7 +510,7 @@ fun SystemMenu(
                                             else -> selectedStatus.name
                                         },
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        color = PluviaTheme.colors.textMuted,
                                     )
                                 }
                             }
@@ -510,7 +525,7 @@ fun SystemMenu(
                                     },
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    tint = PluviaTheme.colors.textMuted,
                                 )
                             }
                         }
@@ -535,7 +550,7 @@ fun SystemMenu(
                                 Text(
                                     text = stringResource(R.string.status),
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = PluviaTheme.colors.textMuted,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                                 )
                                 listOf(
@@ -563,7 +578,7 @@ fun SystemMenu(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        color = GlassBorder.copy(alpha = 0.3f),
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -613,7 +628,7 @@ fun SystemMenu(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                            color = GlassBorder.copy(alpha = 0.3f),
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -656,7 +671,7 @@ fun SystemMenu(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                            color = GlassBorder.copy(alpha = 0.3f),
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -727,7 +742,7 @@ fun SystemMenu(
                             Text(
                                 text = stringResource(R.string.press_b_to_close),
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                color = PluviaTheme.colors.textMuted.copy(alpha = 0.6f),
                             )
                         }
                     }
@@ -772,7 +787,7 @@ private fun Preview_SystemMenu() {
                     Text(
                         "Game Library",
                         style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        color = Color.White.copy(alpha = 0.5f),
                     )
                 }
 

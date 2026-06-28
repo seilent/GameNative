@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 @Composable
@@ -33,6 +34,7 @@ fun FloatingActionMenuLabel(
         modifier = modifier,
         shape = RoundedCornerShape(6.dp),
         color = color,
+        contentColor = LocalOnAccent.current,
     ) {
         Text(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp),

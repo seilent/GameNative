@@ -130,6 +130,7 @@ import app.gamenative.ui.screen.library.components.GameOptionsPanel
 import app.gamenative.utils.HltbService
 import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import com.skydoves.landscapist.ImageOptions
@@ -160,7 +161,7 @@ private fun SkeletonText(
         label = "alpha",
     )
 
-    val color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha)
+    val color = PluviaTheme.colors.textMuted.copy(alpha = alpha)
 
     Column(modifier = modifier) {
         repeat(lines) { index ->
@@ -215,7 +216,7 @@ private fun PrimaryActionButton(
                 if (isFocused) {
                     Modifier.border(
                         2.dp,
-                        LocalGameAccent.current,
+                        Color.White,
                         RoundedCornerShape(8.dp),
                     )
                 } else {
@@ -241,7 +242,7 @@ private fun PrimaryActionButton(
                 Icon(
                     imageVector = Icons.Default.Pause,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = LocalOnAccent.current,
                     modifier = Modifier.size(16.dp),
                 )
                 LinearProgressIndicator(
@@ -259,8 +260,10 @@ private fun PrimaryActionButton(
                                 Modifier
                             },
                         ),
-                    color = Color.White,
-                    trackColor = Color.White.copy(alpha = 0.3f),
+                    color = LocalOnAccent.current,
+                    trackColor = LocalOnAccent.current.copy(alpha = 0.3f),
+                    gapSize = 0.dp,
+                    drawStopIndicator = {},
                 )
                 Box(modifier = Modifier.width(36.dp), contentAlignment = Alignment.CenterEnd) {
                     Text(
@@ -269,7 +272,7 @@ private fun PrimaryActionButton(
                             fontWeight = FontWeight.Bold,
                             fontFeatureSettings = "tnum",
                         ),
-                        color = Color.White,
+                        color = LocalOnAccent.current,
                         maxLines = 1,
                         softWrap = false,
                     )
@@ -283,13 +286,13 @@ private fun PrimaryActionButton(
                 Icon(
                     imageVector = if (isInstalled) Icons.Default.PlayArrow else Icons.Default.CloudDownload,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = LocalOnAccent.current,
                     modifier = Modifier.size(24.dp),
                 )
                 Text(
                     text = text,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White,
+                    color = LocalOnAccent.current,
                 )
             }
         }
@@ -406,7 +409,7 @@ private fun InfoCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PluviaTheme.colors.textMuted,
                 fontWeight = FontWeight.Medium,
             )
             Spacer(modifier = Modifier.height(6.dp))
@@ -428,7 +431,7 @@ private fun InfoCard(
                     } else {
                         MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                     },
-                    color = if (statusColor != null) statusColor else MaterialTheme.colorScheme.onSurface,
+                    color = if (statusColor != null) statusColor else Color.White,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -477,14 +480,14 @@ private fun HltbInfoBar(
             Text(
                 text = stringResource(R.string.hltb_section_title),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PluviaTheme.colors.textMuted,
                 fontWeight = FontWeight.Medium,
             )
             if (canOpenHltb) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = PluviaTheme.colors.textMuted,
                     modifier = Modifier.size(16.dp),
                 )
             }
@@ -514,14 +517,14 @@ private fun HltbInfoBar(
                                 stringResource(R.string.hltb_hours_value, hours)
                             },
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = Color.White,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
                             text = label,
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = PluviaTheme.colors.textMuted,
                             maxLines = 1,
                             softWrap = false,
                         )
@@ -1144,7 +1147,7 @@ private fun InfoSection(
                         Text(
                             text = stringResource(R.string.update_available),
                             style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = Color.White,
                         )
                     }
                     Button(
@@ -1152,6 +1155,7 @@ private fun InfoSection(
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = accent,
+                            contentColor = LocalOnAccent.current,
                         ),
                     ) {
                         Text(stringResource(R.string.update_now))
@@ -1412,6 +1416,8 @@ fun GameMigrationDialog(
                     modifier = Modifier.fillMaxWidth(),
                     progress = { progress },
                     color = LocalGameAccent.current,
+                    gapSize = 0.dp,
+                    drawStopIndicator = {},
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

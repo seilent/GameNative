@@ -30,6 +30,7 @@ import app.gamenative.data.GameSource
 import app.gamenative.sync.FrontendSyncManager
 import app.gamenative.ui.components.rememberCustomGameFolderPicker
 import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.PluviaTheme
 
 /**
  * Dialog for configuring per-source export directories used by frontend launchers such as ES-DE.
@@ -129,7 +130,7 @@ private fun FrontendSyncSourceRow(
                     displayPath
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PluviaTheme.colors.textMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

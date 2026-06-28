@@ -15,14 +15,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,6 +41,7 @@ import app.gamenative.R
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import app.gamenative.ui.util.ScreenEffectsConfig
@@ -156,7 +155,7 @@ fun ScreenEffectDialog(
                             Text(
                                 text = stringResource(R.string.screen_effects_live_preview),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = PluviaTheme.colors.textMuted,
                             )
                         }
                     }
@@ -264,7 +263,6 @@ fun ScreenEffectDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                     ) {
                         Text(stringResource(R.string.screen_effects_close))
                     }
@@ -295,7 +293,6 @@ private fun ScreenEffectSlider(
             value = value,
             valueRange = valueRange,
             onValueChange = onValueChange,
-            colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
         )
     }
 }

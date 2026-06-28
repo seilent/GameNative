@@ -35,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.R
 import app.gamenative.ui.theme.GlassFillStrong
+import androidx.compose.ui.graphics.Color
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.AchievementNotification
@@ -126,7 +127,7 @@ private fun AchievementNotificationContent(notification: AchievementNotification
                 Text(
                     text = notification.name,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = Color.White,
                 )
             }
         }

@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -54,6 +55,9 @@ import app.gamenative.service.storage.StorageTarget
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalAccentContainer
+import app.gamenative.ui.theme.LocalAccentContainerBright
+import app.gamenative.ui.theme.LocalAccentMuted
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.utils.StorageUtils
@@ -66,6 +70,9 @@ fun StorageTargetTabs(
 ) {
     val context = LocalContext.current
     val accent = LocalGameAccent.current
+    val accentContainer = LocalAccentContainer.current
+    val accentContainerBright = LocalAccentContainerBright.current
+    val accentMuted = LocalAccentMuted.current
     val targets = remember { StorageManager.allTargets(context) }
     val selectedTarget = targets.firstOrNull { it.id == selectedTargetId } ?: targets.first()
     var defaultTargetId by remember { mutableStateOf(StorageManager.defaultInstallTarget(context).id) }
@@ -96,12 +103,20 @@ fun StorageTargetTabs(
                         .height(40.dp)
                         .clip(chipShape)
                         .then(
-                            if (isSelected || focused) Modifier
-                                .background(accent.copy(alpha = 0.15f), chipShape)
-                                .border(1.dp, accent, chipShape)
-                            else Modifier
-                                .background(GlassFill, chipShape)
-                                .border(1.dp, GlassBorder, chipShape)
+                            when {
+                                isSelected && focused -> Modifier
+                                    .background(accentContainerBright, chipShape)
+                                    .border(2.dp, accent, chipShape)
+                                isSelected -> Modifier
+                                    .background(accentContainer, chipShape)
+                                    .border(1.dp, accent.copy(alpha = 0.40f), chipShape)
+                                focused -> Modifier
+                                    .background(GlassFill, chipShape)
+                                    .border(2.dp, accent, chipShape)
+                                else -> Modifier
+                                    .background(GlassFill, chipShape)
+                                    .border(1.dp, GlassBorder, chipShape)
+                            }
                         )
                         .alpha(if (target.isMounted) 1f else 0.4f)
                         .onFocusChanged { focused = it.isFocused }
@@ -122,13 +137,13 @@ fun StorageTargetTabs(
                             imageVector = Icons.Default.Storage,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            tint = if (isSelected) accent else PluviaTheme.colors.textMuted,
+                            tint = if (isSelected || focused) Color.White else PluviaTheme.colors.textMuted,
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = target.label,
                             style = MaterialTheme.typography.labelMedium,
-                            color = if (isSelected) accent else PluviaTheme.colors.textMuted,
+                            color = if (isSelected || focused) Color.White else PluviaTheme.colors.textMuted,
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -148,7 +163,7 @@ fun StorageTargetTabs(
                 .size(48.dp)
                 .clip(starShape)
                 .then(
-                    if (starFocused) Modifier.border(1.dp, accent, starShape)
+                    if (starFocused) Modifier.border(2.dp, accent, starShape)
                     else Modifier
                 )
                 .onFocusChanged { starFocused = it.isFocused }
@@ -186,8 +201,10 @@ fun StorageTargetTabs(
                     .weight(1f)
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = accent,
+                color = accentMuted,
                 trackColor = PluviaTheme.colors.borderDefault,
+                gapSize = 0.dp,
+                drawStopIndicator = {},
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
@@ -247,7 +264,7 @@ fun StorageTargetDropdown(
             Text(
                 text = "${selectedTarget.label} (${StorageUtils.formatBinarySize(free)} free)",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
@@ -275,7 +292,7 @@ fun StorageTargetDropdown(
                     text = {
                         Text(
                             text = "${target.label} (${StorageUtils.formatBinarySize(targetFree)} free)",
-                            color = if (isSelected) accent else MaterialTheme.colorScheme.onSurface,
+                            color = if (isSelected) accent else Color.White,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                         )
                     },

@@ -7,7 +7,6 @@ import androidx.compose.material.icons.rounded.QuestionMark
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Verified
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -94,7 +93,7 @@ private fun getBadgeStyle(status: GameCompatibilityStatus): BadgeStyle {
         GameCompatibilityStatus.RECOMMENDED -> BadgeStyle(
             icon = Icons.Rounded.Star,
             backgroundColor = LocalGameAccent.current.copy(alpha = 0.15f),
-            iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
+            iconTint = LocalGameAccent.current,
             labelResId = R.string.recommended_badge,
         )
     }

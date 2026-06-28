@@ -2,6 +2,9 @@ package app.gamenative.ui.screen.library
 
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,13 +31,18 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -45,9 +53,10 @@ import androidx.core.net.toUri
 import app.gamenative.R
 import app.gamenative.data.RecommendedGame
 import app.gamenative.ui.screen.library.components.VideoHero
-import androidx.compose.ui.graphics.Brush
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
+import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.PrefManager
 import com.posthog.PostHog
 
@@ -93,16 +102,27 @@ internal fun RecommendedGameScreen(
                     ),
             )
 
-            // Back button
-            IconButton(
-                onClick = onBack,
+            var backFocused by remember { mutableStateOf(false) }
+            val accent = LocalGameAccent.current
+            Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(8.dp)
+                    .then(
+                        if (backFocused) Modifier.border(2.dp, accent, RoundedCornerShape(8.dp))
+                        else Modifier
+                    )
                     .background(
                         color = Color.White.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(8.dp),
-                    ),
+                    )
+                    .onFocusChanged { backFocused = it.isFocused }
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onBack,
+                    )
+                    .padding(12.dp),
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -147,8 +167,8 @@ internal fun RecommendedGameScreen(
             // Review score
             if (game.reviewScore != null) {
                 val scoreColor = when {
-                    game.reviewScore >= 70 -> Color(0xFF4CAF50)
-                    game.reviewScore >= 40 -> Color(0xFFB9A074)
+                    game.reviewScore >= 70 -> PluviaTheme.colors.compatibilityGood
+                    game.reviewScore >= 40 -> PluviaTheme.colors.accentWarning
                     else -> MaterialTheme.colorScheme.error
                 }
                 val summaryResId = when {
@@ -187,7 +207,7 @@ internal fun RecommendedGameScreen(
                             text = stringResource(summaryResId),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = Color.White,
                         )
                         if (game.reviewCount != null) {
                             Text(
@@ -196,7 +216,7 @@ internal fun RecommendedGameScreen(
                                     String.format("%,d", game.reviewCount),
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = PluviaTheme.colors.textMuted,
                             )
                         }
                     }
@@ -221,7 +241,10 @@ internal fun RecommendedGameScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LocalGameAccent.current,
+                    contentColor = LocalOnAccent.current,
+                ),
             ) {
                 Icon(
                     imageVector = Icons.Filled.OpenInNew,
@@ -248,7 +271,7 @@ internal fun RecommendedGameScreen(
                 Text(
                     text = stringResource(R.string.recommended_support_message),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = PluviaTheme.colors.textMuted,
                     modifier = Modifier.padding(12.dp),
                 )
             }
@@ -265,7 +288,7 @@ internal fun RecommendedGameScreen(
             Text(
                 text = game.description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                color = Color.White.copy(alpha = 0.85f),
             )
 
             // Tags

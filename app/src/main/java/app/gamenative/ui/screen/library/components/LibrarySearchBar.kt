@@ -185,7 +185,7 @@ private fun SearchBarInput(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = stringResource(R.string.library_search_close),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = PluviaTheme.colors.textMuted,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -197,7 +197,7 @@ private fun SearchBarInput(
             tint = if (isFocused) {
                 LocalGameAccent.current
             } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
+                PluviaTheme.colors.textMuted
             },
             modifier = Modifier.size(22.dp),
         )
@@ -205,8 +205,8 @@ private fun SearchBarInput(
         // Text input using AndroidView with EditText
         // This allows setting IME_FLAG_NO_EXTRACT_UI to prevent fullscreen keyboard in landscape
         // TODO: there must be a better way of doing this
-        val textColor = MaterialTheme.colorScheme.onSurface
-        val hintColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        val textColor = Color.White
+        val hintColor = PluviaTheme.colors.textMuted.copy(alpha = 0.6f)
         val cursorColor = LocalGameAccent.current
         val placeholderText = stringResource(R.string.library_search_placeholder)
 
@@ -296,7 +296,7 @@ private fun SearchBarInput(
                 Icon(
                     imageVector = Icons.Default.Clear,
                     contentDescription = stringResource(R.string.library_search_clear),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = PluviaTheme.colors.textMuted,
                     modifier = Modifier.size(16.dp),
                 )
             }

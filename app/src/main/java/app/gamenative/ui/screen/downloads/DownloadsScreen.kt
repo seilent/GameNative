@@ -89,8 +89,10 @@ import app.gamenative.ui.screen.settings.rememberContainerStorageManagerUiState
 import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.StorageTargetTabs
 import app.gamenative.service.storage.StorageManager
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import com.skydoves.landscapist.ImageOptions
@@ -312,7 +314,7 @@ private fun DownloadsHeader(
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp,
             ),
-            color = MaterialTheme.colorScheme.onSurface,
+            color = Color.White,
         )
     }
 }
@@ -397,7 +399,7 @@ private fun DownloadsTabRow(
                 borderColor = if (isSelected) {
                     accentColor.copy(alpha = 0.45f)
                 } else {
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
+                    GlassBorder.copy(alpha = 0.15f)
                 },
                 borderWidth = if (isSelected) 1.5.dp else 1.dp,
             ) {
@@ -411,13 +413,13 @@ private fun DownloadsTabRow(
                     Icon(
                         imageVector = section.icon,
                         contentDescription = stringResource(section.titleResId),
-                        tint = if (isSelected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = if (isSelected) accentColor else PluviaTheme.colors.textMuted,
                         modifier = Modifier.size(20.dp),
                     )
                     Text(
                         text = stringResource(section.titleResId),
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (isSelected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (isSelected) accentColor else PluviaTheme.colors.textMuted,
                     )
                 }
             }
@@ -463,7 +465,7 @@ private fun DownloadsSidebarItem(
                 color = when {
                     isFocused -> accentColor.copy(alpha = 0.65f)
                     selected -> accentColor.copy(alpha = 0.32f)
-                    else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)
+                    else -> GlassBorder.copy(alpha = 0.15f)
                 },
                 shape = RoundedCornerShape(18.dp),
             )
@@ -495,7 +497,7 @@ private fun DownloadsSidebarItem(
                 contentDescription = stringResource(section.titleResId),
                 tint = when {
                     isHighlighted -> accentColor
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    else -> PluviaTheme.colors.textMuted
                 },
                 modifier = Modifier.size(22.dp),
             )
@@ -539,11 +541,11 @@ private fun DownloadsContent(
                 finishedCount,
             ),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = PluviaTheme.colors.textMuted,
         )
 
         Spacer(modifier = Modifier.height(10.dp))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        HorizontalDivider(color = GlassBorder.copy(alpha = 0.3f))
         Spacer(modifier = Modifier.height(16.dp))
 
         if (items.isNotEmpty()) {
@@ -557,7 +559,7 @@ private fun DownloadsContent(
                     onClick = if (activeCount > 0) onPauseAll else onResumeAll,
                     enabled = activeCount > 0 || resumableCount > 0,
                     containerColor = LocalGameAccent.current,
-                    contentColor = Color.White,
+                    contentColor = LocalOnAccent.current,
                 )
                 DownloadsToolbarButton(
                     text = stringResource(R.string.downloads_cancel_all),
@@ -573,7 +575,7 @@ private fun DownloadsContent(
                     onClick = onClearFinished,
                     enabled = finishedCount > 0,
                     containerColor = GlassFill,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentColor = PluviaTheme.colors.textMuted,
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -629,7 +631,7 @@ private fun DownloadsToolbarButton(
             color = if (isFocused) {
                 accentColor.copy(alpha = 0.7f)
             } else {
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                GlassBorder.copy(alpha = 0.2f)
             },
         ),
         colors = ButtonDefaults.filledTonalButtonColors(
@@ -716,12 +718,12 @@ private fun EmptyDownloadsContent(
                 imageVector = Icons.Default.Download,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                tint = Color.White.copy(alpha = 0.4f),
             )
             Text(
                 text = stringResource(R.string.downloads_empty),
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = Color.White.copy(alpha = 0.6f),
             )
         }
     }
@@ -798,7 +800,7 @@ private fun DownloadItemCard(
                     Text(
                         text = item.gameName,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
@@ -823,6 +825,8 @@ private fun DownloadItemCard(
                             .clip(RoundedCornerShape(3.dp)),
                         color = progressColor,
                         trackColor = GlassFill,
+                        gapSize = 0.dp,
+                        drawStopIndicator = {},
                     )
                 }
 
@@ -861,7 +865,7 @@ private fun DownloadItemCard(
                             Text(
                                 text = bytesText,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                color = Color.White.copy(alpha = 0.7f),
                             )
                         } else {
                             Spacer(modifier = Modifier.weight(1f))
@@ -871,7 +875,7 @@ private fun DownloadItemCard(
                             Text(
                                 text = etaText,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                color = Color.White.copy(alpha = 0.7f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -884,7 +888,7 @@ private fun DownloadItemCard(
                     Text(
                         text = detailText,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                        color = Color.White.copy(alpha = 0.65f),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -986,7 +990,7 @@ private fun GameArtworkButton(
                 color = if (isFocused) {
                     accentColor.copy(alpha = 0.7f)
                 } else {
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                    GlassBorder.copy(alpha = 0.2f)
                 },
                 shape = RoundedCornerShape(10.dp),
             )
@@ -1013,7 +1017,7 @@ private fun GameArtworkButton(
             Icon(
                 imageVector = placeholderIcon,
                 contentDescription = contentDescription,
-                tint = if (isFocused) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (isFocused) accentColor else PluviaTheme.colors.textMuted,
                 modifier = Modifier.size(22.dp),
             )
         }
@@ -1070,11 +1074,11 @@ private fun sourceContainerColor(gameSource: GameSource): Color = when (gameSour
 
 @Composable
 private fun sourceContentColor(gameSource: GameSource): Color = when (gameSource) {
-    GameSource.STEAM -> MaterialTheme.colorScheme.onSurface
-    GameSource.GOG -> MaterialTheme.colorScheme.onSurface
-    GameSource.EPIC -> MaterialTheme.colorScheme.onSurface
-    GameSource.AMAZON -> MaterialTheme.colorScheme.onSurface
-    GameSource.CUSTOM_GAME -> MaterialTheme.colorScheme.onSurface
+    GameSource.STEAM -> Color.White
+    GameSource.GOG -> Color.White
+    GameSource.EPIC -> Color.White
+    GameSource.AMAZON -> Color.White
+    GameSource.CUSTOM_GAME -> Color.White
 }
 
 @Composable
@@ -1096,7 +1100,7 @@ private fun statusContentColor(status: DownloadItemStatus): Color = when (status
     DownloadItemStatus.VERIFYING -> PluviaTheme.colors.statusDownloading
     DownloadItemStatus.PAUSED,
     DownloadItemStatus.RESUMABLE,
-    -> MaterialTheme.colorScheme.onSurface
+    -> Color.White
     DownloadItemStatus.COMPLETED -> PluviaTheme.colors.accentSuccess
     DownloadItemStatus.CANCELLED,
     DownloadItemStatus.FAILED,
@@ -1136,7 +1140,7 @@ private fun DownloadActionButton(
                 color = if (isFocused) {
                     accentColor.copy(alpha = 0.65f)
                 } else {
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                    GlassBorder.copy(alpha = 0.2f)
                 },
                 shape = CircleShape,
             )
@@ -1151,7 +1155,7 @@ private fun DownloadActionButton(
         Icon(
             imageVector = imageVector,
             contentDescription = contentDescription,
-            tint = if (isFocused) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = if (isFocused) accentColor else PluviaTheme.colors.textMuted,
             modifier = Modifier.size(20.dp),
         )
     }

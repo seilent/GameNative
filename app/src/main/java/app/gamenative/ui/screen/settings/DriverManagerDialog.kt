@@ -25,7 +25,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -353,7 +352,6 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             Button(
                                 onClick = { downloadAndInstallDriver(driverManifest[selectedDriverKey]!!) },
                                 enabled = !isDownloading && !isImporting,
-                                colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                             ) {
                                 Text(stringResource(R.string.download))
                             }
@@ -420,7 +418,6 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     },
                     enabled = !isImporting && !isDownloading,
                     modifier = Modifier.padding(bottom = 8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                 ) {
                     Text(stringResource(R.string.import_zip_from_device))
                 }

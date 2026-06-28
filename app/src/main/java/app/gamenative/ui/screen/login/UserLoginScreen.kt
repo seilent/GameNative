@@ -108,6 +108,7 @@ import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 /**
@@ -372,7 +373,7 @@ private fun UserLoginScreenContent(
                 ) {
                     Text(
                         text = stringResource(R.string.login_privacy_policy),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = PluviaTheme.colors.textMuted,
                     )
                 }
             }
@@ -539,7 +540,7 @@ private fun UserLoginScreenContent(
                     Text(
                         text = stringResource(R.string.login_or_sign_in_with),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = PluviaTheme.colors.textMuted,
                     )
                     FlowRow(
                         horizontalArrangement = Arrangement.Center,
@@ -675,7 +676,7 @@ private fun CredentialsForm(
                                 onClick = onRetryConnection,
                                 colors = ButtonDefaults.outlinedButtonColors(
                                     containerColor = Color.Transparent,
-                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    contentColor = Color.White,
                                 ),
                             ) {
                                 Text(stringResource(R.string.retry_steam_connection))
@@ -686,7 +687,10 @@ private fun CredentialsForm(
                         Box(contentAlignment = Alignment.Center) {
                             Button(
                                 onClick = { onContinueOffline() },
-                                colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = LocalGameAccent.current,
+                                    contentColor = LocalOnAccent.current,
+                                ),
                             ) {
                                 Text(stringResource(R.string.continue_offline))
                             }
@@ -711,7 +715,7 @@ private fun CredentialsForm(
                 placeholder = {
                     Text(
                         stringResource(R.string.login_username_hint),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        color = PluviaTheme.colors.textMuted.copy(alpha = 0.7f),
                     )
                 },
                 keyboardOptions = KeyboardOptions(
@@ -724,11 +728,11 @@ private fun CredentialsForm(
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = LocalGameAccent.current,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    unfocusedBorderColor = GlassBorder,
                     focusedContainerColor = GlassFill,
                     unfocusedContainerColor = GlassFill,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
                 ),
             )
         }
@@ -750,7 +754,7 @@ private fun CredentialsForm(
             placeholder = {
                 Text(
                     stringResource(R.string.login_password_hint),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    color = PluviaTheme.colors.textMuted.copy(alpha = 0.7f),
                 )
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -767,11 +771,11 @@ private fun CredentialsForm(
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = LocalGameAccent.current,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                unfocusedBorderColor = GlassBorder,
                 focusedContainerColor = GlassFill,
                 unfocusedContainerColor = GlassFill,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
             ),
             trailingIcon = {
                 val image = if (passwordVisible) {
@@ -790,7 +794,7 @@ private fun CredentialsForm(
                     Icon(
                         imageVector = image,
                         contentDescription = description,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = PluviaTheme.colors.textMuted,
                     )
                 }
             },
@@ -809,13 +813,14 @@ private fun CredentialsForm(
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = LocalGameAccent.current,
+                contentColor = LocalOnAccent.current,
                 disabledContainerColor = LocalGameAccent.current.copy(alpha = 0.5f),
+                disabledContentColor = LocalOnAccent.current.copy(alpha = 0.5f),
             ),
         ) {
             Text(
                 text = stringResource(R.string.login_sign_in),
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onPrimary,
             )
         }
     }
@@ -887,7 +892,7 @@ private fun QRCodeLogin(
                     Text(
                         text = stringResource(R.string.login_qr_instructions),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = PluviaTheme.colors.textMuted,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )
@@ -928,7 +933,7 @@ private fun QRCodeLogin(
                     Text(
                         text = stringResource(R.string.login_qr_instructions),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = PluviaTheme.colors.textMuted,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )

@@ -38,7 +38,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -64,8 +63,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.Motion
+import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ScreenEffectsConfig
 import app.gamenative.ui.util.adaptivePanelWidth
 import app.gamenative.ui.util.applyScreenEffectsConfig
@@ -792,18 +793,34 @@ fun ScreenEffectsPanel(
                         fontWeight = FontWeight.SemiBold,
                     )
 
-                    IconButton(onClick = onDismiss) {
+                    var dismissFocused by remember { mutableStateOf(false) }
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .then(
+                                if (dismissFocused) Modifier.border(2.dp, LocalGameAccent.current, CircleShape)
+                                else Modifier
+                            )
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = onDismiss,
+                            )
+                            .onFocusChanged { dismissFocused = it.isFocused },
+                        contentAlignment = Alignment.Center,
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = stringResource(R.string.screen_effects_close),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = PluviaTheme.colors.textMuted,
                         )
                     }
                 }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    color = GlassBorder.copy(alpha = 0.3f),
                 )
 
                 Column(
@@ -1021,7 +1038,7 @@ private fun ScreenEffectAdjustmentRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 fontWeight = if (isFocused) FontWeight.SemiBold else FontWeight.Medium,
             )
             Row(
@@ -1031,7 +1048,7 @@ private fun ScreenEffectAdjustmentRow(
                 Text(
                     text = valueText,
                     style = MaterialTheme.typography.labelLarge,
-                    color = if (isFocused) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isFocused) accentColor else PluviaTheme.colors.textMuted,
                 )
                 if (isAdjustmentLocked) {
                     Text(
@@ -1073,7 +1090,9 @@ private fun ScreenEffectAdjustmentRow(
                         .height(8.dp)
                         .clip(RoundedCornerShape(999.dp)),
                     color = accentColor,
-                    trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                    trackColor = GlassBorder.copy(alpha = 0.35f),
+                    gapSize = 0.dp,
+                    drawStopIndicator = {},
                 )
 
                 Row(modifier = Modifier.fillMaxSize()) {
@@ -1136,7 +1155,7 @@ private fun ScreenEffectAdjustmentButton(
                 color = if (isAdjustmentLocked) {
                     accentColor.copy(alpha = 0.9f)
                 } else {
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    GlassBorder.copy(alpha = 0.35f)
                 },
                 shape = RoundedCornerShape(10.dp),
             )
@@ -1151,7 +1170,7 @@ private fun ScreenEffectAdjustmentButton(
             text = text,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = if (isAdjustmentLocked) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (isAdjustmentLocked) accentColor else PluviaTheme.colors.textMuted,
         )
     }
 }
@@ -1213,7 +1232,7 @@ private fun ScreenEffectToggleRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 fontWeight = if (isFocused) FontWeight.SemiBold else FontWeight.Medium,
             )
             if (!subtitle.isNullOrBlank()) {
@@ -1221,7 +1240,7 @@ private fun ScreenEffectToggleRow(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = PluviaTheme.colors.textMuted,
                 )
             }
         }
@@ -1292,7 +1311,7 @@ private fun ScreenEffectRadioRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 fontWeight = if (selected || isFocused) FontWeight.SemiBold else FontWeight.Medium,
             )
             if (!subtitle.isNullOrBlank()) {
@@ -1300,7 +1319,7 @@ private fun ScreenEffectRadioRow(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = PluviaTheme.colors.textMuted,
                 )
             }
         }
@@ -1315,7 +1334,7 @@ private fun ScreenEffectRadioIndicator(selected: Boolean, accentColor: Color) {
             .clip(CircleShape)
             .border(
                 width = 2.dp,
-                color = if (selected) accentColor else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                color = if (selected) accentColor else GlassBorder.copy(alpha = 0.5f),
                 shape = CircleShape,
             ),
         contentAlignment = Alignment.Center,
@@ -1394,7 +1413,7 @@ private fun ScreenEffectActionRow(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = accentColor,
+                tint = Color.White,
                 modifier = Modifier.size(22.dp),
             )
         }
@@ -1402,7 +1421,7 @@ private fun ScreenEffectActionRow(
         Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = Color.White,
             fontWeight = if (isFocused) FontWeight.SemiBold else FontWeight.Medium,
         )
     }
@@ -1423,7 +1442,7 @@ private fun ScreenEffectSwitch(
             )
             .border(
                 width = 1.dp,
-                color = if (enabled) accentColor.copy(alpha = 0.8f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+                color = if (enabled) accentColor.copy(alpha = 0.8f) else GlassBorder.copy(alpha = 0.35f),
                 shape = RoundedCornerShape(999.dp),
             )
             .padding(4.dp),

@@ -15,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -50,7 +49,9 @@ import app.gamenative.ui.component.LoadingScreen
 import app.gamenative.ui.component.StorageTargetDropdown
 import app.gamenative.ui.component.topbar.BackButton
 import app.gamenative.ui.data.GameDisplayInfo
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 import java.text.SimpleDateFormat
@@ -187,7 +188,7 @@ fun AmazonInstallDialog(
                         Text(
                             text = "$downloadSize download • $installSize install",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            color = Color.White.copy(alpha = 0.7f),
                         )
                     }
                 },
@@ -196,7 +197,6 @@ fun AmazonInstallDialog(
                         checked = true,
                         enabled = false,
                         onCheckedChange = null,
-                        colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                     )
                 },
             )
@@ -204,7 +204,7 @@ fun AmazonInstallDialog(
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                color = GlassBorder,
             )
 
             StorageTargetDropdown(
@@ -230,7 +230,10 @@ fun AmazonInstallDialog(
                         Text(stringResource(R.string.cancel))
                     }
                     Button(
-                        colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LocalGameAccent.current,
+                            contentColor = LocalOnAccent.current,
+                        ),
                         enabled = installEnabled,
                         onClick = { onInstall(selectedTarget) },
                     ) {

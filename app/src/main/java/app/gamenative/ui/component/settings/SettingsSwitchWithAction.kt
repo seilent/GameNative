@@ -4,7 +4,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.ui.graphics.Color
+import app.gamenative.ui.theme.GlassBorder
+import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
+import app.gamenative.ui.theme.PluviaTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -40,8 +45,12 @@ fun SettingsSwitchWithAction(
                     checked = state,
                     onCheckedChange = onCheckedChange,
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = LocalGameAccent.current,
-                        checkedTrackColor = LocalGameAccent.current.copy(alpha = 0.5f),
+                        checkedThumbColor = LocalOnAccent.current,
+                        checkedTrackColor = LocalGameAccent.current,
+                        checkedBorderColor = Color.Transparent,
+                        uncheckedThumbColor = PluviaTheme.colors.textMuted,
+                        uncheckedTrackColor = GlassFill,
+                        uncheckedBorderColor = GlassBorder,
                     ),
                 )
                 action?.invoke()

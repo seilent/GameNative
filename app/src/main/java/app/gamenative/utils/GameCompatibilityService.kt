@@ -4,6 +4,10 @@ import android.content.Context
 import androidx.compose.ui.graphics.Color
 import app.gamenative.BuildConfig
 import app.gamenative.R
+import app.gamenative.ui.theme.CompatibilityBad
+import app.gamenative.ui.theme.CompatibilityGood
+import app.gamenative.ui.theme.CompatibilityPartial
+import app.gamenative.ui.theme.CompatibilityUnknown
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -11,6 +15,11 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import timber.log.Timber
+
+private val CompatGood = CompatibilityGood
+private val CompatPartial = CompatibilityPartial
+private val CompatBad = CompatibilityBad
+private val CompatUnknown = CompatibilityUnknown
 
 /**
  * Service for fetching game compatibility information from GameNative API.
@@ -54,13 +63,13 @@ object GameCompatibilityService {
     fun getCompatibilityMessageFromResponse(context: Context, response: GameCompatibilityResponse): CompatibilityMessage {
         return when {
             response.totalPlayableCount > 0 && response.gpuPlayableCount > 0 ->
-                CompatibilityMessage(context.getString(R.string.best_config_exact_gpu_match), Color.Green)
+                CompatibilityMessage(context.getString(R.string.best_config_exact_gpu_match), CompatGood)
             response.gpuPlayableCount == 0 && response.totalPlayableCount > 0 ->
-                CompatibilityMessage(context.getString(R.string.best_config_fallback_match), Color.Yellow)
+                CompatibilityMessage(context.getString(R.string.best_config_fallback_match), CompatPartial)
             response.isNotWorking ->
-                CompatibilityMessage(context.getString(R.string.library_not_compatible), Color.Red)
+                CompatibilityMessage(context.getString(R.string.library_not_compatible), CompatBad)
             else ->
-                CompatibilityMessage(context.getString(R.string.library_compatibility_unknown), Color.Gray)
+                CompatibilityMessage(context.getString(R.string.library_compatibility_unknown), CompatUnknown)
         }
     }
 

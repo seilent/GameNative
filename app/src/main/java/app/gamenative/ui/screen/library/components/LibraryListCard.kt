@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -148,7 +149,7 @@ internal fun ListViewCard(
                     text = appInfo.name,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -183,7 +184,7 @@ internal fun ListViewCard(
 
                 GameStatsRow(
                     stats = gameStats,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                    tint = PluviaTheme.colors.textMuted.copy(alpha = 0.55f),
                 )
             }
 
@@ -247,7 +248,7 @@ private fun InstallStatusBadge(
 
         isInstalled -> stringResource(R.string.library_installed) to PluviaTheme.colors.statusInstalled
 
-        else -> stringResource(R.string.library_not_installed) to MaterialTheme.colorScheme.onSurfaceVariant.copy(
+        else -> stringResource(R.string.library_not_installed) to PluviaTheme.colors.textMuted.copy(
             alpha = 0.6f,
         )
     }

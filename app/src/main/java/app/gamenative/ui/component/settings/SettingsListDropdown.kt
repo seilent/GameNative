@@ -41,6 +41,8 @@ import com.alorma.compose.settings.ui.base.internal.SettingsTileScaffold
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun SettingsListDropdown(
@@ -111,8 +113,8 @@ fun SettingsListDropdown(
                 val isSelected = index == value
                 val textColor = when {
                     isSelected -> accent
-                    isMuted -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    else -> MaterialTheme.colorScheme.onSurface
+                    isMuted -> PluviaTheme.colors.textMuted.copy(alpha = 0.6f)
+                    else -> Color.White
                 }
                 DropdownMenuItem(
                     enabled = enabled,
@@ -133,7 +135,7 @@ fun SettingsListDropdown(
                     Icons.Filled.ArrowDropDown
                 },
                 contentDescription = "Dropdown arrow",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = PluviaTheme.colors.textMuted,
             )
             if (action != null) {
                 Spacer(modifier.width(16.dp))

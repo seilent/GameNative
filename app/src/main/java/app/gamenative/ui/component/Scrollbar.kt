@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,7 +53,7 @@ fun Scrollbar(
     listState: LazyGridState,
     modifier: Modifier = Modifier,
     thumbColor: Color = LocalGameAccent.current.copy(alpha = 0.6f),
-    trackColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+    trackColor: Color = Color.White.copy(alpha = 0.08f),
     thumbWidthCollapsed: Dp = 4.dp,
     thumbWidthExpanded: Dp = 10.dp,
     thumbMinHeightDp: Dp = 48.dp,
@@ -313,7 +312,7 @@ fun Scrollbar(
                                         .width(6.dp)
                                         .height(1.5.dp)
                                         .clip(RoundedCornerShape(50))
-                                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)),
+                                        .background(Color.White.copy(alpha = 0.7f)),
                                 )
                             }
                         }

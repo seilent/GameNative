@@ -2,12 +2,17 @@ package app.gamenative.ui.component.dialog
 
 import android.content.Context
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -23,9 +28,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,6 +39,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -48,6 +52,7 @@ import app.gamenative.ui.component.NoExtractOutlinedTextField
 import app.gamenative.ui.component.settings.SettingsEnvVars
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.settingsTileColors
 import com.winlator.core.StringUtils
 import com.winlator.core.envvars.EnvVarInfo
@@ -89,10 +94,23 @@ fun FEXCorePresetsDialog(
                         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
                         title = { Text(text = stringResource(R.string.fexcore_presets)) },
                         actions = {
-                            IconButton(
-                                onClick = onDismissRequest,
-                                content = { Icon(Icons.Default.Done, "Close FEXCore Presets") },
-                            )
+                            val accent = LocalGameAccent.current
+                            val shape = RoundedCornerShape(8.dp)
+                            var focused by remember { mutableStateOf(false) }
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(shape)
+                                    .then(if (focused) Modifier.border(2.dp, accent, shape) else Modifier)
+                                    .onFocusChanged { focused = it.isFocused }
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                    ) { onDismissRequest() },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(Icons.Default.Done, "Close FEXCore Presets", tint = accent)
+                            }
                         },
                     )
                 },
@@ -132,12 +150,23 @@ fun FEXCorePresetsDialog(
                         label = { Text(stringResource(R.string.preset_name)) },
                         singleLine = true,
                         trailingIcon = {
-                            IconButton(
-                                colors = IconButtonDefaults.iconButtonColors()
-                                    .copy(contentColor = MaterialTheme.colorScheme.onSurface),
-                                onClick = { showPresets = true },
-                                content = { Icon(Icons.AutoMirrored.Outlined.ViewList, contentDescription = "Preset list") },
-                            )
+                            val accent = LocalGameAccent.current
+                            val iconShape = RoundedCornerShape(8.dp)
+                            var iconFocused by remember { mutableStateOf(false) }
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(iconShape)
+                                    .then(if (iconFocused) Modifier.border(2.dp, accent, iconShape) else Modifier)
+                                    .onFocusChanged { iconFocused = it.isFocused }
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                    ) { showPresets = true },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(Icons.AutoMirrored.Outlined.ViewList, contentDescription = "Preset list", tint = Color.White)
+                            }
                             DropdownMenu(
                                 expanded = showPresets,
                                 onDismissRequest = { showPresets = false },
@@ -173,55 +202,79 @@ fun FEXCorePresetsDialog(
                     ) {
                         Text(stringResource(R.string.environment_variables))
                         Row {
-                            IconButton(
-                                onClick = {
-                                    FEXCorePresetManager.duplicatePreset(context, presetId)?.let { newId ->
-                                        presetId = newId
+                            val accent = LocalGameAccent.current
+                            val btnShape = RoundedCornerShape(8.dp)
+                            var dupFocused by remember { mutableStateOf(false) }
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(btnShape)
+                                    .then(if (dupFocused) Modifier.border(2.dp, accent, btnShape) else Modifier)
+                                    .onFocusChanged { dupFocused = it.isFocused }
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                    ) {
+                                        FEXCorePresetManager.duplicatePreset(context, presetId)?.let { newId ->
+                                            presetId = newId
+                                            presetName = resolvePreset(presetId).name
+                                            envVars = ensureFexcoreEnvDefaults(
+                                                FEXCorePresetManager.getEnvVars(context, presetId),
+                                                defaultValues,
+                                            ).toString()
+                                        }
+                                    },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(Icons.Filled.ContentCopy, contentDescription = "Duplicate preset", tint = accent)
+                            }
+                            var addFocused by remember { mutableStateOf(false) }
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(btnShape)
+                                    .then(if (addFocused) Modifier.border(2.dp, accent, btnShape) else Modifier)
+                                    .onFocusChanged { addFocused = it.isFocused }
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                    ) {
+                                        val defaults = EnvVars().apply {
+                                            defaultValues.forEach { (key, value) -> put(key, value) }
+                                        }
+                                        presetId = FEXCorePresetManager.editPreset(context, null, "Unnamed", defaults)
+                                        presetName = resolvePreset(presetId).name
+                                        envVars = defaults.toString()
+                                    },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(Icons.Outlined.AddCircle, contentDescription = "Create preset", tint = accent)
+                            }
+                            val deleteEnabled = isCustom()
+                            var delFocused by remember { mutableStateOf(false) }
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(btnShape)
+                                    .then(if (delFocused) Modifier.border(2.dp, accent, btnShape) else Modifier)
+                                    .onFocusChanged { delFocused = it.isFocused }
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        enabled = deleteEnabled,
+                                    ) {
+                                        val idToDelete = presetId
+                                        presetId = getPresets().first().id
                                         presetName = resolvePreset(presetId).name
                                         envVars = ensureFexcoreEnvDefaults(
                                             FEXCorePresetManager.getEnvVars(context, presetId),
                                             defaultValues,
                                         ).toString()
-                                    }
-                                },
+                                        FEXCorePresetManager.removePreset(context, idToDelete)
+                                    },
+                                contentAlignment = Alignment.Center,
                             ) {
-                                Icon(
-                                    imageVector = Icons.Filled.ContentCopy,
-                                    contentDescription = "Duplicate preset",
-                                )
-                            }
-                            IconButton(
-                                onClick = {
-                                    val defaults = EnvVars().apply {
-                                        defaultValues.forEach { (key, value) -> put(key, value) }
-                                    }
-                                    presetId = FEXCorePresetManager.editPreset(context, null, "Unnamed", defaults)
-                                    presetName = resolvePreset(presetId).name
-                                    envVars = defaults.toString()
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.AddCircle,
-                                    contentDescription = "Create preset",
-                                )
-                            }
-                            IconButton(
-                                enabled = isCustom(),
-                                onClick = {
-                                    val idToDelete = presetId
-                                    presetId = getPresets().first().id
-                                    presetName = resolvePreset(presetId).name
-                                    envVars = ensureFexcoreEnvDefaults(
-                                        FEXCorePresetManager.getEnvVars(context, presetId),
-                                        defaultValues,
-                                    ).toString()
-                                    FEXCorePresetManager.removePreset(context, idToDelete)
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Delete,
-                                    contentDescription = "Delete preset",
-                                )
+                                Icon(Icons.Filled.Delete, contentDescription = "Delete preset", tint = if (deleteEnabled) accent else accent.copy(alpha = 0.38f))
                             }
                         }
                     }
@@ -247,16 +300,29 @@ fun FEXCorePresetsDialog(
                             },
                             knownEnvVars = EnvVarInfo.KNOWN_FEXCORE_VARS,
                             envVarAction = { varName ->
-                                IconButton(
-                                    onClick = {
-                                        val resName = "fexcore_env_var_help__" +
-                                            varName.removePrefix("FEX_").lowercase(Locale.getDefault())
-                                        StringUtils.getString(context, resName)
-                                            ?.let { infoMsg = it }
-                                            ?: Timber.w("Could not find string resource of $resName")
-                                    },
-                                    content = { Icon(Icons.Outlined.Info, contentDescription = "Variable info") },
-                                )
+                                val accent = LocalGameAccent.current
+                                val infoShape = RoundedCornerShape(8.dp)
+                                var infoFocused by remember { mutableStateOf(false) }
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(infoShape)
+                                        .then(if (infoFocused) Modifier.border(2.dp, accent, infoShape) else Modifier)
+                                        .onFocusChanged { infoFocused = it.isFocused }
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                        ) {
+                                            val resName = "fexcore_env_var_help__" +
+                                                varName.removePrefix("FEX_").lowercase(Locale.getDefault())
+                                            StringUtils.getString(context, resName)
+                                                ?.let { infoMsg = it }
+                                                ?: Timber.w("Could not find string resource of $resName")
+                                        },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(Icons.Outlined.Info, contentDescription = "Variable info", tint = accent)
+                                }
                             },
                         )
                     }

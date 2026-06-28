@@ -46,8 +46,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFill
+import app.gamenative.ui.theme.LocalAccentContainer
+import app.gamenative.ui.theme.LocalAccentContainerBright
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -68,11 +72,6 @@ import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.WindowWidthClass
 import app.gamenative.ui.util.rememberWindowWidthClass
-
-/**
- * Tab bar for library navigation with sliding pill indicator.
- * Adapts to screen width
- */
 @Composable
 fun LibraryTabBar(
     tabs: List<LibraryTabItem>,
@@ -215,20 +214,27 @@ private fun CompactLibraryTabBar(
                                 tabWidths[index] = coordinates.size.width.toFloat()
                             }
                             .then(
-                                if (isTabFocused) {
-                                    Modifier.border(
+                                when {
+                                    isSelected && isTabFocused -> Modifier.border(
                                         BorderStroke(2.dp, LocalGameAccent.current),
                                         RoundedCornerShape(16.dp),
                                     )
-                                } else {
-                                    Modifier
+                                    isSelected -> Modifier.border(
+                                        BorderStroke(1.dp, LocalGameAccent.current.copy(alpha = 0.40f)),
+                                        RoundedCornerShape(16.dp),
+                                    )
+                                    isTabFocused -> Modifier.border(
+                                        BorderStroke(2.dp, LocalGameAccent.current),
+                                        RoundedCornerShape(16.dp),
+                                    )
+                                    else -> Modifier
                                 },
                             )
                             .clip(RoundedCornerShape(16.dp))
                             .background(
                                 when {
-                                    isSelected -> LocalGameAccent.current
-                                    isTabFocused -> LocalGameAccent.current.copy(alpha = 0.15f)
+                                    isSelected && isTabFocused -> LocalAccentContainerBright.current
+                                    isSelected -> LocalAccentContainer.current
                                     else -> Color.Transparent
                                 },
                             )
@@ -249,9 +255,9 @@ private fun CompactLibraryTabBar(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             color = when {
-                                isSelected -> MaterialTheme.colorScheme.onPrimary
-                                isTabFocused -> LocalGameAccent.current
-                                else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                isSelected -> Color.White
+                                isTabFocused -> Color.White
+                                else -> PluviaTheme.colors.textMuted
                             },
                         )
                     }
@@ -327,7 +333,7 @@ private fun CompactIconButton(
             tint = if (isFocused) {
                 LocalGameAccent.current
             } else {
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                Color.White.copy(alpha = 0.8f)
             },
             modifier = Modifier.size(20.dp),
         )
@@ -546,7 +552,7 @@ private fun IconActionButton(
             tint = if (isFocused) {
                 LocalGameAccent.current
             } else {
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                Color.White.copy(alpha = 0.8f)
             },
             modifier = Modifier.size(22.dp),
         )
@@ -627,8 +633,8 @@ private fun TabItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             color = when {
-                isSelected -> MaterialTheme.colorScheme.onPrimary
-                else -> MaterialTheme.colorScheme.onSurface.copy(alpha = textAlpha)
+                isSelected -> LocalOnAccent.current
+                else -> Color.White.copy(alpha = textAlpha)
             },
             textAlign = TextAlign.Center,
         )

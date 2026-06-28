@@ -1498,7 +1498,7 @@ internal fun ExecutablePathDropdown(
                                     Text(
                                         text = executable.substringBeforeLast('\\'),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = PluviaTheme.colors.textMuted
                                     )
                                 }
                             }

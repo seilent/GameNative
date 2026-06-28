@@ -47,13 +47,19 @@ object GameAccent {
         return clampAccent(swatch.rgb)
     }
 
-    /** Keep accents vivid-but-legible: clamp saturation and lightness so neon/muddy art behaves. */
     private fun clampAccent(argb: Int): Int {
         val hsl = FloatArray(3)
         ColorUtils.colorToHSL(argb, hsl)
-        hsl[1] = hsl[1].coerceIn(0.35f, 0.85f)
-        hsl[2] = hsl[2].coerceIn(0.45f, 0.70f)
-        return ColorUtils.HSLToColor(hsl)
+        hsl[1] = hsl[1].coerceIn(0.42f, 0.66f)
+        hsl[2] = hsl[2].coerceIn(0.56f, 0.72f)
+        var color = ColorUtils.HSLToColor(hsl)
+        var guard = 0
+        while (ColorUtils.calculateLuminance(color) < 0.22 && hsl[2] < 0.80f && guard < 6) {
+            hsl[2] += 0.03f
+            color = ColorUtils.HSLToColor(hsl)
+            guard++
+        }
+        return color
     }
 
     /**

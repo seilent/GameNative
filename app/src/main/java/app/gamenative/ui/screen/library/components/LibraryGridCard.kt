@@ -248,7 +248,7 @@ internal fun GridViewCard(
                             text = appInfo.name,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = PluviaTheme.colors.textMuted,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(16.dp),
                         )

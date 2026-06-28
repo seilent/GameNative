@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -622,7 +623,7 @@ private fun StorageEntryCard(
                 Text(
                     text = displayName,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = Color.White,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -655,7 +656,7 @@ private fun StorageEntryCard(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(moveShape)
-                        .then(if (moveFocused) Modifier.border(1.dp, accent, moveShape) else Modifier)
+                        .then(if (moveFocused) Modifier.border(2.dp, accent, moveShape) else Modifier)
                         .onFocusChanged { moveFocused = it.isFocused }
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -671,7 +672,7 @@ private fun StorageEntryCard(
                         } else {
                             stringResource(R.string.container_storage_move_to_internal_button)
                         },
-                        tint = accent,
+                        tint = PluviaTheme.colors.textMuted,
                     )
                 }
             }
@@ -683,7 +684,7 @@ private fun StorageEntryCard(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(delShape)
-                        .then(if (delFocused) Modifier.border(1.dp, accent, delShape) else Modifier)
+                        .then(if (delFocused) Modifier.border(2.dp, accent, delShape) else Modifier)
                         .onFocusChanged { delFocused = it.isFocused }
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -705,7 +706,7 @@ private fun StorageEntryCard(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(remShape)
-                        .then(if (remFocused) Modifier.border(1.dp, accent, remShape) else Modifier)
+                        .then(if (remFocused) Modifier.border(2.dp, accent, remShape) else Modifier)
                         .onFocusChanged { remFocused = it.isFocused }
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },

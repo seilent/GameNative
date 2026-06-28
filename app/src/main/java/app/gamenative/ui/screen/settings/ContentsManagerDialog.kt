@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -191,7 +190,6 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     },
                     enabled = !isBusy,
                     modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                 ) { Text(stringResource(R.string.import_wcp_from_device)) }
 
                 if (isBusy) {
@@ -239,7 +237,6 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             },
                             enabled = !isBusy,
                             modifier = Modifier.padding(top = 8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                         ) { Text(stringResource(R.string.install)) }
                     }
                 }
@@ -368,7 +365,6 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             }
                         }
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = LocalGameAccent.current),
                 ) { Text(stringResource(R.string.install_anyway)) }
             },
             dismissButton = {

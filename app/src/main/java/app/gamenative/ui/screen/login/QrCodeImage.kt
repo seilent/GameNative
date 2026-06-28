@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -90,8 +89,8 @@ private fun rememberQrBitmap(content: String, size: Dp): Bitmap? {
     }
 
     val ioScope = rememberCoroutineScope { Dispatchers.IO }
-    val bgColor = MaterialTheme.colorScheme.background.toArgb()
-    val onBgColor = MaterialTheme.colorScheme.onBackground.toArgb()
+    val bgColor = Color.White.toArgb()
+    val onBgColor = Color.Black.toArgb()
 
     LaunchedEffect(bitmap) {
         if (bitmap != null) return@LaunchedEffect

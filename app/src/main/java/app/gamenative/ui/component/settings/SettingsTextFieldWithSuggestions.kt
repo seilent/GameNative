@@ -33,6 +33,8 @@ import com.alorma.compose.settings.ui.base.internal.SettingsTileScaffold
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
+import androidx.compose.ui.graphics.Color
 
 /**
  * A text field that also offers a dropdown of preset suggestions.
@@ -103,7 +105,7 @@ fun SettingsTextFieldWithSuggestions(
                                                         Text(
                                                             text = suggestion.removePrefix("---"),
                                                             style = MaterialTheme.typography.labelSmall,
-                                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                                            color = PluviaTheme.colors.textMuted.copy(alpha = 0.6f),
                                                         )
                                                     },
                                                     onClick = {},
@@ -115,7 +117,7 @@ fun SettingsTextFieldWithSuggestions(
                                                     text = {
                                                         Text(
                                                             suggestion,
-                                                            color = if (isSelected) accent else MaterialTheme.colorScheme.onSurface,
+                                                            color = if (isSelected) accent else Color.White,
                                                         )
                                                     },
                                                     onClick = {

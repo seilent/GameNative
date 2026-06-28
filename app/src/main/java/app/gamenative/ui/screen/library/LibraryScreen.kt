@@ -31,7 +31,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
@@ -107,7 +106,6 @@ import app.gamenative.ui.screen.auth.AmazonOAuthActivity
 import app.gamenative.ui.screen.auth.EpicOAuthActivity
 import app.gamenative.ui.screen.auth.GOGOAuthActivity
 import app.gamenative.ui.screen.library.components.SystemMenu
-import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.PlatformAuthUiHelpers
 import app.gamenative.ui.util.PlatformLogoutCallbacks
@@ -1268,7 +1266,6 @@ private fun LibraryScreenContent(
                             Checkbox(
                                 checked = dontShowAgain,
                                 onCheckedChange = { dontShowAgain = it },
-                                colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(

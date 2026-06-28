@@ -66,7 +66,6 @@ import android.widget.ImageView
 import app.gamenative.utils.IconSwitcher
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
@@ -390,7 +389,7 @@ fun SettingsGroupInterface(
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
             Text(
                 text = stringResource(R.string.settings_interface_icon_style),
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
             )
             Spacer(modifier = Modifier.size(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -425,7 +424,7 @@ fun SettingsGroupInterface(
     // Custom Game Settings
     SettingsGroup(
         modifier = Modifier.background(Color.Transparent),
-        title = { Text(text = stringResource(R.string.settings_interface_custom_games)) },
+        title = { Text(text = stringResource(R.string.settings_interface_custom_games), color = Color.White) },
     ) {
         var importCustomGameAsSteamGame by rememberSaveable { mutableStateOf(PrefManager.importCustomGameAsSteamGame) }
         SettingsSwitchWithAction(
@@ -446,7 +445,7 @@ fun SettingsGroupInterface(
     // Downloads settings
     SettingsGroup(
         modifier = Modifier.background(Color.Transparent),
-        title = { Text(text = stringResource(R.string.settings_downloads_title)) },
+        title = { Text(text = stringResource(R.string.settings_downloads_title), color = Color.White) },
     ) {
         var wifiOnlyDownload by rememberSaveable { mutableStateOf(PrefManager.downloadOnWifiOnly) }
         SettingsSwitchWithAction(
@@ -479,13 +478,13 @@ fun SettingsGroupInterface(
             Text(
                 text = stringResource(R.string.settings_download_speed),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
                 text = stringResource(R.string.settings_download_heat_warning),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PluviaTheme.colors.textMuted,
             )
             Spacer(modifier = Modifier.size(8.dp))
             Slider(
@@ -497,7 +496,6 @@ fun SettingsGroupInterface(
                 },
                 valueRange = 0f..3f,
                 steps = 2, // Creates exactly 4 positions: 0, 1, 2, 3
-                colors = SliderDefaults.colors(thumbColor = LocalGameAccent.current, activeTrackColor = LocalGameAccent.current),
             )
             // Labels below slider
             Row(
@@ -508,7 +506,7 @@ fun SettingsGroupInterface(
                     Text(
                         text = label,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = PluviaTheme.colors.textMuted,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.width(60.dp)
                     )

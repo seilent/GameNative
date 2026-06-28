@@ -280,7 +280,7 @@ fun BootingSplash(
                         ),
                     ),
                     color = if (useHeroBackdrop) {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+                        Color.White.copy(alpha = 0.9f)
                     } else {
                         Color.White.copy(alpha = 0.7f)
                     },
@@ -313,9 +313,9 @@ fun BootingSplash(
                                     ),
                                 ),
                                 color = if (useHeroBackdrop) {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.76f)
+                                    Color.White.copy(alpha = 0.76f)
                                 } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                    PluviaTheme.colors.textMuted
                                 },
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier

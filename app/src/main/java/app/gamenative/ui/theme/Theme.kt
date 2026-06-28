@@ -1,6 +1,7 @@
 package app.gamenative.ui.theme
 
 import android.app.Activity
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.darkColorScheme
@@ -8,8 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.alorma.compose.settings.ui.base.internal.SettingsTileColors
@@ -163,13 +168,26 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun PluviaTheme(
+    accentArgb: Int = PluviaPrimary.toArgb(),
     seedColor: Color = PluviaSeed,
     isDark: Boolean = true, // for now, always force dark theme
     isAmoled: Boolean = false,
     style: PaletteStyle = PaletteStyle.TonalSpot,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = DarkColorScheme
+    val targetAccent = Color(accentArgb)
+    val animatedAccent by animateColorAsState(targetAccent, Motion.AccentColor, label = "themeAccent")
+    val onAccent = if (targetAccent.luminance() > 0.4f) Color.Black else Color.White
+
+    val colorScheme = remember(accentArgb) {
+        DarkColorScheme.copy(
+            primary = targetAccent,
+            onPrimary = onAccent,
+            primaryContainer = targetAccent.copy(alpha = 0.2f),
+            surfaceTint = targetAccent,
+            inversePrimary = targetAccent,
+        )
+    }
     val pluviaColors = if (isDark) DarkPluviaColors else DarkPluviaColors // We can use LightPluviaColors when ready
 
     val view = LocalView.current
@@ -183,6 +201,11 @@ fun PluviaTheme(
     CompositionLocalProvider(
         LocalPluviaColors provides pluviaColors,
         LocalContentColor provides colorScheme.onBackground,
+        LocalGameAccent provides animatedAccent,
+        LocalOnAccent provides onAccent,
+        LocalAccentContainer provides animatedAccent.copy(alpha = 0.15f),
+        LocalAccentContainerBright provides animatedAccent.copy(alpha = 0.25f),
+        LocalAccentMuted provides animatedAccent.copy(alpha = 0.50f),
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -250,6 +273,7 @@ fun settingsTileColors(): SettingsTileColors = SettingsTileDefaults.colors(
     titleColor = PluviaForeground,
     subtitleColor = PluviaForegroundMuted,
     actionColor = LocalGameAccent.current,
+    iconColor = LocalGameAccent.current,
     containerColor = Color.Transparent,
 )
 
@@ -258,6 +282,7 @@ fun settingsTileColorsAlt(): SettingsTileColors = SettingsTileDefaults.colors(
     titleColor = PluviaForeground,
     subtitleColor = PluviaForegroundMuted,
     actionColor = LocalGameAccent.current,
+    iconColor = LocalGameAccent.current,
     containerColor = Color.Transparent,
 )
 
@@ -266,5 +291,6 @@ fun settingsTileColorsDebug(): SettingsTileColors = SettingsTileDefaults.colors(
     titleColor = PluviaDestructive,
     subtitleColor = PluviaForegroundMuted,
     actionColor = PluviaCyan,
+    iconColor = PluviaDestructive,
     containerColor = Color.Transparent,
 )

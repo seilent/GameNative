@@ -2,11 +2,16 @@ package app.gamenative.ui.component.topbar
 
 import android.content.res.Configuration
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -17,8 +22,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.PluviaApp
@@ -26,6 +34,7 @@ import app.gamenative.data.SteamFriend
 import app.gamenative.events.SteamEvent
 import app.gamenative.service.SteamService
 import app.gamenative.ui.component.dialog.ProfileDialog
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.SteamIconImage
@@ -91,24 +100,36 @@ fun AccountButton(
     )
 
     val accountInteractionSource = remember { MutableInteractionSource() }
-    val isAccountFocused by accountInteractionSource.collectIsFocusedAsState()
+    var isAccountFocused by remember { mutableStateOf(false) }
+    val accent = LocalGameAccent.current
     val accountScale by animateFloatAsState(
         targetValue = if (isAccountFocused) 1.1f else 1f,
         animationSpec = Motion.FocusScale,
         label = "accountBtnScale",
     )
 
-    IconButton(
-        onClick = { showDialog = true },
-        interactionSource = accountInteractionSource,
-        modifier = Modifier.scale(accountScale),
-        content = {
-            SteamIconImage(
-                image = { persona?.avatarHash?.getAvatarURL() },
-                contentDescription = "Logged in account user profile",
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(48.dp)
+            .scale(accountScale)
+            .onFocusChanged { isAccountFocused = it.isFocused }
+            .then(
+                if (isAccountFocused) Modifier.border(BorderStroke(2.dp, accent), CircleShape)
+                else Modifier
             )
-        },
-    )
+            .clickable(
+                interactionSource = accountInteractionSource,
+                indication = null,
+                onClick = { showDialog = true },
+            )
+            .padding(4.dp),
+    ) {
+        SteamIconImage(
+            image = { persona?.avatarHash?.getAvatarURL() },
+            contentDescription = "Logged in account user profile",
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

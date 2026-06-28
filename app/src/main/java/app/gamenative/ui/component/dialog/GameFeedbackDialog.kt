@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,7 @@ import app.gamenative.ui.component.NoExtractOutlinedTextField
 import app.gamenative.ui.component.dialog.state.GameFeedbackDialogState
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 import timber.log.Timber
 
 @OptIn(
@@ -75,7 +77,7 @@ fun GameFeedbackDialog(
                             Icon(
                                 imageVector = if (i <= state.rating) Icons.Filled.Star else Icons.Filled.StarOutline,
                                 contentDescription = "Star $i",
-                                tint = if (i <= state.rating) accent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                tint = if (i <= state.rating) accent else Color.White.copy(alpha = 0.5f),
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clickable {
@@ -160,7 +162,10 @@ fun GameFeedbackDialog(
                             },
                             modifier = Modifier.padding(start = 8.dp),
                             enabled = state.rating > 0,
-                            colors = ButtonDefaults.buttonColors(containerColor = accent)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = accent,
+                                contentColor = LocalOnAccent.current,
+                            )
                         ) {
                             Text(state.confirmBtnText)
                         }

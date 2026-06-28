@@ -51,6 +51,7 @@ import app.gamenative.data.TouchGestureConfig.Companion.ZOOM_PLUS_MINUS
 import app.gamenative.data.TouchGestureConfig.Companion.ZOOM_SCROLL_WHEEL
 import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import app.gamenative.ui.theme.PluviaBackground
@@ -434,7 +435,7 @@ private fun GestureRow(
             subtitle = {
                 Text(
                     text = subtitle,
-                    color = if (!enabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else Color.Unspecified,
+                    color = if (!enabled) PluviaTheme.colors.textMuted else Color.Unspecified,
                 )
             },
             state = enabled,
@@ -799,7 +800,7 @@ private fun TapHoldActionPicker(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = PluviaTheme.colors.textMuted,
                 )
             }
         }
@@ -903,7 +904,7 @@ private fun PanActionPicker(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = PluviaTheme.colors.textMuted,
                 )
             }
         }

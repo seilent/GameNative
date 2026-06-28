@@ -14,7 +14,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 @Composable
@@ -43,7 +43,7 @@ fun FlowFilterChip(
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = LocalGameAccent.current,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                contentColor = LocalOnAccent.current
             ),
             contentPadding = PaddingValues(16.dp)
         ) {

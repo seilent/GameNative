@@ -103,7 +103,7 @@ fun ConnectionStatusBanner(
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = PluviaTheme.colors.textMuted,
                         modifier = Modifier.weight(1f)
                     )
 
@@ -111,7 +111,7 @@ fun ConnectionStatusBanner(
                         Text(
                             text = "${timeoutSeconds}s",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            color = PluviaTheme.colors.textMuted.copy(alpha = 0.7f)
                         )
                     }
 
@@ -155,7 +155,7 @@ fun ConnectionStatusBanner(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = stringResource(R.string.close),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = PluviaTheme.colors.textMuted,
                             modifier = Modifier.size(18.dp)
                         )
                     }

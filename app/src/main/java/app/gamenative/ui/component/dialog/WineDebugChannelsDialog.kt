@@ -6,7 +6,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -61,7 +60,6 @@ fun WineDebugChannelsDialog(
                         Checkbox(
                             checked = selectedChannels.contains(channel),
                             onCheckedChange = null,
-                            colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = channel)

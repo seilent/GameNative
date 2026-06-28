@@ -76,9 +76,11 @@ import app.gamenative.ui.component.BlurredBackdrop
 import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.data.AppMenuOption
 import app.gamenative.ui.enums.AppOptionMenuType
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.LocalGameBackdrop
 import app.gamenative.ui.theme.Motion
+import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.adaptivePanelWidth
 
 @Composable
@@ -160,7 +162,7 @@ fun GameOptionsPanel(
                 text = stringResource(R.string.game_options_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
             )
 
@@ -233,7 +235,7 @@ private fun OptionSection(
 
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            color = GlassBorder.copy(alpha = 0.5f),
         )
     }
 }
@@ -305,7 +307,7 @@ private fun OptionItem(
             tint = when {
                 isDestructive -> MaterialTheme.colorScheme.error
                 isFocused -> LocalGameAccent.current
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                else -> PluviaTheme.colors.textMuted
             },
             modifier = Modifier.size(24.dp),
         )
@@ -317,7 +319,7 @@ private fun OptionItem(
             color = when {
                 isDestructive -> MaterialTheme.colorScheme.error
                 isFocused -> LocalGameAccent.current
-                else -> MaterialTheme.colorScheme.onSurface
+                else -> Color.White
             },
         )
     }

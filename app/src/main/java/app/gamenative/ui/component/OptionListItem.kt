@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.Motion
@@ -92,9 +93,9 @@ private fun rememberOptionItemStyle(
 
     val contentColor by animateColorAsState(
         targetValue = when {
-            isFocused -> MaterialTheme.colorScheme.onSurface
-            selected -> MaterialTheme.colorScheme.onSurface
-            else -> MaterialTheme.colorScheme.onSurfaceVariant
+            isFocused -> Color.White
+            selected -> Color.White
+            else -> PluviaTheme.colors.textMuted
         },
         animationSpec = Motion.AccentColor,
         label = "${labelPrefix}ContentColor",
@@ -197,7 +198,7 @@ fun OptionRadioItem(
     )
 
     val radioIndicatorColor by animateColorAsState(
-        targetValue = if (selected) LocalGameAccent.current else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+        targetValue = if (selected) LocalGameAccent.current else GlassBorder.copy(alpha = 0.5f),
         animationSpec = Motion.AccentColor,
         label = "radioIndicatorColor"
     )

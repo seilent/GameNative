@@ -86,6 +86,7 @@ import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.ui.data.PerformanceHudConfig
 import app.gamenative.ui.data.PerformanceHudSize
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
@@ -423,14 +424,14 @@ fun QuickMenu(
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.SemiBold,
                             ),
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = Color.White,
                         )
                         QuickMenuCloseButton(onClick = onDismiss)
                     }
 
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        color = GlassBorder.copy(alpha = 0.3f),
                     )
 
                     Row(
@@ -521,7 +522,7 @@ fun QuickMenu(
                                     .padding(horizontal = 4.dp, vertical = 12.dp)
                                     .fillMaxWidth()
                                     .height(1.dp)
-                                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+                                    .background(GlassBorder.copy(alpha = 0.2f)),
                             )
 
                             QuickMenuRailActionButton(
@@ -540,7 +541,7 @@ fun QuickMenu(
                                 .padding(horizontal = 12.dp)
                                 .width(1.dp)
                                 .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+                                .background(GlassBorder.copy(alpha = 0.2f)),
                         )
 
                         Column(
@@ -550,13 +551,13 @@ fun QuickMenu(
                             Text(
                                 text = stringResource(selectedTabLabelResId),
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                color = MaterialTheme.colorScheme.onSurface,
+                                color = Color.White,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             )
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                color = GlassBorder.copy(alpha = 0.2f),
                             )
 
                             Box(
@@ -624,7 +625,7 @@ fun QuickMenu(
                                                 Text(
                                                     text = stringResource(R.string.main_loading),
                                                     style = MaterialTheme.typography.bodyMedium,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    color = PluviaTheme.colors.textMuted,
                                                 )
                                             }
                                         }
@@ -728,7 +729,7 @@ private fun ToolsQuickMenuTab(
             Text(
                 text = stringResource(R.string.tools_wine_processes_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PluviaTheme.colors.textMuted,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         } else {
@@ -857,7 +858,7 @@ private fun PerformanceHudQuickMenuTab(
         Text(
             text = stringResource(R.string.performance_hud_size),
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = Color.White,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
         )
@@ -1188,7 +1189,7 @@ private fun QuickMenuSectionHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = Color.White,
             fontWeight = FontWeight.SemiBold,
         )
         if (!subtitle.isNullOrBlank()) {
@@ -1196,7 +1197,7 @@ private fun QuickMenuSectionHeader(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PluviaTheme.colors.textMuted,
             )
         }
     }
@@ -1254,7 +1255,7 @@ private fun QuickMenuCloseButton(
             tint = if (isFocused) {
                 LocalGameAccent.current
             } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
+                PluviaTheme.colors.textMuted
             },
             modifier = Modifier.size(24.dp),
         )
@@ -1330,7 +1331,7 @@ private fun QuickMenuTabButton(
             contentDescription = stringResource(contentDescriptionResId),
             tint = when {
                 selected || isFocused -> accentColor
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                else -> PluviaTheme.colors.textMuted
             },
             modifier = Modifier.size(24.dp),
         )
@@ -1366,7 +1367,7 @@ private fun QuickMenuRailActionButton(
                 } else {
                     Modifier.border(
                         width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f),
+                        color = GlassBorder.copy(alpha = 0.25f),
                         shape = shape,
                     )
                 }
@@ -1429,7 +1430,7 @@ private fun QuickMenuChoiceChip(
                 } else {
                     Modifier.border(
                         width = 1.dp,
-                        color = if (selected) accentColor.copy(alpha = 0.55f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f),
+                        color = if (selected) accentColor.copy(alpha = 0.55f) else GlassBorder.copy(alpha = 0.25f),
                         shape = shape,
                     )
                 }
@@ -1462,7 +1463,7 @@ private fun QuickMenuChoiceChip(
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge,
-            color = if (selected || isFocused) accentColor else MaterialTheme.colorScheme.onSurface,
+            color = if (selected || isFocused) accentColor else Color.White,
             fontWeight = if (selected || isFocused) FontWeight.SemiBold else FontWeight.Medium,
         )
     }
@@ -1575,7 +1576,7 @@ private fun QuickMenuAdjustmentRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 fontWeight = if (isFocused) FontWeight.SemiBold else FontWeight.Medium,
             )
             Row(
@@ -1585,7 +1586,7 @@ private fun QuickMenuAdjustmentRow(
                 Text(
                     text = valueText,
                     style = MaterialTheme.typography.labelLarge,
-                    color = if (isFocused) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isFocused) accentColor else PluviaTheme.colors.textMuted,
                 )
                 if (isAdjustmentLocked) {
                     Text(
@@ -1602,7 +1603,7 @@ private fun QuickMenuAdjustmentRow(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PluviaTheme.colors.textMuted,
             )
         }
 
@@ -1636,7 +1637,9 @@ private fun QuickMenuAdjustmentRow(
                         .height(8.dp)
                         .clip(RoundedCornerShape(999.dp)),
                     color = accentColor,
-                    trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                    trackColor = GlassBorder.copy(alpha = 0.35f),
+                    gapSize = 0.dp,
+                    drawStopIndicator = {},
                 )
 
                 Row(modifier = Modifier.fillMaxSize()) {
@@ -1699,7 +1702,7 @@ private fun QuickMenuAdjustmentButton(
                 color = if (isAdjustmentLocked) {
                     accentColor.copy(alpha = 0.9f)
                 } else {
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    GlassBorder.copy(alpha = 0.35f)
                 },
                 shape = RoundedCornerShape(10.dp),
             )
@@ -1714,7 +1717,7 @@ private fun QuickMenuAdjustmentButton(
             text = text,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = if (isAdjustmentLocked) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (isAdjustmentLocked) accentColor else PluviaTheme.colors.textMuted,
         )
     }
 }
@@ -1787,7 +1790,7 @@ private fun QuickMenuToggleRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 fontWeight = if (isFocused) FontWeight.SemiBold else FontWeight.Medium,
             )
             if (!subtitle.isNullOrBlank()) {
@@ -1795,7 +1798,7 @@ private fun QuickMenuToggleRow(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = PluviaTheme.colors.textMuted,
                 )
             }
         }
@@ -1822,7 +1825,7 @@ private fun QuickMenuSwitch(
             )
             .border(
                 width = 1.dp,
-                color = if (enabled) accentColor.copy(alpha = 0.8f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+                color = if (enabled) accentColor.copy(alpha = 0.8f) else GlassBorder.copy(alpha = 0.35f),
                 shape = RoundedCornerShape(999.dp),
             )
             .padding(4.dp),
@@ -1921,7 +1924,7 @@ private fun QuickMenuProcessRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (isFocused) accentColor else MaterialTheme.colorScheme.onSurface,
+                color = if (isFocused) accentColor else Color.White,
                 fontWeight = if (isFocused) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
                 modifier = Modifier
@@ -1932,7 +1935,7 @@ private fun QuickMenuProcessRow(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (isFocused) accentColor.copy(alpha = 0.92f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isFocused) accentColor.copy(alpha = 0.92f) else PluviaTheme.colors.textMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -2043,9 +2046,9 @@ private fun QuickMenuItemRow(
                 imageVector = item.icon,
                 contentDescription = null,
                 tint = when {
-                    !isEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = disabledAlpha)
+                    !isEnabled -> PluviaTheme.colors.textMuted.copy(alpha = disabledAlpha)
                     isFocused || isActive -> accentColor
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    else -> PluviaTheme.colors.textMuted
                 },
                 modifier = Modifier.size(22.dp),
             )
@@ -2055,9 +2058,9 @@ private fun QuickMenuItemRow(
             text = stringResource(item.labelResId),
             style = MaterialTheme.typography.bodyLarge,
             color = when {
-                !isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = disabledAlpha)
+                !isEnabled -> Color.White.copy(alpha = disabledAlpha)
                 isFocused -> accentColor
-                else -> MaterialTheme.colorScheme.onSurface
+                else -> Color.White
             },
             modifier = Modifier.weight(1f),
         )
@@ -2068,13 +2071,18 @@ private fun QuickMenuItemRow(
                     .size(48.dp)
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.08f))
-                    .clickable(role = Role.Button, onClick = onSecondaryClick),
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        role = Role.Button,
+                        onClick = onSecondaryClick,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = secondaryIcon,
                     contentDescription = stringResource(R.string.gesture_settings_title),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = PluviaTheme.colors.textMuted,
                     modifier = Modifier.size(18.dp),
                 )
             }

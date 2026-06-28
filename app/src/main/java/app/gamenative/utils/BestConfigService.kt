@@ -5,6 +5,9 @@ import androidx.compose.ui.graphics.Color
 import app.gamenative.BuildConfig
 import app.gamenative.PrefManager
 import app.gamenative.R
+import app.gamenative.ui.theme.CompatibilityGood
+import app.gamenative.ui.theme.CompatibilityPartial
+import app.gamenative.ui.theme.CompatibilityUnknown
 import com.winlator.box86_64.Box86_64PresetManager
 import com.winlator.container.Container
 import com.winlator.container.ContainerData
@@ -26,6 +29,10 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
+
+private val CompatGood = CompatibilityGood
+private val CompatPartial = CompatibilityPartial
+private val CompatUnknown = CompatibilityUnknown
 
 /**
  * Service for fetching best configurations for games from GameNative API.
@@ -160,19 +167,19 @@ object BestConfigService {
         return when (matchType) {
             "exact_gpu_match" -> CompatibilityMessage(
                 text = context.getString(R.string.best_config_exact_gpu_match),
-                color = Color.Green
+                color = CompatGood
             )
             "gpu_family_match" -> CompatibilityMessage(
                 text = context.getString(R.string.best_config_gpu_family_match),
-                color = Color.Green
+                color = CompatGood
             )
             "fallback_match" -> CompatibilityMessage(
                 text = context.getString(R.string.best_config_fallback_match),
-                color = Color.Yellow
+                color = CompatPartial
             )
             else -> CompatibilityMessage(
                 text = context.getString(R.string.best_config_compatibility_unknown),
-                color = Color.Gray
+                color = CompatUnknown
             )
         }
     }

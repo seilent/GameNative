@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
@@ -64,6 +63,8 @@ import app.gamenative.ui.component.topbar.BackButton
 import app.gamenative.ui.data.GameDisplayInfo
 import app.gamenative.ui.internal.fakeAppInfo
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.utils.SteamUtils
 import app.gamenative.utils.StorageUtils
@@ -421,7 +422,10 @@ fun GameManagerDialog(
                                     horizontalArrangement = Arrangement.End
                                 ) {
                                     Button(
-                                        colors = ButtonDefaults.buttonColors(containerColor = accent),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = accent,
+                                            contentColor = LocalOnAccent.current,
+                                        ),
                                         onClick = {
                                             val newState = !allSelectableSelected
                                             selectableAppIds.forEach { appId ->
@@ -452,7 +456,7 @@ fun GameManagerDialog(
                                             Text(
                                                 text = "$downloadSize download • $installSize install",
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                                color = Color.White.copy(alpha = 0.7f)
                                             )
                                         }
                                     },
@@ -461,10 +465,8 @@ fun GameManagerDialog(
                                             checked = checked,
                                             enabled = enabled,
                                             onCheckedChange = { isChecked ->
-                                                // Update the local (unsaved) state only
                                                 selectedAppIds[dlcAppId] = isChecked
                                             },
-                                            colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                                         )
                                     },
                                     modifier = Modifier.clickable(enabled = enabled) {
@@ -476,7 +478,7 @@ fun GameManagerDialog(
                                 HorizontalDivider(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     thickness = 0.5.dp,
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    color = GlassBorder
                                 )
                             }
                         }
@@ -504,7 +506,10 @@ fun GameManagerDialog(
                                 )
 
                                 Button(
-                                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = LocalGameAccent.current,
+                                        contentColor = LocalOnAccent.current,
+                                    ),
                                     enabled = installButtonEnabled(),
                                     onClick = {
                                         onInstall(selectedAppIds

@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -54,6 +53,7 @@ import app.gamenative.service.SteamService
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
+import androidx.compose.ui.graphics.Color
 import app.gamenative.utils.Net
 import com.winlator.core.StringUtils
 import com.winlator.container.ContainerManager
@@ -582,7 +582,8 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 // Info card
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = LocalGameAccent.current.copy(alpha = 0.12f)
+                        containerColor = LocalGameAccent.current.copy(alpha = 0.12f),
+                        contentColor = Color.White,
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -684,7 +685,6 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                 onClick = { downloadAndInstallWineProton(wineProtonManifest[selectedWineKey]!!) },
                                 enabled = !isBusy && !isDownloading && !isInstalling,
                                 modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                             ) {
                                 when {
                                     isDownloading -> Text("Downloading...")
@@ -700,6 +700,8 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                     progress = { downloadProgress },
                                     modifier = Modifier.fillMaxWidth(),
                                     color = LocalGameAccent.current,
+                                    gapSize = 0.dp,
+                                    drawStopIndicator = {},
                                 )
                                 Text(
                                     text = "Downloading: ${(downloadProgress * 100).toInt()}%",
@@ -767,7 +769,6 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     },
                     enabled = !isBusy,
                     modifier = Modifier.padding(bottom = 12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                 ) { Text(stringResource(R.string.wine_proton_import_wcp_button)) }
 
                 if (isBusy) {
@@ -828,7 +829,6 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             },
                             enabled = !isBusy,
                             modifier = Modifier.padding(top = 8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LocalGameAccent.current),
                         ) { Text(stringResource(R.string.wine_proton_install_package)) }
                     }
                 }
@@ -925,7 +925,6 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             }
                         }
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = LocalGameAccent.current),
                 ) {
                     Text(stringResource(R.string.install_anyway))
                 }

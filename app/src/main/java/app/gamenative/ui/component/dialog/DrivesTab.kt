@@ -12,7 +12,6 @@ import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -174,7 +173,6 @@ fun DrivesTabContent(state: ContainerConfigState) {
                     enabled = state.selectedDriveLetter.value.isNotBlank() &&
                         state.availableDriveLetters.contains(state.selectedDriveLetter.value),
                     onClick = { state.launchFolderPicker() },
-                    colors = ButtonDefaults.textButtonColors(contentColor = LocalGameAccent.current),
                     content = { Text(text = stringResource(R.string.ok)) },
                 )
             },

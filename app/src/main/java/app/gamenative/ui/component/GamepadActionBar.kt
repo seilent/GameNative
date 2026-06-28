@@ -102,7 +102,7 @@ private fun GamepadButtonHint(
 
         Text(
             text = label,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+            color = Color.White.copy(alpha = 0.9f),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Medium,
         )

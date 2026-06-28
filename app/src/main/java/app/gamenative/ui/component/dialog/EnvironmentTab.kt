@@ -12,7 +12,6 @@ import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -37,6 +36,7 @@ import app.gamenative.ui.component.settings.SettingsMultiListDropdown
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.settingsTileColors
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
@@ -208,7 +208,7 @@ fun EnvironmentTabContent(state: ContainerConfigState) {
                                                         Text(
                                                             text = suggestion.removePrefix("---"),
                                                             style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
-                                                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                                            color = PluviaTheme.colors.textMuted.copy(alpha = 0.6f),
                                                         )
                                                     },
                                                     onClick = {},
@@ -246,7 +246,6 @@ fun EnvironmentTabContent(state: ContainerConfigState) {
                         state.config.value = config.copy(envVars = envVars.toString())
                         state.showEnvVarCreateDialog.value = false
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = LocalGameAccent.current),
                     content = { Text(text = stringResource(R.string.ok)) },
                 )
             },

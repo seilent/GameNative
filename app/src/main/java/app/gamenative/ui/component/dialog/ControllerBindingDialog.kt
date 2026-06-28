@@ -25,6 +25,7 @@ import app.gamenative.ui.component.NoExtractOutlinedTextField
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
 import com.winlator.inputcontrols.Binding
 
 /**
@@ -298,7 +299,7 @@ fun ControllerBindingDialog(
                                                 color = if (isSelected)
                                                     LocalGameAccent.current
                                                 else
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                                    PluviaTheme.colors.textMuted
                                             )
                                         }
                                     }
@@ -388,7 +389,7 @@ fun ControllerBindingDialog(
                                 Text(
                                     text = stringResource(app.gamenative.R.string.no_bindings_found),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = PluviaTheme.colors.textMuted
                                 )
                             }
                         } else {
@@ -439,7 +440,7 @@ fun BindingOption(
                 color = if (isSelected)
                     LocalGameAccent.current
                 else
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                    PluviaTheme.colors.textMuted
             )
 
             if (isSelected) {

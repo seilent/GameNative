@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -48,8 +49,10 @@ import app.gamenative.R
 import app.gamenative.enums.LoginResult
 import app.gamenative.ui.component.LoadingScreen
 import app.gamenative.ui.data.UserLoginState
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.LocalOnAccent
 import app.gamenative.ui.theme.PluviaTheme
 
 @Composable
@@ -73,7 +76,7 @@ fun TwoFactorAuthScreenContent(
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = PluviaTheme.colors.textMuted,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 24.dp)
         )
@@ -107,7 +110,9 @@ fun TwoFactorAuthScreenContent(
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = LocalGameAccent.current,
+                    contentColor = LocalOnAccent.current,
                     disabledContainerColor = LocalGameAccent.current.copy(alpha = 0.5f),
+                    disabledContentColor = LocalOnAccent.current.copy(alpha = 0.5f),
                 ),
                 content = {
                     Text(
@@ -140,7 +145,7 @@ private fun TwoFactorTextField(
         Text(
             text = stringResource(R.string.two_factor_verification_code),
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-            color = MaterialTheme.colorScheme.onSurface,
+            color = Color.White,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
@@ -154,7 +159,7 @@ private fun TwoFactorTextField(
                 )
                 .border(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline,
+                    color = GlassBorder,
                     shape = RoundedCornerShape(8.dp)
                 ),
             value = twoFactorText,
@@ -166,7 +171,7 @@ private fun TwoFactorTextField(
             placeholder = {
                 Text(
                     stringResource(R.string.two_factor_enter_code),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    color = PluviaTheme.colors.textMuted.copy(alpha = 0.7f)
                 )
             },
             keyboardOptions = KeyboardOptions(
@@ -182,11 +187,11 @@ private fun TwoFactorTextField(
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = LocalGameAccent.current,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                unfocusedBorderColor = GlassBorder,
                 focusedContainerColor = GlassFill,
                 unfocusedContainerColor = GlassFill,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
             )
         )
     }

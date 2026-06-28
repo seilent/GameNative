@@ -34,7 +34,6 @@ import androidx.compose.material.icons.filled.SnippetFolder
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -64,7 +63,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.GlassFillStrong
+import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -400,7 +401,7 @@ fun WorkshopManagerDialog(
                                     color = if (workshopModPath.isNotEmpty()) {
                                         LocalGameAccent.current
                                     } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                        PluviaTheme.colors.textMuted
                                     },
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -435,7 +436,7 @@ fun WorkshopManagerDialog(
                                                 Text(
                                                     text = item.title.take(1).uppercase(),
                                                     style = MaterialTheme.typography.titleMedium,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    color = PluviaTheme.colors.textMuted
                                                 )
                                             }
                                         }
@@ -447,7 +448,7 @@ fun WorkshopManagerDialog(
                                                 Text(
                                                     text = StorageUtils.formatBinarySize(item.fileSizeBytes),
                                                     style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                                    color = Color.White.copy(alpha = 0.7f)
                                                 )
                                             }
                                             if (item.timeUpdated > 0) {
@@ -458,7 +459,7 @@ fun WorkshopManagerDialog(
                                                 Text(
                                                     text = "Updated $dateStr",
                                                     style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                                    color = Color.White.copy(alpha = 0.5f)
                                                 )
                                             }
                                         }
@@ -469,7 +470,6 @@ fun WorkshopManagerDialog(
                                             onCheckedChange = { isChecked ->
                                                 selectedIds[item.publishedFileId] = isChecked
                                             },
-                                            colors = CheckboxDefaults.colors(checkedColor = LocalGameAccent.current),
                                         )
                                     },
                                     modifier = Modifier.clickable {
@@ -480,7 +480,7 @@ fun WorkshopManagerDialog(
                                 HorizontalDivider(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     thickness = 0.5.dp,
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    color = GlassBorder
                                 )
                             }
                         }
@@ -653,7 +653,7 @@ private fun FolderPickerDialog(
                         Text(
                             text = if (currentDir == null) "Select Mod Folder" else "Browse",
                             style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = Color.White,
                         )
                         if (currentPath.isNotEmpty() && currentDir == null) {
                             val currentFolderName = currentPath
@@ -682,7 +682,7 @@ private fun FolderPickerDialog(
                             Text(
                                 text = breadcrumb,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                color = Color.White.copy(alpha = 0.6f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -725,7 +725,7 @@ private fun FolderPickerDialog(
                                 text = currentDir?.name ?: "",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
+                                color = Color.White,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -733,7 +733,7 @@ private fun FolderPickerDialog(
                     }
                     HorizontalDivider(
                         thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        color = GlassBorder,
                     )
                 }
 
@@ -784,14 +784,14 @@ private fun FolderPickerDialog(
                                     Text(
                                         text = root.label,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurface,
+                                        color = Color.White,
                                     )
                                     Spacer(Modifier.weight(1f))
                                     Icon(
                                         Icons.AutoMirrored.Filled.ArrowForward,
                                         contentDescription = null,
                                         modifier = Modifier.size(18.dp),
-                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                        tint = Color.White.copy(alpha = 0.3f),
                                     )
                                 }
                             }
@@ -805,7 +805,7 @@ private fun FolderPickerDialog(
                             ) {
                                 Text(
                                     text = "No browsable locations found.",
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                    color = Color.White.copy(alpha = 0.4f),
                                 )
                             }
                         }
@@ -837,12 +837,12 @@ private fun FolderPickerDialog(
                                         Icons.Default.FolderOff,
                                         contentDescription = null,
                                         modifier = Modifier.size(32.dp),
-                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
+                                        tint = Color.White.copy(alpha = 0.25f),
                                     )
                                     Spacer(Modifier.height(8.dp))
                                     Text(
                                         text = "No subdirectories",
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                        color = Color.White.copy(alpha = 0.4f),
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                 }
@@ -867,7 +867,7 @@ private fun FolderPickerDialog(
                                     Text(
                                         text = dir.name,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
+                                        color = Color.White,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                     )
@@ -875,7 +875,7 @@ private fun FolderPickerDialog(
                                 HorizontalDivider(
                                     modifier = Modifier.padding(horizontal = 24.dp),
                                     thickness = 0.5.dp,
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                    color = GlassBorder,
                                 )
                             }
                             Spacer(Modifier.height(4.dp))
@@ -886,7 +886,7 @@ private fun FolderPickerDialog(
                 // ── Footer ──────────────────────────────────────────
                 HorizontalDivider(
                     thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    color = GlassBorder,
                 )
                 Row(
                     modifier = Modifier
