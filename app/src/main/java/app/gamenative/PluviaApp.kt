@@ -9,8 +9,11 @@ import app.gamenative.db.dao.AmazonGameDao
 import app.gamenative.db.dao.GOGGameDao
 import app.gamenative.events.EventDispatcher
 import app.gamenative.service.ActiveGameRegistry
+import app.gamenative.data.GameSource
+import app.gamenative.events.AndroidEvent
 import app.gamenative.service.DownloadService
 import app.gamenative.service.SteamService
+import app.gamenative.service.storage.StorageManager
 import app.gamenative.sync.FrontendSyncManager
 import app.gamenative.utils.ContainerMigrator
 import app.gamenative.utils.IntentLaunchManager
@@ -84,6 +87,12 @@ class PluviaApp : SplitCompatApplication() {
 
         DownloadService.populateDownloadService(this)
 
+        migrateStorageTarget()
+
+        StorageManager.registerVolumeCallback(this) {
+            events.emitJava(AndroidEvent.LibraryInstallStatusChanged(-1, GameSource.STEAM))
+        }
+
         migrateGogAmazonPaths()
 
         appScope.launch {
@@ -128,6 +137,23 @@ class PluviaApp : SplitCompatApplication() {
 
         PlayIntegrity.warmUp(this)
 
+    }
+
+    private fun migrateStorageTarget() {
+        if (PrefManager.storageTargetMigrated) return
+        if (PrefManager.useExternalStorage) {
+            val extPath = PrefManager.externalStoragePath
+            val targets = StorageManager.externalTargets(this)
+            val match = if (extPath.isNotBlank()) {
+                targets.firstOrNull { extPath.contains(it.rootPath) || it.rootPath.contains(extPath) }
+            } else {
+                targets.firstOrNull { it.isRemovable && it.isMounted }
+            }
+            if (match != null) {
+                PrefManager.defaultStorageTargetId = match.id
+            }
+        }
+        PrefManager.storageTargetMigrated = true
     }
 
     /**

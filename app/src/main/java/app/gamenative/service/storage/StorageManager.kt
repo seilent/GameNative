@@ -1,8 +1,13 @@
 package app.gamenative.service.storage
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Environment
 import android.os.storage.StorageManager as AndroidStorageManager
+import androidx.core.content.ContextCompat
 import app.gamenative.PrefManager
 import app.gamenative.service.DownloadService
 import app.gamenative.utils.StorageUtils
@@ -74,5 +79,40 @@ object StorageManager {
         StorageUtils.getTotalSpace(target.rootPath)
     } catch (e: Exception) {
         0L
+    }
+
+    fun registerVolumeCallback(context: Context, onChange: () -> Unit) {
+        val onEvent = {
+            DownloadService.populateDownloadService(context)
+            DownloadService.invalidateCache()
+            onChange()
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val sm = context.getSystemService(AndroidStorageManager::class.java)
+            sm?.registerStorageVolumeCallback(
+                ContextCompat.getMainExecutor(context),
+                object : AndroidStorageManager.StorageVolumeCallback() {
+                    override fun onStateChanged(volume: android.os.storage.StorageVolume) {
+                        onEvent()
+                    }
+                },
+            )
+        } else {
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_MEDIA_MOUNTED)
+                addAction(Intent.ACTION_MEDIA_UNMOUNTED)
+                addAction(Intent.ACTION_MEDIA_EJECT)
+                addAction(Intent.ACTION_MEDIA_REMOVED)
+                addDataScheme("file")
+            }
+            context.registerReceiver(
+                object : BroadcastReceiver() {
+                    override fun onReceive(ctx: Context?, intent: Intent?) {
+                        onEvent()
+                    }
+                },
+                filter,
+            )
+        }
     }
 }

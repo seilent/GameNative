@@ -1372,6 +1372,11 @@ object PrefManager {
         get() = getPref(GOG_AMAZON_PATH_MIGRATED, false)
         set(value) { setPref(GOG_AMAZON_PATH_MIGRATED, value) }
 
+    private val STORAGE_TARGET_MIGRATED = booleanPreferencesKey("storage_target_migrated")
+    var storageTargetMigrated: Boolean
+        get() = getPref(STORAGE_TARGET_MIGRATED, false)
+        set(value) { setPref(STORAGE_TARGET_MIGRATED, value) }
+
     private val ACHIEVEMENT_SHOW_NOTIFICATION = booleanPreferencesKey("achievement_show_notification")
     var achievementShowNotification: Boolean
         get() = getPref(ACHIEVEMENT_SHOW_NOTIFICATION, true)
