@@ -84,8 +84,19 @@ public class PresentExtension implements Extension {
             if (choreographerChecked) return choreographer;
             choreographerChecked = true;
             try {
-                if (renderer != null && renderer.xServerView != null) {
+                if (android.os.Looper.myLooper() != null) {
                     choreographer = android.view.Choreographer.getInstance();
+                } else {
+                    final android.view.Choreographer[] holder = new android.view.Choreographer[1];
+                    final java.util.concurrent.CountDownLatch latch =
+                            new java.util.concurrent.CountDownLatch(1);
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        try { holder[0] = android.view.Choreographer.getInstance(); }
+                        catch (Exception ignored2) {}
+                        latch.countDown();
+                    });
+                    latch.await(200, java.util.concurrent.TimeUnit.MILLISECONDS);
+                    choreographer = holder[0];
                 }
             } catch (Exception ignored) {
                 android.util.Log.w("PresentExtension", "Choreographer unavailable, using CPU pacer");
@@ -109,7 +120,7 @@ public class PresentExtension implements Extension {
                 long now = System.nanoTime();
                 if (now >= p.targetNs) {
                     cpuQueue.poll();
-                    pendingIdles.remove(p.window.id, p);
+                    pendingIdles.remove(p.serial, p);
                     sendIdleNotify(p.window, p.pixmap, p.serial, p.idleFence);
                 } else {
                     long diff = p.targetNs - now;
@@ -177,7 +188,7 @@ public class PresentExtension implements Extension {
 
         android.view.Choreographer ch = tryGetChoreographer(renderer);
         if (ch != null) {
-            pendingIdles.put(window.id,
+            pendingIdles.put(serial,
                     new PendingIdle(window, pixmap, serial, idleFence, fireTime, 0));
             postChoreographerCallback();
         } else {

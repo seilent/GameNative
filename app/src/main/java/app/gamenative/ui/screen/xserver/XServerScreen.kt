@@ -575,8 +575,11 @@ fun XServerScreen(
     }
 
     fun effectiveFpsLimit(): Int =
-        if (isLsfgAvailable && lsfgMultiplier >= 2) 0
-        else if (fpsLimiterEnabled) fpsLimiterTarget
+        if (isLsfgAvailable && lsfgMultiplier >= 2) {
+            val refresh = if (detectedMaxRefreshRateHz > 0) detectedMaxRefreshRateHz else 60
+            val baseCap = LsfgVkManager.baseFpsCap(container)
+            if (baseCap > 0) (baseCap * lsfgMultiplier).coerceAtMost(refresh) else refresh
+        } else if (fpsLimiterEnabled) fpsLimiterTarget
         else 0
 
     fun applyFpsLimiterEnabled(enabled: Boolean) {
