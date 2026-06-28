@@ -3807,20 +3807,16 @@ class SteamService : Service(), IChallengeUrlChanged {
                         }.build()
 
                         _steamFamilyGroups!!.getFamilyGroup(request).await().let {
-                            if (it.result != EResult.OK) {
+                            if (it.result == EResult.OK) {
+                                val response = it.body
+                                Timber.i("Found family share: ${response.name}, with ${response.membersCount} members.")
+                                response.membersList.forEach { member ->
+                                    val accountID = SteamID(member.steamid).accountID.toInt()
+                                    familyGroupMembers.add(accountID)
+                                }
+                            } else {
                                 Timber.w("An error occurred loading family group info.")
-                                return@launch
                             }
-
-                            val response = it.body
-
-                            Timber.i("Found family share: ${response.name}, with ${response.membersCount} members.")
-
-                            response.membersList.forEach { member ->
-                                val accountID = SteamID(member.steamid).accountID.toInt()
-                                familyGroupMembers.add(accountID)
-                            }
-
                             PluviaApp.events.emit(AndroidEvent.SteamLogonComplete)
                         }
                     }
@@ -3846,7 +3842,9 @@ class SteamService : Service(), IChallengeUrlChanged {
 
                 _loginResult = LoginResult.Success
 
-                PluviaApp.events.emit(AndroidEvent.SteamLogonComplete)
+                if (callback.familyGroupId == 0L) {
+                    PluviaApp.events.emit(AndroidEvent.SteamLogonComplete)
+                }
 
                 // Resume any workshop downloads that were interrupted
                 scope.launch {
