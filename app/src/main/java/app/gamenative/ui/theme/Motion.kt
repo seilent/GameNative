@@ -48,5 +48,5 @@ object Motion {
     val Fade: FiniteAnimationSpec<Float> = tween(durationMillis = DurationBase, easing = EaseStandard)
 
     /** Backdrop image crossfade when the focused game changes. */
-    val BackdropCrossfade: FiniteAnimationSpec<Float> = tween(durationMillis = DurationSlow, easing = EaseGlass)
+    val BackdropCrossfade: FiniteAnimationSpec<Float> = tween(durationMillis = 360, easing = EaseGlass)
 }
