@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import app.gamenative.data.DownloadInfo
+import app.gamenative.service.DownloadGate
 import app.gamenative.data.GOGCredentials
 import app.gamenative.data.GOGGame
 import app.gamenative.data.LaunchInfo
@@ -361,10 +362,12 @@ class GOGService : Service() {
                     val commonRedistDir = File(installPath, "_CommonRedist")
                     Timber.tag("GOG").d("Will install dependencies to _CommonRedist")
 
-                    val result = instance.gogDownloadManager.downloadGame(
-                        gameId, File(installPath),
-                        downloadInfo, containerLanguage, true, commonRedistDir,
-                    )
+                    val result = DownloadGate.withSlot(downloadInfo) {
+                        instance.gogDownloadManager.downloadGame(
+                            gameId, File(installPath),
+                            downloadInfo, containerLanguage, true, commonRedistDir,
+                        )
+                    }
 
                     if (result.isFailure) {
                         val error = result.exceptionOrNull()

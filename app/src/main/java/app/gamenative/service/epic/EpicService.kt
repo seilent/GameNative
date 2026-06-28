@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import app.gamenative.data.DownloadInfo
+import app.gamenative.service.DownloadGate
 import app.gamenative.data.EpicCredentials
 import app.gamenative.data.EpicGame
 import app.gamenative.data.LaunchInfo
@@ -431,15 +432,17 @@ class EpicService : Service() {
                     val commonRedistDir = File(installPath, "_CommonRedist")
                     Timber.tag("Epic").i("Starting download for game: ${game.title}, gameId: ${game.id}")
 
-                    val result = instance.epicDownloadManager.downloadGame(
-                        context,
-                        game,
-                        installPath,
-                        downloadInfo,
-                        containerLanguage,
-                        dlcGameIds,
-                        commonRedistDir,
-                    )
+                    val result = DownloadGate.withSlot(downloadInfo) {
+                        instance.epicDownloadManager.downloadGame(
+                            context,
+                            game,
+                            installPath,
+                            downloadInfo,
+                            containerLanguage,
+                            dlcGameIds,
+                            commonRedistDir,
+                        )
+                    }
 
                     Timber.tag("Epic").d("Download result: ${if (result.isSuccess) "SUCCESS" else "FAILURE: ${result.exceptionOrNull()?.message}"}")
 

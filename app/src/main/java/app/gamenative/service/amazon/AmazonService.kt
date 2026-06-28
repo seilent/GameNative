@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import app.gamenative.PluviaApp
+import app.gamenative.service.DownloadGate
 import app.gamenative.R
 import app.gamenative.data.AmazonCredentials
 import app.gamenative.data.AmazonGame
@@ -460,12 +461,14 @@ class AmazonService : Service() {
 
             val job = instance.serviceScope.launch {
                 try {
-                    val result = instance.amazonDownloadManager.downloadGame(
-                        context = context,
-                        game = game,
-                        installPath = installPath,
-                        downloadInfo = downloadInfo,
-                    )
+                    val result = DownloadGate.withSlot(downloadInfo) {
+                        instance.amazonDownloadManager.downloadGame(
+                            context = context,
+                            game = game,
+                            installPath = installPath,
+                            downloadInfo = downloadInfo,
+                        )
+                    }
 
                     if (result.isSuccess) {
                         Timber.tag("Amazon").i("Download succeeded for $productId")
