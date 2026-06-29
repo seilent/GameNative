@@ -2,7 +2,6 @@ package app.gamenative.utils
 
 import com.winlator.container.Container
 import com.winlator.core.envvars.EnvVars
-import java.util.Locale
 import timber.log.Timber
 import kotlin.jvm.JvmStatic
 
@@ -11,7 +10,7 @@ object SeifgManager {
 
     const val EXTRA_ARMED = "seifgEnabled"
     const val EXTRA_MULTIPLIER = "seifgMultiplier"
-    const val EXTRA_FLOW_SCALE = "seifgFlowScale"
+    const val EXTRA_QUALITY = "seifgQuality"
     const val EXTRA_BASE_FPS_CAP = "seifgBaseFpsCap"
     const val EXTRA_TARGET_FPS = "seifgTargetFps"
 
@@ -42,8 +41,8 @@ object SeifgManager {
         return if (raw == 0) 0 else raw.coerceIn(2, 4)
     }
 
-    fun flowScale(container: Container): Float =
-        container.getExtra(EXTRA_FLOW_SCALE, "0.30").toFloatOrNull()?.coerceIn(0.25f, 1.0f) ?: 0.30f
+    fun quality(container: Container): Int =
+        container.getExtra(EXTRA_QUALITY, "2").toIntOrNull()?.coerceIn(0, 4) ?: 2
 
     fun targetFps(container: Container): Int =
         container.getExtra(EXTRA_TARGET_FPS, SEIFG_TARGET_FPS.toString())
@@ -69,8 +68,8 @@ object SeifgManager {
         }
 
         Timber.tag(TAG).i(
-            "SEIFG armed: multiplier=%d, flowScale=%.2f",
-            multiplier(container), flowScale(container)
+            "SEIFG armed: multiplier=%d, quality=%d",
+            multiplier(container), quality(container)
         )
 
         applyRealFrameCap(container, envVars)
@@ -91,6 +90,4 @@ object SeifgManager {
     private fun parseBool(value: String): Boolean =
         value.equals("true", ignoreCase = true) || value == "1"
 
-    private fun formatFlowScale(value: Float): String =
-        String.format(Locale.US, "%.2f", value.coerceIn(0.25f, 1.0f))
 }

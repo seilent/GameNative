@@ -9,7 +9,7 @@ class HostFramegen {
 public:
     static constexpr uint32_t MAX_INTERPS = 3;
     bool init(uint32_t width, uint32_t height, uint32_t ahbFormat,
-              float flowScale, uint32_t multiplier);
+              uint32_t quality, uint32_t multiplier);
     uint32_t submit(AHardwareBuffer* incoming, AHardwareBuffer** outInterps);
     void destroy();
     bool ok() const { return ready; }
@@ -28,7 +28,7 @@ private:
     uint32_t h = 0;
     uint32_t ahbFmt = 0;
     int vkFmt = 0;
-    float flowScale = 0.30F;
+    uint32_t quality = 2;
     uint32_t numInterps = 1;
     bool ready = false;
 };

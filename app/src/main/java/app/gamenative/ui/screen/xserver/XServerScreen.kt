@@ -569,7 +569,7 @@ fun XServerScreen(
         xServerView?.setScanoutPacing(scanoutPacingIntervalNs())
         if (SeifgManager.HOST_SIDE_FRAMEGEN && isSeifgAvailable) {
             xServerView?.setHostFramegen(
-                true, SeifgManager.flowScale(container), SeifgManager.multiplier(container))
+                true, SeifgManager.quality(container), SeifgManager.multiplier(container))
         }
     }
 

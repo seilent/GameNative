@@ -1555,6 +1555,7 @@
     <string name="seifg_multiplier">Frame multiplier</string>
     <string name="seifg_flow_scale">Flow scale</string>
     <string name="seifg_flow_scale_desc">Lower is more stable; higher is smoother but can artifact.</string>
+    <string name="seifg_quality">Quality</string>
     <string name="seifg_performance_mode">Performance mode</string>
     <string name="seifg_not_supported">Frame generation requires a Bionic container</string>
     <string name="seifg_install_prompt">Unused — will be removed</string>

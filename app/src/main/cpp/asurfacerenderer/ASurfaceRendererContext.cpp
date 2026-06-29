@@ -341,18 +341,20 @@ void ASurfaceRendererContext::setScanoutPacing(int64_t intervalNs) {
     else vsyncClock.stop();
 }
 
-void ASurfaceRendererContext::setHostFramegen(bool enabled, float flowScale, int multiplier) {
+void ASurfaceRendererContext::setHostFramegen(bool enabled, int quality, int multiplier) {
     if (multiplier < 2) multiplier = 2;
     if (multiplier > 4) multiplier = 4;
+    if (quality < 0) quality = 0;
+    if (quality > 4) quality = 4;
     {
         std::lock_guard<std::mutex> lk(hostFgMutex);
-        hostFgFlowScale = flowScale;
+        hostFgQuality = quality;
         hostFgMult = multiplier;
     }
     const bool on = enabled;
     hostFgEnabled.store(on, std::memory_order_relaxed);
     if (on) vsyncClock.start();
-    SCANOUT_LOG("setHostFramegen enabled=%d flow=%.2f mult=%d", (int)on, flowScale, multiplier);
+    SCANOUT_LOG("setHostFramegen enabled=%d quality=%d mult=%d", (int)on, quality, multiplier);
 }
 
 int64_t ASurfaceRendererContext::nextVsyncSlot() {
@@ -396,12 +398,12 @@ void ASurfaceRendererContext::presentOne(void* sc, AHardwareBuffer* ahb, int fen
 void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb, int fenceFd,
         int64_t windowId, int64_t serial) {
     if (!hostFg.ok()) {
-        float fs; int mult;
-        { std::lock_guard<std::mutex> lk(hostFgMutex); fs = hostFgFlowScale; mult = hostFgMult; }
+        int q; int mult;
+        { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; }
         AHardwareBuffer_Desc d{};
         AHardwareBuffer_describe(ahb, &d);
         SCANOUT_LOG("hostFg incoming AHB fmt=%u %ux%u", d.format, d.width, d.height);
-        if (!hostFg.init(d.width, d.height, d.format, fs, (uint32_t)mult)) {
+        if (!hostFg.init(d.width, d.height, d.format, (uint32_t)q, (uint32_t)mult)) {
             hostFgEnabled.store(false, std::memory_order_relaxed);
             presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
             return;

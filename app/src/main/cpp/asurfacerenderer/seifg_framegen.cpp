@@ -59,9 +59,9 @@ AHardwareBuffer* allocAhb(uint32_t w, uint32_t h, uint32_t format) {
 
 }
 
-bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, float flowScale_, uint32_t multiplier) {
+bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uint32_t quality_, uint32_t multiplier) {
     w = width; h = height; ahbFmt = ahbFormat; vkFmt = ahbToVk(ahbFormat);
-    flowScale = (flowScale_ > 0.001F) ? flowScale_ : 0.30F;
+    quality = quality_ > 4 ? 4 : quality_;
     if (multiplier < 2) multiplier = 2;
     if (multiplier > MAX_INTERPS + 1) multiplier = MAX_INTERPS + 1;
     numInterps = multiplier - 1;
@@ -79,11 +79,11 @@ bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, flo
         if (!outAhb[i] || !presentBuf[i][0] || !presentBuf[i][1]) { FERR("AHB alloc failed"); return false; }
         outs[i] = outAhb[i];
     }
-    seifg::initialize(uuid, false, flowScale, (uint64_t)multiplier, {});
+    seifg::initialize(uuid, false, quality, (uint64_t)multiplier, {});
     ctxId = seifg::createContextFromAHB(in0, in1, outs, VkExtent2D{w, h}, static_cast<VkFormat>(vkFmt));
     if (ctxId < 0) { FERR("createContext failed"); return false; }
     ready = true;
-    FLOG("init OK %ux%u fmt=%u vk=%d flow=%.2f mult=%u ctx=%d", w, h, ahbFmt, vkFmt, flowScale, multiplier, ctxId);
+    FLOG("init OK %ux%u fmt=%u vk=%d quality=%u mult=%u ctx=%d", w, h, ahbFmt, vkFmt, quality, multiplier, ctxId);
     return true;
 }
 

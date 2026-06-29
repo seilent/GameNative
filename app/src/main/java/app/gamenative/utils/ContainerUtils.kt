@@ -347,6 +347,7 @@ object ContainerUtils {
             seifgEnabled = container.getExtra(SeifgManager.EXTRA_ARMED, "false").toBoolean(),
             seifgTargetFps = container.getExtra(SeifgManager.EXTRA_TARGET_FPS, "60").toIntOrNull() ?: 60,
             seifgMultiplier = container.getExtra(SeifgManager.EXTRA_MULTIPLIER, "2").toIntOrNull() ?: 2,
+            seifgQuality = container.getExtra(SeifgManager.EXTRA_QUALITY, "2").toIntOrNull() ?: 2,
         )
     }
 
@@ -529,6 +530,7 @@ object ContainerUtils {
         container.putExtra(SeifgManager.EXTRA_ARMED, containerData.seifgEnabled.toString())
         container.putExtra(SeifgManager.EXTRA_TARGET_FPS, containerData.seifgTargetFps.toString())
         container.putExtra(SeifgManager.EXTRA_MULTIPLIER, containerData.seifgMultiplier.toString())
+        container.putExtra(SeifgManager.EXTRA_QUALITY, containerData.seifgQuality.toString())
         try {
             container.language = containerData.language
         } catch (e: Exception) {
