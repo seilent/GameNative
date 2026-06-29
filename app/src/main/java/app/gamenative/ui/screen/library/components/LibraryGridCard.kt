@@ -1,6 +1,8 @@
 package app.gamenative.ui.screen.library.components
 
 import android.content.Context
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,6 +68,7 @@ import app.gamenative.ui.data.GameCardStats
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ListItemImage
 import app.gamenative.utils.CustomGameScanner
@@ -74,6 +77,7 @@ import com.skydoves.landscapist.coil.CoilImage
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 private val gridImageUrlCache = ConcurrentHashMap<String, GridImageUrls>()
@@ -106,7 +110,16 @@ internal fun GridViewCard(
     val cardContentBottomPadding = if (isCapsule) 12.dp else 8.dp
     val topIconPadding = if (isCapsule) 10.dp else 8.dp
     val accentColor = if (isFocused || appInfo.isRecommended || appInfo.isShared) LocalGameAccent.current else Color.Transparent
-    val overlayAlpha = if (isFocused) 1f else 0f
+    val overlayAlphaAnim = remember { Animatable(0f) }
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            delay(600L)
+            overlayAlphaAnim.animateTo(1f, Motion.Fade)
+        } else {
+            overlayAlphaAnim.animateTo(0f, tween(150))
+        }
+    }
+    val overlayAlpha = overlayAlphaAnim.value
     val focusHaloModifier = if (isFocused && showFocusGlow) {
         Modifier.drawWithCache {
             val glowBrush = Brush.radialGradient(
