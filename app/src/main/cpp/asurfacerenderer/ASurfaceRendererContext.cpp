@@ -341,16 +341,18 @@ void ASurfaceRendererContext::setScanoutPacing(int64_t intervalNs) {
     else vsyncClock.stop();
 }
 
-void ASurfaceRendererContext::setHostFramegen(bool enabled, float flowScale, bool performanceMode) {
+void ASurfaceRendererContext::setHostFramegen(bool enabled, float flowScale, int multiplier) {
+    if (multiplier < 2) multiplier = 2;
+    if (multiplier > 4) multiplier = 4;
     {
         std::lock_guard<std::mutex> lk(hostFgMutex);
         hostFgFlowScale = flowScale;
-        hostFgPerf = performanceMode;
+        hostFgMult = multiplier;
     }
     const bool on = enabled;
     hostFgEnabled.store(on, std::memory_order_relaxed);
     if (on) vsyncClock.start();
-    SCANOUT_LOG("setHostFramegen enabled=%d flow=%.2f perf=%d", (int)on, flowScale, (int)performanceMode);
+    SCANOUT_LOG("setHostFramegen enabled=%d flow=%.2f mult=%d", (int)on, flowScale, multiplier);
 }
 
 int64_t ASurfaceRendererContext::nextVsyncSlot() {
@@ -394,21 +396,22 @@ void ASurfaceRendererContext::presentOne(void* sc, AHardwareBuffer* ahb, int fen
 void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb, int fenceFd,
         int64_t windowId, int64_t serial) {
     if (!hostFg.ok()) {
-        float fs; bool pf;
-        { std::lock_guard<std::mutex> lk(hostFgMutex); fs = hostFgFlowScale; pf = hostFgPerf; }
+        float fs; int mult;
+        { std::lock_guard<std::mutex> lk(hostFgMutex); fs = hostFgFlowScale; mult = hostFgMult; }
         AHardwareBuffer_Desc d{};
         AHardwareBuffer_describe(ahb, &d);
         SCANOUT_LOG("hostFg incoming AHB fmt=%u %ux%u", d.format, d.width, d.height);
-        if (!hostFg.init(d.width, d.height, d.format, fs, pf)) {
+        if (!hostFg.init(d.width, d.height, d.format, fs, (uint32_t)mult)) {
             hostFgEnabled.store(false, std::memory_order_relaxed);
             presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
             return;
         }
     }
 
-    AHardwareBuffer* interp = hostFg.submit(ahb);
+    AHardwareBuffer* interps[HostFramegen::MAX_INTERPS] = { nullptr, nullptr, nullptr };
+    const uint32_t n = hostFg.submit(ahb, interps);
     const int64_t period = vsyncClock.periodNs();
-    if (interp == nullptr || period <= 0) {
+    if (n == 0 || period <= 0) {
         presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
         return;
     }
@@ -434,23 +437,32 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
         }
         pe = e; pk = k;
     }
-    presentOne(sc, interp, -1, 0, 0, k);
 
-    const int64_t spin = 1'000'000;
-    int64_t cur = scanoutNowNs();
-    if (cur < k) {
-        const int64_t s = k - cur - spin;
-        if (s > 0) {
-            struct timespec ts{};
-            ts.tv_sec = s / 1'000'000'000LL;
-            ts.tv_nsec = s % 1'000'000'000LL;
-            nanosleep(&ts, nullptr);
+    auto busyWaitUntil = [](int64_t t) {
+        const int64_t spin = 1'000'000;
+        int64_t cur = scanoutNowNs();
+        if (cur < t) {
+            const int64_t s = t - cur - spin;
+            if (s > 0) {
+                struct timespec ts{};
+                ts.tv_sec = s / 1'000'000'000LL;
+                ts.tv_nsec = s % 1'000'000'000LL;
+                nanosleep(&ts, nullptr);
+            }
+            while (scanoutNowNs() < t) { }
         }
-        while (scanoutNowNs() < k) { }
-    }
+    };
 
-    presentOne(sc, ahb, fenceFd, windowId, serial, k + period);
-    scanoutNextPresentNs = k + period;
+    presentOne(sc, interps[0], -1, 0, 0, k);
+    for (uint32_t i = 1; i <= n; i++) {
+        busyWaitUntil(k + (int64_t)(i - 1) * period);
+        const int64_t target = k + (int64_t)i * period;
+        if (i < n)
+            presentOne(sc, interps[i], -1, 0, 0, target);
+        else
+            presentOne(sc, ahb, fenceFd, windowId, serial, target);
+    }
+    scanoutNextPresentNs = k + (int64_t)n * period;
 }
 
 void ASurfaceRendererContext::loadSfCallbackApi() {

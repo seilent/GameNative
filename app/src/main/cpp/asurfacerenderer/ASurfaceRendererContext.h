@@ -53,7 +53,7 @@ public:
     void setWindowBuffer(int64_t contentId, AHardwareBuffer* ahb, int fenceFd,
                          int64_t windowId = 0, int64_t serial = 0);
     void setScanoutPacing(int64_t intervalNs);
-    void setHostFramegen(bool enabled, float flowScale, bool performanceMode);
+    void setHostFramegen(bool enabled, float flowScale, int multiplier);
 
     void scanoutSetCursorVisibility(bool visible);
     void applyCursorGeometry(short x, short y, short hotX, short hotY, bool cursorVisible);
@@ -85,7 +85,7 @@ private:
     std::atomic<bool> hostFgEnabled{false};
     std::mutex hostFgMutex;
     float hostFgFlowScale = 0.30F;
-    bool hostFgPerf = false;
+    int hostFgMult = 2;
     void hostFramegenPresent(void* sc, AHardwareBuffer* ahb, int fenceFd,
                              int64_t windowId, int64_t serial);
     void presentOne(void* sc, AHardwareBuffer* ahb, int fenceFd,

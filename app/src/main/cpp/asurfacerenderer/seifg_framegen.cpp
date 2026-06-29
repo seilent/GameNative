@@ -59,45 +59,49 @@ AHardwareBuffer* allocAhb(uint32_t w, uint32_t h, uint32_t format) {
 
 }
 
-bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, float flowScale_, bool performanceMode) {
+bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, float flowScale_, uint32_t multiplier) {
     w = width; h = height; ahbFmt = ahbFormat; vkFmt = ahbToVk(ahbFormat);
     flowScale = (flowScale_ > 0.001F) ? flowScale_ : 0.30F;
-    perf = performanceMode;
+    if (multiplier < 2) multiplier = 2;
+    if (multiplier > MAX_INTERPS + 1) multiplier = MAX_INTERPS + 1;
+    numInterps = multiplier - 1;
     const uint64_t uuid = enumUuid();
     if (uuid == 0) { FERR("no device uuid"); return false; }
     if (!copier.init(uuid)) { FERR("copier init failed"); return false; }
     in0 = allocAhb(w, h, ahbFmt);
     in1 = allocAhb(w, h, ahbFmt);
-    out = allocAhb(w, h, ahbFmt);
-    presentBuf[0] = allocAhb(w, h, ahbFmt);
-    presentBuf[1] = allocAhb(w, h, ahbFmt);
-    if (!in0 || !in1 || !out || !presentBuf[0] || !presentBuf[1]) { FERR("AHB alloc failed"); return false; }
-    const float fsParam = flowScale;
-    if (perf) {
-        seifg::initialize(uuid, false, fsParam, 1, {});
-        ctxId = seifg::createContextFromAHB(in0, in1, {out}, VkExtent2D{w, h}, static_cast<VkFormat>(vkFmt));
-    } else {
-        seifg::initialize(uuid, false, fsParam, 1, {});
-        ctxId = seifg::createContextFromAHB(in0, in1, {out}, VkExtent2D{w, h}, static_cast<VkFormat>(vkFmt));
+    if (!in0 || !in1) { FERR("AHB alloc failed"); return false; }
+    std::vector<AHardwareBuffer*> outs(numInterps);
+    for (uint32_t i = 0; i < numInterps; i++) {
+        outAhb[i] = allocAhb(w, h, ahbFmt);
+        presentBuf[i][0] = allocAhb(w, h, ahbFmt);
+        presentBuf[i][1] = allocAhb(w, h, ahbFmt);
+        if (!outAhb[i] || !presentBuf[i][0] || !presentBuf[i][1]) { FERR("AHB alloc failed"); return false; }
+        outs[i] = outAhb[i];
     }
+    seifg::initialize(uuid, false, flowScale, (uint64_t)multiplier, {});
+    ctxId = seifg::createContextFromAHB(in0, in1, outs, VkExtent2D{w, h}, static_cast<VkFormat>(vkFmt));
     if (ctxId < 0) { FERR("createContext failed"); return false; }
     ready = true;
-    FLOG("init OK %ux%u fmt=%u vk=%d flow=%.2f perf=%d ctx=%d", w, h, ahbFmt, vkFmt, flowScale, (int)perf, ctxId);
+    FLOG("init OK %ux%u fmt=%u vk=%d flow=%.2f mult=%u ctx=%d", w, h, ahbFmt, vkFmt, flowScale, multiplier, ctxId);
     return true;
 }
 
-AHardwareBuffer* HostFramegen::submit(AHardwareBuffer* incoming) {
-    if (!ready) return nullptr;
+uint32_t HostFramegen::submit(AHardwareBuffer* incoming, AHardwareBuffer** outInterps) {
+    if (!ready) return 0;
     const VkFormat fmt = static_cast<VkFormat>(vkFmt);
-    if (frameIdx == 0) { copier.copy(incoming, in1, fmt, w, h); frameIdx++; return nullptr; }
-    if (!copier.copy(in1, in0, fmt, w, h)) { FERR("shift copy failed"); return nullptr; }
-    if (!copier.copy(incoming, in1, fmt, w, h)) { FERR("copy failed"); return nullptr; }
+    if (frameIdx == 0) { copier.copy(incoming, in1, fmt, w, h); frameIdx++; return 0; }
+    if (!copier.copy(in1, in0, fmt, w, h)) { FERR("shift copy failed"); return 0; }
+    if (!copier.copy(incoming, in1, fmt, w, h)) { FERR("copy failed"); return 0; }
     const uint64_t idx = frameIdx++;
     seifg::presentContext(ctxId, -1, {});
     seifg::waitIdle();
-    AHardwareBuffer* pb = presentBuf[idx % 2];
-    if (!copier.copy(out, pb, fmt, w, h)) return out;
-    return pb;
+    for (uint32_t i = 0; i < numInterps; i++) {
+        AHardwareBuffer* pb = presentBuf[i][idx % 2];
+        if (!copier.copy(outAhb[i], pb, fmt, w, h)) pb = outAhb[i];
+        outInterps[i] = pb;
+    }
+    return numInterps;
 }
 
 void HostFramegen::destroy() {
@@ -105,10 +109,13 @@ void HostFramegen::destroy() {
     copier.destroy();
     if (in0) AHardwareBuffer_release(in0);
     if (in1) AHardwareBuffer_release(in1);
-    if (out) AHardwareBuffer_release(out);
-    if (presentBuf[0]) AHardwareBuffer_release(presentBuf[0]);
-    if (presentBuf[1]) AHardwareBuffer_release(presentBuf[1]);
-    in0 = in1 = out = nullptr;
-    presentBuf[0] = presentBuf[1] = nullptr;
+    for (uint32_t i = 0; i < MAX_INTERPS; i++) {
+        if (outAhb[i]) AHardwareBuffer_release(outAhb[i]);
+        if (presentBuf[i][0]) AHardwareBuffer_release(presentBuf[i][0]);
+        if (presentBuf[i][1]) AHardwareBuffer_release(presentBuf[i][1]);
+        outAhb[i] = nullptr;
+        presentBuf[i][0] = presentBuf[i][1] = nullptr;
+    }
+    in0 = in1 = nullptr;
     ready = false;
 }

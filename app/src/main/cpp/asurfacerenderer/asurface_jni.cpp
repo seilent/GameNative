@@ -65,10 +65,10 @@ Java_com_winlator_renderer_ASurfaceRenderer_nativeSetScanoutPacing(JNIEnv*, jobj
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_winlator_renderer_ASurfaceRenderer_nativeSetHostFramegen(
-        JNIEnv*, jobject, jboolean enabled, jfloat flowScale, jboolean perfMode) {
+        JNIEnv*, jobject, jboolean enabled, jfloat flowScale, jint multiplier) {
     std::shared_lock lk(g_ctxMutex);
     if (auto* r = g_ctx) {
-        r->setHostFramegen(enabled, flowScale, perfMode);
+        r->setHostFramegen(enabled, flowScale, multiplier);
     }
 }
 

@@ -52,9 +52,9 @@ public class XServerView extends SurfaceView implements SurfaceHolder.Callback, 
         }
     }
 
-    public void setHostFramegen(boolean enabled, float flowScale, boolean perfMode) {
+    public void setHostFramegen(boolean enabled, float flowScale, int multiplier) {
         if (renderer instanceof ASurfaceRenderer scRenderer) {
-            scRenderer.setHostFramegen(enabled, flowScale, perfMode);
+            scRenderer.setHostFramegen(enabled, flowScale, multiplier);
         }
     }
 

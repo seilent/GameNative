@@ -7,9 +7,10 @@
 
 class HostFramegen {
 public:
+    static constexpr uint32_t MAX_INTERPS = 3;
     bool init(uint32_t width, uint32_t height, uint32_t ahbFormat,
-              float flowScale, bool performanceMode);
-    AHardwareBuffer* submit(AHardwareBuffer* incoming);
+              float flowScale, uint32_t multiplier);
+    uint32_t submit(AHardwareBuffer* incoming, AHardwareBuffer** outInterps);
     void destroy();
     bool ok() const { return ready; }
     uint32_t width() const { return w; }
@@ -20,14 +21,14 @@ private:
     int32_t ctxId = -1;
     AHardwareBuffer* in0 = nullptr;
     AHardwareBuffer* in1 = nullptr;
-    AHardwareBuffer* out = nullptr;
-    AHardwareBuffer* presentBuf[2] = { nullptr, nullptr };
+    AHardwareBuffer* outAhb[MAX_INTERPS] = { nullptr, nullptr, nullptr };
+    AHardwareBuffer* presentBuf[MAX_INTERPS][2] = {};
     uint64_t frameIdx = 0;
     uint32_t w = 0;
     uint32_t h = 0;
     uint32_t ahbFmt = 0;
     int vkFmt = 0;
     float flowScale = 0.30F;
-    bool perf = false;
+    uint32_t numInterps = 1;
     bool ready = false;
 };
