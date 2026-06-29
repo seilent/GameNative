@@ -13,8 +13,10 @@ object SeifgManager {
     const val EXTRA_MULTIPLIER = "lsfgMultiplier"
     const val EXTRA_FLOW_SCALE = "lsfgFlowScale"
     const val EXTRA_BASE_FPS_CAP = "lsfgBaseFpsCap"
+    const val EXTRA_TARGET_FPS = "lsfgTargetFps"
 
     const val SEIFG_BASE_FPS_CAP = 30
+    const val SEIFG_TARGET_FPS = 60
 
     const val HOST_SIDE_FRAMEGEN = true
 
@@ -43,9 +45,14 @@ object SeifgManager {
     fun flowScale(container: Container): Float =
         container.getExtra(EXTRA_FLOW_SCALE, "0.30").toFloatOrNull()?.coerceIn(0.25f, 1.0f) ?: 0.30f
 
-    fun baseFpsCap(container: Container): Int =
-        container.getExtra(EXTRA_BASE_FPS_CAP, SEIFG_BASE_FPS_CAP.toString())
-            .toIntOrNull()?.coerceAtLeast(0) ?: SEIFG_BASE_FPS_CAP
+    fun targetFps(container: Container): Int =
+        container.getExtra(EXTRA_TARGET_FPS, SEIFG_TARGET_FPS.toString())
+            .toIntOrNull()?.coerceIn(30, 240) ?: SEIFG_TARGET_FPS
+
+    fun baseFpsCap(container: Container): Int {
+        val m = multiplier(container).coerceAtLeast(2)
+        return (targetFps(container) / m).coerceAtLeast(1)
+    }
 
     @JvmStatic
     fun applyLaunchEnv(container: Container, envVars: EnvVars): Boolean {

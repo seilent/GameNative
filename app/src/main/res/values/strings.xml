@@ -1567,6 +1567,8 @@
     <string name="lsfg_base_fps_cap">Base frame rate cap</string>
     <string name="lsfg_base_fps_cap_desc">Real frames per second before generation. LSFG multiplies this to the displayed rate. Set to 0 to leave uncapped.</string>
     <string name="lsfg_uncapped">Uncapped</string>
+    <string name="lsfg_target_fps">Target FPS</string>
+    <string name="lsfg_target_fps_desc">Game renders at %1$d fps</string>
     <string name="settings_interface_show_recommendations_title">Show game recommendations</string>
     <string name="settings_interface_show_recommendations_subtitle">Show curated indie game picks in your library. Keeping this on helps support indie developers and GameNative.</string>
 

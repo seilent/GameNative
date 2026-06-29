@@ -345,9 +345,8 @@ object ContainerUtils {
             sharpnessLevel = container.getExtra("sharpnessLevel", "100").toIntOrNull() ?: 100,
             sharpnessDenoise = container.getExtra("sharpnessDenoise", "100").toIntOrNull() ?: 100,
             lsfgEnabled = container.getExtra(SeifgManager.EXTRA_ARMED, "false").toBoolean(),
-            lsfgBaseFpsCap = container.getExtra(SeifgManager.EXTRA_BASE_FPS_CAP, "30").toIntOrNull() ?: 30,
+            lsfgTargetFps = container.getExtra(SeifgManager.EXTRA_TARGET_FPS, "60").toIntOrNull() ?: 60,
             lsfgMultiplier = container.getExtra(SeifgManager.EXTRA_MULTIPLIER, "2").toIntOrNull() ?: 2,
-            lsfgFlowScale = container.getExtra(SeifgManager.EXTRA_FLOW_SCALE, "0.5").toFloatOrNull() ?: 0.5f,
         )
     }
 
@@ -528,9 +527,8 @@ object ContainerUtils {
         container.putExtra("sharpnessLevel", containerData.sharpnessLevel.toString())
         container.putExtra("sharpnessDenoise", containerData.sharpnessDenoise.toString())
         container.putExtra(SeifgManager.EXTRA_ARMED, containerData.lsfgEnabled.toString())
-        container.putExtra(SeifgManager.EXTRA_BASE_FPS_CAP, containerData.lsfgBaseFpsCap.toString())
+        container.putExtra(SeifgManager.EXTRA_TARGET_FPS, containerData.lsfgTargetFps.toString())
         container.putExtra(SeifgManager.EXTRA_MULTIPLIER, containerData.lsfgMultiplier.toString())
-        container.putExtra(SeifgManager.EXTRA_FLOW_SCALE, containerData.lsfgFlowScale.toString())
         try {
             container.language = containerData.language
         } catch (e: Exception) {
