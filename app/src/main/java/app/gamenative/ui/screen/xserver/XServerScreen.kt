@@ -112,8 +112,8 @@ import app.gamenative.utils.ContainerUtils
 import app.gamenative.utils.downloader.CoreDriverDownloader
 import app.gamenative.utils.CustomGameScanner
 import app.gamenative.utils.ExecutableSelectionUtils
-import app.gamenative.utils.LsfgQuickMenuHelper
-import app.gamenative.utils.LsfgVkManager
+import app.gamenative.utils.SeifgQuickMenuHelper
+import app.gamenative.utils.SeifgManager
 import app.gamenative.utils.ManifestComponentHelper
 import app.gamenative.utils.downloader.DXWrapperDownloader
 import app.gamenative.utils.downloader.GraphicsDriverDownloader
@@ -473,12 +473,11 @@ fun XServerScreen(
     var fpsLimiterEnabled by rememberSaveable(container.id) { mutableStateOf(initialFpsLimiterEnabled(container)) }
     var fpsLimiterTarget by rememberSaveable(container.id) { mutableIntStateOf(initialFpsLimiterTarget(container)) }
 
-    // LSFG tab in QuickMenu only visible when enabled in container settings
-    val isLsfgAvailable = LsfgQuickMenuHelper.isAvailable(container)
-    val initialLsfgSettings = remember(container.id) { LsfgQuickMenuHelper.readSettings(container) }
-    var lsfgMultiplier by rememberSaveable(container.id) { mutableIntStateOf(initialLsfgSettings.multiplier) }
-    var lsfgFlowScale by rememberSaveable(container.id) { mutableStateOf(initialLsfgSettings.flowScale) }
-    var lsfgPerformanceMode by rememberSaveable(container.id) { mutableStateOf(initialLsfgSettings.performanceMode) }
+    val isSeifgAvailable = SeifgQuickMenuHelper.isAvailable(container)
+    val initialSeifgSettings = remember(container.id) { SeifgQuickMenuHelper.readSettings(container) }
+    var seifgMultiplier by rememberSaveable(container.id) { mutableIntStateOf(initialSeifgSettings.multiplier) }
+    var seifgFlowScale by rememberSaveable(container.id) { mutableStateOf(initialSeifgSettings.flowScale) }
+    var seifgPerformanceMode by rememberSaveable(container.id) { mutableStateOf(initialSeifgSettings.performanceMode) }
 
     fun persistFpsLimiterState() {
         container.putExtra(FPS_LIMITER_ENABLED_EXTRA, fpsLimiterEnabled)
@@ -563,27 +562,27 @@ fun XServerScreen(
     }
 
     fun scanoutPacingIntervalNs(): Long {
-        if (!isLsfgAvailable || lsfgMultiplier < 2) return 0L
+        if (!isSeifgAvailable || seifgMultiplier < 2) return 0L
         val refresh = if (detectedMaxRefreshRateHz > 0) detectedMaxRefreshRateHz else 60
-        val baseCap = LsfgVkManager.baseFpsCap(container)
-        val outputFps = if (baseCap > 0) (baseCap * lsfgMultiplier).coerceAtMost(refresh) else refresh
+        val baseCap = SeifgManager.baseFpsCap(container)
+        val outputFps = if (baseCap > 0) (baseCap * seifgMultiplier).coerceAtMost(refresh) else refresh
         return if (outputFps > 0) 1_000_000_000L / outputFps else 0L
     }
 
     fun applyScanoutPacing() {
         xServerView?.setScanoutPacing(scanoutPacingIntervalNs())
-        if (LsfgVkManager.HOST_SIDE_FRAMEGEN && isLsfgAvailable) {
-            val dll = LsfgVkManager.losslessHostDllPath()
-            if (dll != null) xServerView?.setHostFramegen(true, dll)
+        if (SeifgManager.HOST_SIDE_FRAMEGEN && isSeifgAvailable) {
+            xServerView?.setHostFramegen(
+                true, SeifgManager.flowScale(container), SeifgManager.performanceMode(container))
         }
     }
 
     fun effectiveFpsLimit(): Int =
-        if (isLsfgAvailable && lsfgMultiplier >= 2) {
+        if (isSeifgAvailable && seifgMultiplier >= 2) {
             val refresh = if (detectedMaxRefreshRateHz > 0) detectedMaxRefreshRateHz else 60
-            val baseCap = LsfgVkManager.baseFpsCap(container)
-            if (LsfgVkManager.HOST_SIDE_FRAMEGEN) baseCap.coerceAtLeast(1)
-            else if (baseCap > 0) (baseCap * lsfgMultiplier).coerceAtMost(refresh) else refresh
+            val baseCap = SeifgManager.baseFpsCap(container)
+            if (SeifgManager.HOST_SIDE_FRAMEGEN) baseCap.coerceAtLeast(1)
+            else if (baseCap > 0) (baseCap * seifgMultiplier).coerceAtMost(refresh) else refresh
         } else if (fpsLimiterEnabled) fpsLimiterTarget
         else 0
 
@@ -604,28 +603,28 @@ fun XServerScreen(
         persistFpsLimiterState()
     }
 
-    fun applyLsfgSettings() {
-        LsfgQuickMenuHelper.applySettings(
+    fun applySeifgSettings() {
+        SeifgQuickMenuHelper.applySettings(
             container,
-            LsfgQuickMenuHelper.Settings(lsfgMultiplier, lsfgFlowScale, lsfgPerformanceMode),
+            SeifgQuickMenuHelper.Settings(seifgMultiplier, seifgFlowScale, seifgPerformanceMode),
         )
     }
 
-    fun applyLsfgMultiplier(mult: Int) {
-        lsfgMultiplier = LsfgQuickMenuHelper.sanitizeMultiplier(mult)
-        applyLsfgSettings()
+    fun applySeifgMultiplier(mult: Int) {
+        seifgMultiplier = SeifgQuickMenuHelper.sanitizeMultiplier(mult)
+        applySeifgSettings()
         applyFpsLimiterToEngines(effectiveFpsLimit())
         applyScanoutPacing()
     }
 
-    fun applyLsfgFlowScale(scale: Float) {
-        lsfgFlowScale = LsfgQuickMenuHelper.sanitizeFlowScale(scale)
-        applyLsfgSettings()
+    fun applySeifgFlowScale(scale: Float) {
+        seifgFlowScale = SeifgQuickMenuHelper.sanitizeFlowScale(scale)
+        applySeifgSettings()
     }
 
-    fun applyLsfgPerformanceMode(enabled: Boolean) {
-        lsfgPerformanceMode = enabled
-        applyLsfgSettings()
+    fun applySeifgPerformanceMode(enabled: Boolean) {
+        seifgPerformanceMode = enabled
+        applySeifgSettings()
     }
 
     LaunchedEffect(xServerView) {
@@ -2530,14 +2529,13 @@ fun XServerScreen(
                 if (isTouchscreenModeActive) add(QuickMenuAction.TOUCHSCREEN_MODE)
                 if (isDisableMouseInput) add(QuickMenuAction.DISABLE_MOUSE)
             },
-            // LSFG hot-reload (tab only visible when enabled in container settings)
-            isLsfgAvailable = isLsfgAvailable,
-            lsfgMultiplier = lsfgMultiplier,
-            lsfgFlowScale = lsfgFlowScale,
-            lsfgPerformanceMode = lsfgPerformanceMode,
-            onLsfgMultiplierChanged = ::applyLsfgMultiplier,
-            onLsfgFlowScaleChanged = ::applyLsfgFlowScale,
-            onLsfgPerformanceModeChanged = ::applyLsfgPerformanceMode,
+            isSeifgAvailable = isSeifgAvailable,
+            seifgMultiplier = seifgMultiplier,
+            seifgFlowScale = seifgFlowScale,
+            seifgPerformanceMode = seifgPerformanceMode,
+            onSeifgMultiplierChanged = ::applySeifgMultiplier,
+            onSeifgFlowScaleChanged = ::applySeifgFlowScale,
+            onSeifgPerformanceModeChanged = ::applySeifgPerformanceMode,
             onAnimationComplete = { isMenuVisible ->
                 if (isMenuVisible) {
                     pauseForOverlayIfAllowed()

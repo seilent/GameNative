@@ -1,6 +1,7 @@
 #include "ASurfaceRendererContext.h"
 #include <algorithm>
 #include <cstring>
+#include <cmath>
 #include <dlfcn.h>
 #include <unistd.h>
 #include <time.h>
@@ -340,15 +341,16 @@ void ASurfaceRendererContext::setScanoutPacing(int64_t intervalNs) {
     else vsyncClock.stop();
 }
 
-void ASurfaceRendererContext::setHostFramegen(bool enabled, const char* dllPath) {
+void ASurfaceRendererContext::setHostFramegen(bool enabled, float flowScale, bool performanceMode) {
     {
         std::lock_guard<std::mutex> lk(hostFgMutex);
-        hostFgDll = dllPath ? dllPath : "";
+        hostFgFlowScale = flowScale;
+        hostFgPerf = performanceMode;
     }
-    const bool on = enabled && dllPath && dllPath[0];
+    const bool on = enabled;
     hostFgEnabled.store(on, std::memory_order_relaxed);
     if (on) vsyncClock.start();
-    SCANOUT_LOG("setHostFramegen enabled=%d dll=%s", (int)on, dllPath ? dllPath : "(null)");
+    SCANOUT_LOG("setHostFramegen enabled=%d flow=%.2f perf=%d", (int)on, flowScale, (int)performanceMode);
 }
 
 int64_t ASurfaceRendererContext::nextVsyncSlot() {
@@ -356,10 +358,21 @@ int64_t ASurfaceRendererContext::nextVsyncSlot() {
     const int64_t vsync = vsyncClock.lastVsyncNs();
     const int64_t period = vsyncClock.periodNs();
     if (vsync <= 0 || period <= 0) return now;
-    int64_t slot = vsync + ((now - vsync) / period + 1) * period;
+
+    if (scanoutNextPresentNs == 0)
+        scanoutNextPresentNs = vsync;
+
     int64_t target = scanoutNextPresentNs + period;
-    if (target < slot || target > now + period * 4)
-        target = slot;
+    while (target <= now + period / 4)
+        target += period;
+    if (target > now + period * 4)
+        target = vsync + ((now - vsync) / period + 1) * period;
+
+    int64_t phase = (target - vsync) % period;
+    if (phase < 0) phase += period;
+    if (phase > period / 2) target += period - phase;
+    else target -= phase;
+
     scanoutNextPresentNs = target;
     return target;
 }
@@ -381,12 +394,12 @@ void ASurfaceRendererContext::presentOne(void* sc, AHardwareBuffer* ahb, int fen
 void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb, int fenceFd,
         int64_t windowId, int64_t serial) {
     if (!hostFg.ok()) {
-        std::string dll;
-        { std::lock_guard<std::mutex> lk(hostFgMutex); dll = hostFgDll; }
+        float fs; bool pf;
+        { std::lock_guard<std::mutex> lk(hostFgMutex); fs = hostFgFlowScale; pf = hostFgPerf; }
         AHardwareBuffer_Desc d{};
         AHardwareBuffer_describe(ahb, &d);
         SCANOUT_LOG("hostFg incoming AHB fmt=%u %ux%u", d.format, d.width, d.height);
-        if (dll.empty() || !hostFg.init(dll, d.width, d.height, d.format)) {
+        if (!hostFg.init(d.width, d.height, d.format, fs, pf)) {
             hostFgEnabled.store(false, std::memory_order_relaxed);
             presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
             return;
@@ -401,6 +414,26 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
     }
 
     const int64_t k = nextVsyncSlot();
+    {
+        static int64_t pe = 0, pk = 0;
+        static double es = 0, ess = 0, ks = 0, kss = 0;
+        static int c = 0;
+        int64_t e = scanoutNowNs();
+        if (pe != 0) {
+            double ed = (double)(e - pe);
+            double kd = (double)(k - pk);
+            es += ed; ess += ed * ed; ks += kd; kss += kd * kd;
+            if (++c >= 60) {
+                double em = es / c, km = ks / c;
+                __android_log_print(ANDROID_LOG_INFO, "asr_pace",
+                    "deliver=%.2fms(sd%.2f) slot=%.2fms(sd%.2f) n=%d",
+                    em / 1e6, sqrt(ess / c - em * em) / 1e6,
+                    km / 1e6, sqrt(kss / c - km * km) / 1e6, c);
+                es = ess = ks = kss = 0; c = 0;
+            }
+        }
+        pe = e; pk = k;
+    }
     presentOne(sc, interp, -1, 0, 0, k);
 
     const int64_t spin = 1'000'000;

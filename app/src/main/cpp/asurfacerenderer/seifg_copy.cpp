@@ -1,10 +1,10 @@
-#include "lsfg_copy.h"
+#include "seifg_copy.h"
 
 #include <android/log.h>
 #include <vector>
 
-#define CLOG(...) __android_log_print(ANDROID_LOG_INFO, "lsfg_host", __VA_ARGS__)
-#define CERR(...) __android_log_print(ANDROID_LOG_ERROR, "lsfg_host", __VA_ARGS__)
+#define CLOG(...) __android_log_print(ANDROID_LOG_INFO, "seifg_copier", __VA_ARGS__)
+#define CERR(...) __android_log_print(ANDROID_LOG_ERROR, "seifg_copier", __VA_ARGS__)
 
 bool HostCopier::init(uint64_t wantUuid) {
     if (volkInitialize() != VK_SUCCESS) { CERR("copier: volkInitialize failed"); return false; }
@@ -138,20 +138,33 @@ void HostCopier::destroyImg(Img& i) {
     i.image = VK_NULL_HANDLE; i.mem = VK_NULL_HANDLE;
 }
 
+HostCopier::Img* HostCopier::getImg(AHardwareBuffer* ahb, VkFormat format, uint32_t w, uint32_t h) {
+    auto it = imgCache.find(ahb);
+    if (it != imgCache.end()) return &it->second;
+    Img img{};
+    if (!importImage(ahb, format, w, h,
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, img))
+        return nullptr;
+    auto res = imgCache.emplace(ahb, img);
+    return &res.first->second;
+}
+
 bool HostCopier::copy(AHardwareBuffer* src, AHardwareBuffer* dst,
         VkFormat format, uint32_t w, uint32_t h) {
     if (!ready) return false;
-    Img s{}, d{};
-    if (!importImage(src, format, w, h, VK_IMAGE_USAGE_TRANSFER_SRC_BIT, s)) return false;
-    if (!importImage(dst, format, w, h, VK_IMAGE_USAGE_TRANSFER_DST_BIT, d)) { destroyImg(s); return false; }
+    Img* s = getImg(src, format, w, h);
+    Img* d = getImg(dst, format, w, h);
+    if (!s || !d) return false;
 
-    VkCommandBufferAllocateInfo cba{};
-    cba.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    cba.commandPool = pool;
-    cba.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    cba.commandBufferCount = 1;
-    VkCommandBuffer cmd{};
-    t.vkAllocateCommandBuffers(device, &cba, &cmd);
+    if (cmd == VK_NULL_HANDLE) {
+        VkCommandBufferAllocateInfo cba{};
+        cba.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        cba.commandPool = pool;
+        cba.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        cba.commandBufferCount = 1;
+        t.vkAllocateCommandBuffers(device, &cba, &cmd);
+    }
+    t.vkResetCommandBuffer(cmd, 0);
 
     VkCommandBufferBeginInfo bi{};
     bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -171,15 +184,15 @@ bool HostCopier::copy(AHardwareBuffer* src, AHardwareBuffer* dst,
         t.vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
             0, 0, nullptr, 0, nullptr, 1, &b);
     };
-    barrier(s.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0, VK_ACCESS_TRANSFER_READ_BIT);
-    barrier(d.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT);
+    barrier(s->image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0, VK_ACCESS_TRANSFER_READ_BIT);
+    barrier(d->image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT);
 
     VkImageCopy region{};
     region.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
     region.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
     region.extent = { w, h, 1 };
-    t.vkCmdCopyImage(cmd, s.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-        d.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+    t.vkCmdCopyImage(cmd, s->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        d->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
     t.vkEndCommandBuffer(cmd);
     VkSubmitInfo si{};
@@ -188,15 +201,13 @@ bool HostCopier::copy(AHardwareBuffer* src, AHardwareBuffer* dst,
     si.pCommandBuffers = &cmd;
     t.vkQueueSubmit(queue, 1, &si, VK_NULL_HANDLE);
     t.vkQueueWaitIdle(queue);
-
-    t.vkFreeCommandBuffers(device, pool, 1, &cmd);
-    destroyImg(s);
-    destroyImg(d);
     return true;
 }
 
 void HostCopier::destroy() {
     if (!ready) return;
+    for (auto& kv : imgCache) destroyImg(kv.second);
+    imgCache.clear();
     if (pool) t.vkDestroyCommandPool(device, pool, nullptr);
     if (device) t.vkDestroyDevice(device, nullptr);
     if (instance) vkDestroyInstance(instance, nullptr);

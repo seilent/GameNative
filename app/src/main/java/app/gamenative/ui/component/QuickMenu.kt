@@ -112,7 +112,7 @@ object QuickMenuAction {
 
 private object QuickMenuTab {
     const val HUD = 0
-    const val LSFG = 1
+    const val SEIFG = 1
     const val EFFECTS = 2
     const val CONTROLLER = 3
     const val TOOLS = 4
@@ -256,14 +256,13 @@ fun QuickMenu(
     isTouchscreenModeActive: Boolean = false,
     onTouchGestureSettingsClick: () -> Unit = {},
     activeToggleIds: Set<Int> = emptySet(),
-    // LSFG hot-reload state (tab only visible when isLsfgAvailable)
-    isLsfgAvailable: Boolean = false,
-    lsfgMultiplier: Int = 2,
-    lsfgFlowScale: Float = 0.30f,
-    lsfgPerformanceMode: Boolean = true,
-    onLsfgMultiplierChanged: (Int) -> Unit = {},
-    onLsfgFlowScaleChanged: (Float) -> Unit = {},
-    onLsfgPerformanceModeChanged: (Boolean) -> Unit = {},
+    isSeifgAvailable: Boolean = false,
+    seifgMultiplier: Int = 2,
+    seifgFlowScale: Float = 0.30f,
+    seifgPerformanceMode: Boolean = true,
+    onSeifgMultiplierChanged: (Int) -> Unit = {},
+    onSeifgFlowScaleChanged: (Float) -> Unit = {},
+    onSeifgPerformanceModeChanged: (Boolean) -> Unit = {},
     onAnimationComplete: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -329,14 +328,14 @@ fun QuickMenu(
 
     var selectedTab by rememberSaveable {
         mutableIntStateOf(
-            if (PrefManager.quickMenuLastTab == QuickMenuTab.LSFG && !isLsfgAvailable)
+            if (PrefManager.quickMenuLastTab == QuickMenuTab.SEIFG && !isSeifgAvailable)
                 QuickMenuTab.HUD
             else PrefManager.quickMenuLastTab
         )
     }
     val selectedTabLabelResId = when (selectedTab) {
         QuickMenuTab.HUD -> R.string.performance_hud
-        QuickMenuTab.LSFG -> R.string.lsfg_tab_title
+        QuickMenuTab.SEIFG -> R.string.lsfg_tab_title
         QuickMenuTab.EFFECTS -> R.string.screen_effects
         QuickMenuTab.TOOLS -> R.string.task_manager
         else -> R.string.quick_menu_tab_controller
@@ -344,10 +343,10 @@ fun QuickMenu(
 
     val hudScrollState = rememberScrollState()
     val effectsScrollState = rememberScrollState()
-    val lsfgScrollState = rememberScrollState()
+    val seifgScrollState = rememberScrollState()
     val effectsTabFocusRequester = remember { FocusRequester() }
     val controllerScrollState = rememberScrollState()
-    val lsfgTabFocusRequester = remember { FocusRequester() }
+    val seifgTabFocusRequester = remember { FocusRequester() }
     val hudTabFocusRequester = remember { FocusRequester() }
     val controllerTabFocusRequester = remember { FocusRequester() }
     val toolsTabFocusRequester = remember { FocusRequester() }
@@ -355,7 +354,7 @@ fun QuickMenu(
     val effectsItemFocusRequester = remember { FocusRequester() }
     val controllerItemFocusRequester = remember { FocusRequester() }
     val toolsItemFocusRequester = remember { FocusRequester() }
-    val lsfgItemFocusRequester = remember { FocusRequester() }
+    val seifgItemFocusRequester = remember { FocusRequester() }
 
     val visibleState = remember { MutableTransitionState(false) }
     visibleState.targetState = isVisible
@@ -466,18 +465,18 @@ fun QuickMenu(
                                     modifier = Modifier.width(56.dp),
                                     focusRequester = hudTabFocusRequester,
                                 )
-                                if (isLsfgAvailable) {
+                                if (isSeifgAvailable) {
                                     QuickMenuTabButton(
                                         icon = Icons.Default.Speed,
                                         contentDescriptionResId = R.string.lsfg_tab_title,
-                                        selected = selectedTab == QuickMenuTab.LSFG,
+                                        selected = selectedTab == QuickMenuTab.SEIFG,
                                         accentColor = LocalGameAccent.current,
                                         onSelected = {
-                                            selectedTab = QuickMenuTab.LSFG
+                                            selectedTab = QuickMenuTab.SEIFG
                                             PrefManager.quickMenuLastTab = selectedTab
                                         },
                                         modifier = Modifier.width(56.dp),
-                                        focusRequester = lsfgTabFocusRequester,
+                                        focusRequester = seifgTabFocusRequester,
                                     )
                                 }
                                 if (renderer != null || glRenderer != null) {
@@ -571,7 +570,7 @@ fun QuickMenu(
                                             fpsLimiterEnabled = fpsLimiterEnabled,
                                             fpsLimiterTarget = fpsLimiterTarget,
                                             fpsLimiterMax = fpsLimiterMax,
-                                            lsfgMultiplier = if (isLsfgAvailable) lsfgMultiplier else 0,
+                                            seifgMultiplier = if (isSeifgAvailable) seifgMultiplier else 0,
                                             onTogglePerformanceHud = {
                                                 onItemSelected(QuickMenuAction.PERFORMANCE_HUD)
                                             },
@@ -584,16 +583,16 @@ fun QuickMenu(
                                         )
                                     }
 
-                                    QuickMenuTab.LSFG -> {
-                                        LsfgQuickMenuTab(
-                                            multiplier = lsfgMultiplier,
-                                            flowScale = lsfgFlowScale,
-                                            performanceMode = lsfgPerformanceMode,
-                                            onMultiplierChanged = onLsfgMultiplierChanged,
-                                            onFlowScaleChanged = onLsfgFlowScaleChanged,
-                                            onPerformanceModeChanged = onLsfgPerformanceModeChanged,
-                                            scrollState = lsfgScrollState,
-                                            focusRequester = lsfgItemFocusRequester,
+                                    QuickMenuTab.SEIFG -> {
+                                        SeifgQuickMenuTab(
+                                            multiplier = seifgMultiplier,
+                                            flowScale = seifgFlowScale,
+                                            performanceMode = seifgPerformanceMode,
+                                            onMultiplierChanged = onSeifgMultiplierChanged,
+                                            onFlowScaleChanged = onSeifgFlowScaleChanged,
+                                            onPerformanceModeChanged = onSeifgPerformanceModeChanged,
+                                            scrollState = seifgScrollState,
+                                            focusRequester = seifgItemFocusRequester,
                                             modifier = Modifier.fillMaxSize(),
                                         )
                                     }
@@ -686,7 +685,7 @@ fun QuickMenu(
                 try {
                     when (selectedTab) {
                         QuickMenuTab.HUD -> hudItemFocusRequester.requestFocus()
-                        QuickMenuTab.LSFG -> lsfgItemFocusRequester.requestFocus()
+                        QuickMenuTab.SEIFG -> seifgItemFocusRequester.requestFocus()
                         QuickMenuTab.EFFECTS -> effectsItemFocusRequester.requestFocus()
                         QuickMenuTab.TOOLS -> toolsItemFocusRequester.requestFocus()
                         else -> controllerItemFocusRequester.requestFocus()
@@ -755,7 +754,7 @@ private fun PerformanceHudQuickMenuTab(
     fpsLimiterEnabled: Boolean,
     fpsLimiterTarget: Int,
     fpsLimiterMax: Int,
-    lsfgMultiplier: Int,
+    seifgMultiplier: Int,
     onTogglePerformanceHud: () -> Unit,
     onPerformanceHudConfigChanged: (PerformanceHudConfig) -> Unit,
     onFpsLimiterEnabledChanged: (Boolean) -> Unit,
@@ -773,22 +772,22 @@ private fun PerformanceHudQuickMenuTab(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         // ── FPS Limiter (topmost) ────────────────────────────────────────
-        val limiterControlledByLsfg = lsfgMultiplier >= 2
+        val limiterControlledBySeifg = seifgMultiplier >= 2
         QuickMenuToggleRow(
             title = stringResource(R.string.performance_hud_fps_limiter),
-            subtitle = if (limiterControlledByLsfg) {
+            subtitle = if (limiterControlledBySeifg) {
                 stringResource(R.string.performance_hud_fps_limiter_lsfg_override)
             } else null,
-            enabled = fpsLimiterEnabled && !limiterControlledByLsfg,
+            enabled = fpsLimiterEnabled && !limiterControlledBySeifg,
             onToggle = {
-                if (!limiterControlledByLsfg) onFpsLimiterEnabledChanged(!fpsLimiterEnabled)
+                if (!limiterControlledBySeifg) onFpsLimiterEnabledChanged(!fpsLimiterEnabled)
             },
             accentColor = accentColor,
             focusRequester = focusRequester,
         )
 
         AnimatedVisibility(
-            visible = fpsLimiterEnabled && !limiterControlledByLsfg,
+            visible = fpsLimiterEnabled && !limiterControlledBySeifg,
             enter = expandVertically() + fadeIn(),
             exit = shrinkVertically() + fadeOut(),
         ) {
@@ -1095,7 +1094,7 @@ private fun PerformanceHudQuickMenuTab(
 }
 
 @Composable
-private fun LsfgQuickMenuTab(
+private fun SeifgQuickMenuTab(
     multiplier: Int,
     flowScale: Float,
     performanceMode: Boolean,

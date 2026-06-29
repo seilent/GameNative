@@ -135,10 +135,10 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     private native void nativeDestroyScanout();
     private native void nativeSetWindowBuffer(long contentId, long ahbPtr, int fenceFd, long windowId, long serial);
     private native void nativeSetScanoutPacing(long intervalNs);
-    private native void nativeLsfgHostSpike(String dllPath);
-    public void lsfgHostSpike(String dllPath) { nativeLsfgHostSpike(dllPath); }
-    private native void nativeSetHostFramegen(boolean enabled, String dllPath);
-    public void setHostFramegen(boolean enabled, String dllPath) { nativeSetHostFramegen(enabled, dllPath); }
+    private native void nativeSeifgHostSpike();
+    public void seifgHostSpike() { nativeSeifgHostSpike(); }
+    private native void nativeSetHostFramegen(boolean enabled, float flowScale, boolean perfMode);
+    public void setHostFramegen(boolean enabled, float flowScale, boolean perfMode) { nativeSetHostFramegen(enabled, flowScale, perfMode); }
     private native void nativeScanoutSetCursorVisibility(boolean visible);
     private native void nativeRegisterWindowSC(long contentId, String debugName);
     private native void nativeUnregisterWindowSC(long contentId);

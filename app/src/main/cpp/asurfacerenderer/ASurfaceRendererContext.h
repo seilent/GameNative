@@ -15,7 +15,7 @@
 #include <string>
 
 #include "VsyncClock.h"
-#include "lsfg_framegen.h"
+#include "seifg_framegen.h"
 
 #define WLOG_TAG "asr_renderer"
 #define RLOG(...) __android_log_print(ANDROID_LOG_INFO, WLOG_TAG, __VA_ARGS__)
@@ -53,7 +53,7 @@ public:
     void setWindowBuffer(int64_t contentId, AHardwareBuffer* ahb, int fenceFd,
                          int64_t windowId = 0, int64_t serial = 0);
     void setScanoutPacing(int64_t intervalNs);
-    void setHostFramegen(bool enabled, const char* dllPath);
+    void setHostFramegen(bool enabled, float flowScale, bool performanceMode);
 
     void scanoutSetCursorVisibility(bool visible);
     void applyCursorGeometry(short x, short y, short hotX, short hotY, bool cursorVisible);
@@ -84,7 +84,8 @@ private:
     HostFramegen hostFg;
     std::atomic<bool> hostFgEnabled{false};
     std::mutex hostFgMutex;
-    std::string hostFgDll;
+    float hostFgFlowScale = 0.30F;
+    bool hostFgPerf = false;
     void hostFramegenPresent(void* sc, AHardwareBuffer* ahb, int fenceFd,
                              int64_t windowId, int64_t serial);
     void presentOne(void* sc, AHardwareBuffer* ahb, int fenceFd,

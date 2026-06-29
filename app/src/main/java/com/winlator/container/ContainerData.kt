@@ -100,8 +100,6 @@ data class ContainerData(
     val sharpnessEffect: String = "None",
     val sharpnessLevel: Int = 100,
     val sharpnessDenoise: Int = 100,
-    // LSFG Vulkan frame generation
-    /** Whether LSFG frame generation is enabled for this container */
     val lsfgEnabled: Boolean = false,
     val lsfgBaseFpsCap: Int = 30,
 ) {

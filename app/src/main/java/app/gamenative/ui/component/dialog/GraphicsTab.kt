@@ -8,10 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -22,7 +18,7 @@ import app.gamenative.ui.component.settings.SettingsListDropdownSearchable
 import app.gamenative.ui.component.settings.SettingsMultiListDropdown
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
-import app.gamenative.utils.LsfgVkManager
+import app.gamenative.utils.SeifgManager
 import com.alorma.compose.settings.ui.SettingsGroup
 import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import com.winlator.contents.ContentProfile
@@ -337,10 +333,7 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
             }
         }
 
-        // Frame Generation (LSFG) — hooks the Vulkan swapchain for
-        // transparent frame generation. Only effective on Bionic containers
-        // with a Vortek/Adreno graphics driver.
-        if (!default) LsfgSection(state)
+        if (!default) SeifgSection(state)
 
         SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
@@ -484,78 +477,40 @@ private fun DxWrapperSection(state: ContainerConfigState) {
 }
 
 @Composable
-private fun LsfgSection(state: ContainerConfigState) {
+private fun SeifgSection(state: ContainerConfigState) {
     val config = state.config.value
-    val lsfgSupported = config.containerVariant.equals(Container.BIONIC, ignoreCase = true)
-    if (!lsfgSupported) return
-
-    var dllAvailable by rememberSaveable { mutableStateOf(LsfgVkManager.isDllAvailable()) }
-    val ownsApp = LsfgVkManager.ownsLosslessScaling()
+    val seifgSupported = config.containerVariant.equals(Container.BIONIC, ignoreCase = true)
+    if (!seifgSupported) return
 
     SettingsGroup {
-        when {
-            dllAvailable -> {
-                // State 1: DLL found — toggle works normally
-                SettingsSwitchWithAction(
-                    colors = settingsTileColorsAlt(),
-                    title = { Text(text = stringResource(R.string.lsfg_enable)) },
-                    subtitle = { Text(text = stringResource(R.string.lsfg_description)) },
-                    state = config.lsfgEnabled,
-                    onCheckedChange = {
-                        state.config.value = config.copy(lsfgEnabled = it)
+        SettingsSwitchWithAction(
+            colors = settingsTileColorsAlt(),
+            title = { Text(text = stringResource(R.string.lsfg_enable)) },
+            subtitle = { Text(text = stringResource(R.string.lsfg_description)) },
+            state = config.lsfgEnabled,
+            onCheckedChange = {
+                state.config.value = config.copy(lsfgEnabled = it)
+            },
+        )
+        if (config.lsfgEnabled) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(text = stringResource(R.string.lsfg_base_fps_cap))
+                Slider(
+                    value = config.lsfgBaseFpsCap.toFloat(),
+                    onValueChange = { newValue ->
+                        val clamped = newValue.roundToInt().coerceIn(0, 120)
+                        state.config.value = state.config.value.copy(lsfgBaseFpsCap = clamped)
+                    },
+                    valueRange = 0f..120f,
+                )
+                Text(
+                    text = if (config.lsfgBaseFpsCap <= 0) {
+                        stringResource(R.string.lsfg_uncapped)
+                    } else {
+                        "${config.lsfgBaseFpsCap} fps"
                     },
                 )
-                if (config.lsfgEnabled) {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        Text(text = stringResource(R.string.lsfg_base_fps_cap))
-                        Slider(
-                            value = config.lsfgBaseFpsCap.toFloat(),
-                            onValueChange = { newValue ->
-                                val clamped = newValue.roundToInt().coerceIn(0, 120)
-                                state.config.value = state.config.value.copy(lsfgBaseFpsCap = clamped)
-                            },
-                            valueRange = 0f..120f,
-                        )
-                        Text(
-                            text = if (config.lsfgBaseFpsCap <= 0) {
-                                stringResource(R.string.lsfg_uncapped)
-                            } else {
-                                "${config.lsfgBaseFpsCap} fps"
-                            },
-                        )
-                        Text(text = stringResource(R.string.lsfg_base_fps_cap_desc))
-                    }
-                }
-            }
-            ownsApp -> {
-                // State 2: User owns Lossless Scaling but hasn't installed it yet
-                SettingsSwitchWithAction(
-                    colors = settingsTileColorsAlt(),
-                    title = { Text(text = stringResource(R.string.lsfg_enable)) },
-                    subtitle = { Text(text = stringResource(R.string.lsfg_install_prompt)) },
-                    state = false,
-                    onCheckedChange = {
-                        state.launchSteamAppDownload(
-                            LsfgVkManager.LOSSLESS_SCALING_APP_ID,
-                            "Lossless Scaling",
-                        ) {
-                            dllAvailable = LsfgVkManager.isDllAvailable()
-                            if (dllAvailable) {
-                                state.config.value = state.config.value.copy(lsfgEnabled = true)
-                            }
-                        }
-                    },
-                )
-            }
-            else -> {
-                // State 3: User doesn't own Lossless Scaling
-                SettingsSwitchWithAction(
-                    colors = settingsTileColorsAlt(),
-                    title = { Text(text = stringResource(R.string.lsfg_enable)) },
-                    subtitle = { Text(text = stringResource(R.string.lsfg_not_in_library)) },
-                    state = false,
-                    onCheckedChange = {},
-                )
+                Text(text = stringResource(R.string.lsfg_base_fps_cap_desc))
             }
         }
     }

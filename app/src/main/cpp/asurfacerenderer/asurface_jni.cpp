@@ -65,12 +65,10 @@ Java_com_winlator_renderer_ASurfaceRenderer_nativeSetScanoutPacing(JNIEnv*, jobj
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_winlator_renderer_ASurfaceRenderer_nativeSetHostFramegen(
-        JNIEnv* env, jobject, jboolean enabled, jstring dllPath) {
+        JNIEnv*, jobject, jboolean enabled, jfloat flowScale, jboolean perfMode) {
     std::shared_lock lk(g_ctxMutex);
     if (auto* r = g_ctx) {
-        const char* dll = dllPath ? env->GetStringUTFChars(dllPath, nullptr) : nullptr;
-        r->setHostFramegen(enabled, dll);
-        if (dll) env->ReleaseStringUTFChars(dllPath, dll);
+        r->setHostFramegen(enabled, flowScale, perfMode);
     }
 }
 

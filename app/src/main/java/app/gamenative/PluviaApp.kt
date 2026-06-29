@@ -291,16 +291,6 @@ class PluviaApp : SplitCompatApplication() {
 
     }
 
-    /**
-     * Some native libraries we dlopen at runtime (libsteamclient.so via SteamBootstrap,
-     * the lsfg-vk layer, etc.) depend on `libjpeg.so`, which isn't on every device's
-     * dynamic linker search path. Pre-load the system copy here with RTLD_GLOBAL
-     * semantics (System.load is global) so all subsequent dlopens find its symbols.
-     *
-     * Single place for all: runs once in Application.onCreate before any other
-     * native lib is loaded by this process. Failures are non-fatal — devices that
-     * don't have the file (or have it elsewhere) just fall through.
-     */
     private fun preloadSystemLibraries() {
         val is64 = android.os.Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()
         val candidates = if (is64) {

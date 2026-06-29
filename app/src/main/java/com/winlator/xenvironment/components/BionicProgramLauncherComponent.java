@@ -17,7 +17,7 @@ import androidx.annotation.NonNull;
 
 import com.winlator.PrefManager;
 
-import app.gamenative.utils.LsfgVkManager;
+import app.gamenative.utils.SeifgManager;
 import com.winlator.box86_64.Box86_64Preset;
 import com.winlator.box86_64.Box86_64PresetManager;
 import com.winlator.container.Container;
@@ -343,10 +343,8 @@ public class BionicProgramLauncherComponent extends GuestProgramLauncherComponen
             }
         }
 
-        if (LsfgVkManager.isSupported(container)) {
-            LsfgVkManager.ensureRuntimeInstalled(environment.getContext(), container);
-            LsfgVkManager.writeConfig(container);
-            LsfgVkManager.applyLaunchEnv(container, envVars);
+        if (SeifgManager.isSupported(container)) {
+            SeifgManager.applyLaunchEnv(container, envVars);
         }
 
         Log.d("BionicProgramLauncherComponent", "env vars are " + envVars.toString());

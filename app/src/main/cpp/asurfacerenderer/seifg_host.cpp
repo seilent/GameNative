@@ -6,18 +6,14 @@
 #include <chrono>
 #include <cstdint>
 #include <cstring>
-#include <functional>
 #include <string>
 #include <vector>
 
-#include "lsfg_3_1.hpp"
-#include "extract/extract.hpp"
-#include "extract/trans.hpp"
-#include "config/config.hpp"
-#include "lsfg_copy.h"
+#include "seifg.h"
+#include "seifg_copy.h"
 
-#define SPIKE_LOG(...) __android_log_print(ANDROID_LOG_INFO, "lsfg_host", __VA_ARGS__)
-#define SPIKE_ERR(...) __android_log_print(ANDROID_LOG_ERROR, "lsfg_host", __VA_ARGS__)
+#define SPIKE_LOG(...) __android_log_print(ANDROID_LOG_INFO, "seifg_host", __VA_ARGS__)
+#define SPIKE_ERR(...) __android_log_print(ANDROID_LOG_ERROR, "seifg_host", __VA_ARGS__)
 
 namespace {
 
@@ -98,15 +94,11 @@ int64_t nowMs() {
         std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-} // namespace
+}
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_winlator_renderer_ASurfaceRenderer_nativeLsfgHostSpike(
-        JNIEnv* env, jobject, jstring jDllPath) {
-    const char* dll = env->GetStringUTFChars(jDllPath, nullptr);
-    SPIKE_LOG("=== Phase 1 host engine spike start; dll=%s ===", dll ? dll : "(null)");
-    Config::activeConf.dll = dll ? dll : "";
-    if (dll) env->ReleaseStringUTFChars(jDllPath, dll);
+Java_com_winlator_renderer_ASurfaceRenderer_nativeSeifgHostSpike(JNIEnv* env, jobject) {
+    SPIKE_LOG("=== seifg host spike start ===");
 
     const uint64_t uuid = enumerateDeviceUUID();
     if (uuid == 0) { SPIKE_ERR("no device uuid; abort"); return; }
@@ -126,40 +118,29 @@ Java_com_winlator_renderer_ASurfaceRenderer_nativeLsfgHostSpike(
     if (!copier.copy(src, in0, VK_FORMAT_R8G8B8A8_UNORM, W, H)) { SPIKE_ERR("copier copy failed; abort"); return; }
     SPIKE_LOG("GPU-copied src(red)->in0; in1=blue(CPU). out should be midpoint if copy worked");
 
-    auto loader = [](const std::string& name) -> std::vector<uint8_t> {
-        return Extract::translateShader(Extract::getShader(name));
-    };
+    seifg::initialize(uuid, false, 1.0F / 0.30F, 1, {});
+    int32_t ctxId = seifg::createContextFromAHB(in0, in1, {out}, VkExtent2D{W, H}, VK_FORMAT_R8G8B8A8_UNORM);
+    SPIKE_LOG("createContextFromAHB() OK id=%d", ctxId);
 
-    try {
-        Extract::extractShaders();
-        LSFG_3_1::initialize(uuid, false, 1.0F / 0.30F, 1, loader);
-        int32_t ctxId = LSFG_3_1::createContextFromAHB(
-                in0, in1, { out }, VkExtent2D{ W, H }, VK_FORMAT_R8G8B8A8_UNORM);
-        SPIKE_LOG("createContextFromAHB() OK id=%d", ctxId);
-
-        for (int i = 0; i < 5; ++i) {
-            int64_t t0 = nowMs();
-            LSFG_3_1::presentContext(ctxId, -1, {});
-            LSFG_3_1::waitIdle();
-            SPIKE_LOG("generate[%d] took %lld ms", i, (long long)(nowMs() - t0));
-        }
-
-        readAhbCenter(in0, "in0");
-        readAhbCenter(in1, "in1");
-        readAhbCenter(out, "out(interp)");
-
-        LSFG_3_1::deleteContext(ctxId);
-        LSFG_3_1::finalize();
-        SPIKE_LOG("=== Phase 1 host engine spike SUCCESS ===");
-    } catch (const std::exception& e) {
-        SPIKE_ERR("spike threw: %s", e.what());
-    } catch (...) {
-        SPIKE_ERR("spike threw unknown exception");
+    for (int i = 0; i < 5; ++i) {
+        int64_t t0 = nowMs();
+        seifg::presentContext(ctxId, -1, {});
+        seifg::waitIdle();
+        SPIKE_LOG("generate[%d] took %lld ms", i, (long long)(nowMs() - t0));
     }
+
+    readAhbCenter(in0, "in0");
+    readAhbCenter(in1, "in1");
+    readAhbCenter(out, "out(interp)");
+
+    seifg::deleteContext(ctxId);
+    seifg::finalize();
 
     copier.destroy();
     AHardwareBuffer_release(in0);
     AHardwareBuffer_release(in1);
     AHardwareBuffer_release(out);
     AHardwareBuffer_release(src);
+
+    SPIKE_LOG("=== seifg host spike SUCCESS ===");
 }

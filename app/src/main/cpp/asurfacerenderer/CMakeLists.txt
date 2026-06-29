@@ -43,25 +43,16 @@ target_link_libraries(asurface_renderer
 
 enable_16kb_pages(asurface_renderer)
 
-# =========================================================
-# LSFG framegen engine integration (approach B: host-side interpolation)
-# =========================================================
-set(LSFG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../lsfg-vk-android)
+# seifg frame generation engine
+set(SEIFG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../libseifg)
+add_subdirectory(${SEIFG_DIR} ${CMAKE_BINARY_DIR}/seifg EXCLUDE_FROM_ALL)
+
 set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_ANDROID_KHR CACHE STRING "" FORCE)
 
-add_subdirectory(${LSFG_DIR}/thirdparty/dxbc ${CMAKE_BINARY_DIR}/lsfg-dxbc EXCLUDE_FROM_ALL)
-add_subdirectory(${LSFG_DIR}/thirdparty/pe-parse/pe-parser-library ${CMAKE_BINARY_DIR}/lsfg-peparse EXCLUDE_FROM_ALL)
-add_subdirectory(${LSFG_DIR}/thirdparty/toml11 ${CMAKE_BINARY_DIR}/lsfg-toml11 EXCLUDE_FROM_ALL)
-add_subdirectory(${LSFG_DIR}/thirdparty/volk ${CMAKE_BINARY_DIR}/lsfg-volk EXCLUDE_FROM_ALL)
-add_subdirectory(${LSFG_DIR}/framegen ${CMAKE_BINARY_DIR}/lsfg-framegen EXCLUDE_FROM_ALL)
-
 target_sources(asurface_renderer PRIVATE
-        lsfg_host.cpp
-        lsfg_copy.cpp
-        lsfg_framegen.cpp
-        ${LSFG_DIR}/src/extract/extract.cpp
-        ${LSFG_DIR}/src/extract/trans.cpp
-        ${LSFG_DIR}/src/config/config.cpp
+        seifg_host.cpp
+        seifg_copy.cpp
+        seifg_framegen.cpp
 )
 
 set_target_properties(asurface_renderer PROPERTIES
@@ -70,13 +61,8 @@ set_target_properties(asurface_renderer PROPERTIES
 )
 
 target_compile_definitions(asurface_renderer PRIVATE VK_USE_PLATFORM_ANDROID_KHR)
-
-target_include_directories(asurface_renderer PRIVATE
-        ${LSFG_DIR}/include
-        ${LSFG_DIR}/framegen/public
-)
-
-target_link_libraries(asurface_renderer lsfg-vk-framegen volk pe-parse dxbc toml11)
+target_include_directories(asurface_renderer PRIVATE ${SEIFG_DIR}/include)
+target_link_libraries(asurface_renderer seifg)
 
 # =========================================================
 # Drawable library

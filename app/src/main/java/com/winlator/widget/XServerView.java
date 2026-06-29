@@ -46,15 +46,15 @@ public class XServerView extends SurfaceView implements SurfaceHolder.Callback, 
         return renderer;
     }
 
-    public void lsfgHostSpike(String dllPath) {
+    public void seifgHostSpike() {
         if (renderer instanceof ASurfaceRenderer scRenderer) {
-            scRenderer.lsfgHostSpike(dllPath);
+            scRenderer.seifgHostSpike();
         }
     }
 
-    public void setHostFramegen(boolean enabled, String dllPath) {
+    public void setHostFramegen(boolean enabled, float flowScale, boolean perfMode) {
         if (renderer instanceof ASurfaceRenderer scRenderer) {
-            scRenderer.setHostFramegen(enabled, dllPath);
+            scRenderer.setHostFramegen(enabled, flowScale, perfMode);
         }
     }
 
