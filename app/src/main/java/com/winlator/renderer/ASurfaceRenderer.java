@@ -137,6 +137,8 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     private native void nativeSetScanoutPacing(long intervalNs);
     private native void nativeLsfgHostSpike(String dllPath);
     public void lsfgHostSpike(String dllPath) { nativeLsfgHostSpike(dllPath); }
+    private native void nativeSetHostFramegen(boolean enabled, String dllPath);
+    public void setHostFramegen(boolean enabled, String dllPath) { nativeSetHostFramegen(enabled, dllPath); }
     private native void nativeScanoutSetCursorVisibility(boolean visible);
     private native void nativeRegisterWindowSC(long contentId, String debugName);
     private native void nativeUnregisterWindowSC(long contentId);

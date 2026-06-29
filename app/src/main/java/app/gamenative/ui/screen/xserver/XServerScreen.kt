@@ -470,7 +470,6 @@ fun XServerScreen(
     var isPerformanceHudEnabled by remember { mutableStateOf(PrefManager.showFps) }
     val shouldTrackDisplayedFrames = remember { AtomicBoolean(false) }
     var detectedMaxRefreshRateHz by remember { mutableIntStateOf(detectMaxRefreshRateHz(context, null)) }
-    var lsfgHostSpikeRan by remember { mutableStateOf(false) }
     var fpsLimiterEnabled by rememberSaveable(container.id) { mutableStateOf(initialFpsLimiterEnabled(container)) }
     var fpsLimiterTarget by rememberSaveable(container.id) { mutableIntStateOf(initialFpsLimiterTarget(container)) }
 
@@ -573,12 +572,9 @@ fun XServerScreen(
 
     fun applyScanoutPacing() {
         xServerView?.setScanoutPacing(scanoutPacingIntervalNs())
-        if (!lsfgHostSpikeRan && isLsfgAvailable) {
+        if (LsfgVkManager.HOST_SIDE_FRAMEGEN && isLsfgAvailable) {
             val dll = LsfgVkManager.losslessHostDllPath()
-            if (dll != null) {
-                lsfgHostSpikeRan = true
-                xServerView?.lsfgHostSpike(dll)
-            }
+            if (dll != null) xServerView?.setHostFramegen(true, dll)
         }
     }
 
@@ -586,7 +582,8 @@ fun XServerScreen(
         if (isLsfgAvailable && lsfgMultiplier >= 2) {
             val refresh = if (detectedMaxRefreshRateHz > 0) detectedMaxRefreshRateHz else 60
             val baseCap = LsfgVkManager.baseFpsCap(container)
-            if (baseCap > 0) (baseCap * lsfgMultiplier).coerceAtMost(refresh) else refresh
+            if (LsfgVkManager.HOST_SIDE_FRAMEGEN) baseCap.coerceAtLeast(1)
+            else if (baseCap > 0) (baseCap * lsfgMultiplier).coerceAtMost(refresh) else refresh
         } else if (fpsLimiterEnabled) fpsLimiterTarget
         else 0
 

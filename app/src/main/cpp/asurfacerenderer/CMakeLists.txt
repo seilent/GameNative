@@ -57,6 +57,8 @@ add_subdirectory(${LSFG_DIR}/framegen ${CMAKE_BINARY_DIR}/lsfg-framegen EXCLUDE_
 
 target_sources(asurface_renderer PRIVATE
         lsfg_host.cpp
+        lsfg_copy.cpp
+        lsfg_framegen.cpp
         ${LSFG_DIR}/src/extract/extract.cpp
         ${LSFG_DIR}/src/extract/trans.cpp
         ${LSFG_DIR}/src/config/config.cpp

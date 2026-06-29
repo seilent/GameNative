@@ -14,6 +14,7 @@
 #include "extract/extract.hpp"
 #include "extract/trans.hpp"
 #include "config/config.hpp"
+#include "lsfg_copy.h"
 
 #define SPIKE_LOG(...) __android_log_print(ANDROID_LOG_INFO, "lsfg_host", __VA_ARGS__)
 #define SPIKE_ERR(...) __android_log_print(ANDROID_LOG_ERROR, "lsfg_host", __VA_ARGS__)
@@ -114,11 +115,16 @@ Java_com_winlator_renderer_ASurfaceRenderer_nativeLsfgHostSpike(
     AHardwareBuffer* in0 = allocAhb(W, H);
     AHardwareBuffer* in1 = allocAhb(W, H);
     AHardwareBuffer* out = allocAhb(W, H);
-    if (!in0 || !in1 || !out) { SPIKE_ERR("AHB alloc failed; abort"); return; }
+    AHardwareBuffer* src = allocAhb(W, H);
+    if (!in0 || !in1 || !out || !src) { SPIKE_ERR("AHB alloc failed; abort"); return; }
 
-    fillAhbSolid(in0, 220, 40, 40);
+    fillAhbSolid(src, 220, 40, 40);
     fillAhbSolid(in1, 40, 40, 220);
-    SPIKE_LOG("inputs filled: in0=red(220,40,40) in1=blue(40,40,220)");
+
+    HostCopier copier;
+    if (!copier.init(uuid)) { SPIKE_ERR("copier init failed; abort"); return; }
+    if (!copier.copy(src, in0, VK_FORMAT_R8G8B8A8_UNORM, W, H)) { SPIKE_ERR("copier copy failed; abort"); return; }
+    SPIKE_LOG("GPU-copied src(red)->in0; in1=blue(CPU). out should be midpoint if copy worked");
 
     auto loader = [](const std::string& name) -> std::vector<uint8_t> {
         return Extract::translateShader(Extract::getShader(name));
@@ -151,7 +157,9 @@ Java_com_winlator_renderer_ASurfaceRenderer_nativeLsfgHostSpike(
         SPIKE_ERR("spike threw unknown exception");
     }
 
+    copier.destroy();
     AHardwareBuffer_release(in0);
     AHardwareBuffer_release(in1);
     AHardwareBuffer_release(out);
+    AHardwareBuffer_release(src);
 }

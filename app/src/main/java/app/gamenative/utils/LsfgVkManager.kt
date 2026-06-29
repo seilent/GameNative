@@ -62,6 +62,10 @@ object LsfgVkManager {
 
     const val LSFG_BASE_FPS_CAP = 30
 
+    // When true, the guest layer runs in passthrough (no interpolation) and the
+    // host renderer performs frame generation instead (approach B / P2b).
+    const val HOST_SIDE_FRAMEGEN = true
+
     // Environment variables consumed by the lsfg-vk layer
     private const val ENV_DISABLE = "DISABLE_LSFG"
     private const val ENV_CONFIG = "LSFG_CONFIG"
@@ -235,7 +239,7 @@ object LsfgVkManager {
             val dllPath = containerDllPath(container)
             val savedMultiplier = multiplier(container)
             val frameGenActive = parseBool(container.getExtra(EXTRA_ARMED, "false")) &&
-                dllPath != null && savedMultiplier >= 2
+                dllPath != null && savedMultiplier >= 2 && !HOST_SIDE_FRAMEGEN
             val configFile = File(container.rootDir, CONFIG_RELATIVE_PATH)
             val configText = buildConfigToml(
                 dllPath = dllPath,

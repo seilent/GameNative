@@ -289,6 +289,12 @@ void ASurfaceRendererContext::setWindowBuffer(int64_t contentId, AHardwareBuffer
         }
         sc = it->second;
     }
+
+    if (hostFgEnabled.load(std::memory_order_relaxed)) {
+        hostFramegenPresent(sc, ahb, fenceFd, windowId, serial);
+        return;
+    }
+
     void* tx = ST_CREATE();
     ST_SETBUF(tx, sc, ahb, fenceFd);
     ST_SET_TRANSPARENCY(tx, sc, 2);
@@ -332,6 +338,86 @@ void ASurfaceRendererContext::setScanoutPacing(int64_t intervalNs) {
     scanoutPaceIntervalNs.store(v, std::memory_order_relaxed);
     if (v > 0) vsyncClock.start();
     else vsyncClock.stop();
+}
+
+void ASurfaceRendererContext::setHostFramegen(bool enabled, const char* dllPath) {
+    {
+        std::lock_guard<std::mutex> lk(hostFgMutex);
+        hostFgDll = dllPath ? dllPath : "";
+    }
+    const bool on = enabled && dllPath && dllPath[0];
+    hostFgEnabled.store(on, std::memory_order_relaxed);
+    if (on) vsyncClock.start();
+    SCANOUT_LOG("setHostFramegen enabled=%d dll=%s", (int)on, dllPath ? dllPath : "(null)");
+}
+
+int64_t ASurfaceRendererContext::nextVsyncSlot() {
+    const int64_t now = scanoutNowNs();
+    const int64_t vsync = vsyncClock.lastVsyncNs();
+    const int64_t period = vsyncClock.periodNs();
+    if (vsync <= 0 || period <= 0) return now;
+    int64_t slot = vsync + ((now - vsync) / period + 1) * period;
+    int64_t target = scanoutNextPresentNs + period;
+    if (target < slot || target > now + period * 4)
+        target = slot;
+    scanoutNextPresentNs = target;
+    return target;
+}
+
+void ASurfaceRendererContext::presentOne(void* sc, AHardwareBuffer* ahb, int fenceFd,
+        int64_t windowId, int64_t serial, int64_t target) {
+    void* tx = ST_CREATE();
+    ST_SETBUF(tx, sc, ahb, fenceFd);
+    ST_SET_TRANSPARENCY(tx, sc, 2);
+    if (windowId != 0 || serial != 0)
+        attachOnCompleteCallback(tx, windowId, serial);
+    ST_SETBACKPRESSURE(tx, sc, true);
+    if (fnSTSetDesiredPresentTime && target > 0)
+        ST_SETPRESENTTIME(tx, target);
+    ST_APPLY(tx);
+    ST_DELETE(tx);
+}
+
+void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb, int fenceFd,
+        int64_t windowId, int64_t serial) {
+    if (!hostFg.ok()) {
+        std::string dll;
+        { std::lock_guard<std::mutex> lk(hostFgMutex); dll = hostFgDll; }
+        AHardwareBuffer_Desc d{};
+        AHardwareBuffer_describe(ahb, &d);
+        SCANOUT_LOG("hostFg incoming AHB fmt=%u %ux%u", d.format, d.width, d.height);
+        if (dll.empty() || !hostFg.init(dll, d.width, d.height, d.format)) {
+            hostFgEnabled.store(false, std::memory_order_relaxed);
+            presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
+            return;
+        }
+    }
+
+    AHardwareBuffer* interp = hostFg.submit(ahb);
+    const int64_t period = vsyncClock.periodNs();
+    if (interp == nullptr || period <= 0) {
+        presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
+        return;
+    }
+
+    const int64_t k = nextVsyncSlot();
+    presentOne(sc, interp, -1, 0, 0, k);
+
+    const int64_t spin = 1'000'000;
+    int64_t cur = scanoutNowNs();
+    if (cur < k) {
+        const int64_t s = k - cur - spin;
+        if (s > 0) {
+            struct timespec ts{};
+            ts.tv_sec = s / 1'000'000'000LL;
+            ts.tv_nsec = s % 1'000'000'000LL;
+            nanosleep(&ts, nullptr);
+        }
+        while (scanoutNowNs() < k) { }
+    }
+
+    presentOne(sc, ahb, fenceFd, windowId, serial, k + period);
+    scanoutNextPresentNs = k + period;
 }
 
 void ASurfaceRendererContext::loadSfCallbackApi() {

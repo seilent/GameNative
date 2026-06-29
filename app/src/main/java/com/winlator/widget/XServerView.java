@@ -52,6 +52,12 @@ public class XServerView extends SurfaceView implements SurfaceHolder.Callback, 
         }
     }
 
+    public void setHostFramegen(boolean enabled, String dllPath) {
+        if (renderer instanceof ASurfaceRenderer scRenderer) {
+            scRenderer.setHostFramegen(enabled, dllPath);
+        }
+    }
+
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         if (renderer instanceof VulkanRenderer vkRenderer) {
