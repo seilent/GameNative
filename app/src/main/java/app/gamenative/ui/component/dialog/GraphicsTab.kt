@@ -1,21 +1,41 @@
 package app.gamenative.ui.component.dialog
 
+import android.view.KeyEvent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.component.settings.SettingsListDropdownSearchable
 import app.gamenative.ui.component.settings.SettingsMultiListDropdown
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import app.gamenative.utils.SeifgManager
@@ -477,6 +497,97 @@ private fun DxWrapperSection(state: ContainerConfigState) {
 }
 
 @Composable
+private fun SettingsAdjustmentRow(
+    title: String,
+    valueText: String,
+    progress: Float,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val accent = LocalGameAccent.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val shape = RoundedCornerShape(14.dp)
+
+    val background = if (isFocused) {
+        Brush.horizontalGradient(listOf(accent.copy(alpha = 0.12f), accent.copy(alpha = 0.04f)))
+    } else {
+        Brush.horizontalGradient(listOf(Color.White.copy(alpha = 0.08f), Color.White.copy(alpha = 0.04f)))
+    }
+
+    val borderColor = if (isFocused) accent.copy(alpha = 0.7f) else Color.Transparent
+    val borderWidth = if (isFocused) 2.dp else 0.dp
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clip(shape)
+            .background(background, shape)
+            .border(borderWidth, borderColor, shape)
+            .onPreviewKeyEvent { event ->
+                if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
+                    when (event.nativeKeyEvent.keyCode) {
+                        KeyEvent.KEYCODE_DPAD_LEFT -> {
+                            onDecrease()
+                            true
+                        }
+                        KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                            onIncrease()
+                            true
+                        }
+                        else -> false
+                    }
+                } else {
+                    when (event.nativeKeyEvent.keyCode) {
+                        KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> true
+                        else -> false
+                    }
+                }
+            }
+            .focusable(interactionSource = interactionSource)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White,
+                )
+                Text(
+                    text = valueText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isFocused) accent else Color.White.copy(alpha = 0.8f),
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .clip(RoundedCornerShape(1.5.dp))
+                    .background(Color.White.copy(alpha = 0.12f)),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progress.coerceIn(0f, 1f))
+                        .height(3.dp)
+                        .clip(RoundedCornerShape(1.5.dp))
+                        .background(accent),
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun SeifgSection(state: ContainerConfigState) {
     val config = state.config.value
     val seifgSupported = config.containerVariant.equals(Container.BIONIC, ignoreCase = true)
@@ -493,36 +604,55 @@ private fun SeifgSection(state: ContainerConfigState) {
             },
         )
         if (config.seifgEnabled) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(text = stringResource(R.string.seifg_multiplier))
-                Slider(
-                    value = config.seifgMultiplier.toFloat(),
-                    onValueChange = { newValue ->
-                        val clamped = newValue.roundToInt().coerceIn(2, 4)
-                        state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+            SettingsAdjustmentRow(
+                title = stringResource(R.string.seifg_multiplier),
+                valueText = "${config.seifgMultiplier}x",
+                progress = (config.seifgMultiplier - 2f) / 2f,
+                onDecrease = {
+                    val clamped = (config.seifgMultiplier - 1).coerceIn(2, 4)
+                    state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                },
+                onIncrease = {
+                    val clamped = (config.seifgMultiplier + 1).coerceIn(2, 4)
+                    state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                },
+            )
+            SettingsAdjustmentRow(
+                title = stringResource(R.string.seifg_target_fps),
+                valueText = "${config.seifgTargetFps} fps",
+                progress = (config.seifgTargetFps - 30f) / 90f,
+                onDecrease = {
+                    val clamped = (config.seifgTargetFps - 5).coerceIn(30, 120)
+                    state.config.value = state.config.value.copy(seifgTargetFps = clamped)
+                },
+                onIncrease = {
+                    val clamped = (config.seifgTargetFps + 5).coerceIn(30, 120)
+                    state.config.value = state.config.value.copy(seifgTargetFps = clamped)
+                },
+            )
+            Text(
+                text = stringResource(
+                    R.string.seifg_target_fps_desc,
+                    config.seifgTargetFps / config.seifgMultiplier.coerceAtLeast(2),
+                ),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.6f),
+            )
+            run {
+                val qualityNames = listOf("Performance+", "Performance", "Balanced", "Quality", "Quality+")
+                SettingsAdjustmentRow(
+                    title = stringResource(R.string.seifg_quality),
+                    valueText = qualityNames[config.seifgQuality.coerceIn(0, 4)],
+                    progress = config.seifgQuality / 4f,
+                    onDecrease = {
+                        val clamped = (config.seifgQuality - 1).coerceIn(0, 4)
+                        state.config.value = state.config.value.copy(seifgQuality = clamped)
                     },
-                    valueRange = 2f..4f,
-                    steps = 1,
-                )
-                Text(text = "${config.seifgMultiplier}x")
-            }
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(text = stringResource(R.string.seifg_target_fps))
-                Slider(
-                    value = config.seifgTargetFps.toFloat(),
-                    onValueChange = { newValue ->
-                        val clamped = newValue.roundToInt().coerceIn(30, 120)
-                        state.config.value = state.config.value.copy(seifgTargetFps = clamped)
+                    onIncrease = {
+                        val clamped = (config.seifgQuality + 1).coerceIn(0, 4)
+                        state.config.value = state.config.value.copy(seifgQuality = clamped)
                     },
-                    valueRange = 30f..120f,
-                    steps = 17,
-                )
-                Text(text = "${config.seifgTargetFps} fps")
-                Text(
-                    text = stringResource(
-                        R.string.seifg_target_fps_desc,
-                        config.seifgTargetFps / config.seifgMultiplier.coerceAtLeast(2),
-                    ),
                 )
             }
         }
