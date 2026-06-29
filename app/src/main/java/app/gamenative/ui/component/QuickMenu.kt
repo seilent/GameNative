@@ -732,7 +732,7 @@ private fun PerformanceHudQuickMenuTab(
         QuickMenuToggleRow(
             title = stringResource(R.string.performance_hud_fps_limiter),
             subtitle = if (limiterControlledBySeifg) {
-                stringResource(R.string.performance_hud_fps_limiter_lsfg_override)
+                stringResource(R.string.performance_hud_fps_limiter_seifg_override)
             } else null,
             enabled = fpsLimiterEnabled && !limiterControlledBySeifg,
             onToggle = {

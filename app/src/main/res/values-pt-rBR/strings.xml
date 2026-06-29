@@ -240,7 +240,7 @@
     <string name="performance_hud_fps_limiter_target">FPS alvo</string>
     <string name="performance_hud_fps_limiter_off">Ilimitado</string>
     <string name="performance_hud_fps_limiter_value">%1$d FPS</string>
-    <string name="performance_hud_fps_limiter_lsfg_override">Limitador ignorado enquanto LSFG está ativo. A taxa da fonte é controlada pelo multiplicador.</string>
+    <string name="performance_hud_fps_limiter_seifg_override">Limitador ignorado enquanto geração de quadros está ativa. A taxa da fonte é controlada pelo multiplicador.</string>
     <string name="performance_hud_presets">Predefinições</string>
     <string name="performance_hud_presets_description">Alterne rapidamente entre layouts comuns de HUD.</string>
     <string name="performance_hud_preset_fps_only">1</string>
@@ -1343,21 +1343,20 @@
     <string name="hltb_hours_value">%sh</string>
     <string name="hltb_section_title">HLTB</string>
 
-    <!-- LSFG-VK frame generation -->
-    <string name="lsfg_tab_title">LSFG-VK</string>
-    <string name="lsfg_description">Gerar quadros intermediários usando a camada Vulkan do Lossless Scaling. Funciona apenas em Adreno 6xx e posteriores, conforme se sabe.</string>
-    <string name="lsfg_enable">Ativar geração de quadros LSFG-VK</string>
-    <string name="lsfg_multiplier">Multiplicador de quadros</string>
-    <string name="lsfg_flow_scale">Escala de fluxo</string>
-    <string name="lsfg_flow_scale_desc">Mais baixo é mais estável; mais alto é mais suave, mas pode gerar artefatos.</string>
-    <string name="lsfg_performance_mode">Modo de desempenho</string>
-    <string name="lsfg_not_supported">A geração de quadros requer um contêiner Bionic</string>
-    <string name="lsfg_install_prompt">Lossless Scaling não instalado. Toque para instalar. Funciona apenas em Adreno 6xx e posteriores, conforme se sabe.</string>
-    <string name="lsfg_not_in_library">Lossless Scaling não está na sua biblioteca Steam</string>
-    <string name="lsfg_install_title">Instalar Lossless Scaling?</string>
-    <string name="lsfg_install_message">Isso baixará o Lossless Scaling do Steam para ativar a geração de quadros.</string>
-    <string name="lsfg_installing">Baixando Lossless Scaling…</string>
-    <string name="lsfg_performance_mode_desc">Reduz qualidade para maior taxa de processamento</string>
+    <string name="seifg_tab_title">Frame Generation</string>
+    <string name="seifg_description">Gerar quadros intermediários com libseifg, um motor de geração de quadros via Vulkan compute. Funciona apenas em Adreno 6xx e posteriores.</string>
+    <string name="seifg_enable">Ativar geração de quadros</string>
+    <string name="seifg_multiplier">Multiplicador de quadros</string>
+    <string name="seifg_flow_scale">Escala de fluxo</string>
+    <string name="seifg_flow_scale_desc">Mais baixo é mais estável; mais alto é mais suave, mas pode gerar artefatos.</string>
+    <string name="seifg_performance_mode">Modo de desempenho</string>
+    <string name="seifg_not_supported">A geração de quadros requer um contêiner Bionic</string>
+    <string name="seifg_install_prompt">Unused — will be removed</string>
+    <string name="seifg_not_in_library">Unused — will be removed</string>
+    <string name="seifg_install_title">Unused — will be removed</string>
+    <string name="seifg_install_message">Unused — will be removed</string>
+    <string name="seifg_installing">Unused — will be removed</string>
+    <string name="seifg_performance_mode_desc">Reduz qualidade para maior taxa de processamento</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">A inicialização pode levar alguns minutos na primeira execução</string>
     <string name="game_launch_tip_2">Dica: Você pode visualizar os arquivos do jogo pressionando \"%s\" nas configurações do jogo.</string>

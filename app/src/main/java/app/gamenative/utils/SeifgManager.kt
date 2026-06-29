@@ -9,11 +9,11 @@ import kotlin.jvm.JvmStatic
 object SeifgManager {
     private const val TAG = "SeifgManager"
 
-    const val EXTRA_ARMED = "lsfgEnabled"
-    const val EXTRA_MULTIPLIER = "lsfgMultiplier"
-    const val EXTRA_FLOW_SCALE = "lsfgFlowScale"
-    const val EXTRA_BASE_FPS_CAP = "lsfgBaseFpsCap"
-    const val EXTRA_TARGET_FPS = "lsfgTargetFps"
+    const val EXTRA_ARMED = "seifgEnabled"
+    const val EXTRA_MULTIPLIER = "seifgMultiplier"
+    const val EXTRA_FLOW_SCALE = "seifgFlowScale"
+    const val EXTRA_BASE_FPS_CAP = "seifgBaseFpsCap"
+    const val EXTRA_TARGET_FPS = "seifgTargetFps"
 
     const val SEIFG_BASE_FPS_CAP = 30
     const val SEIFG_TARGET_FPS = 60

@@ -100,9 +100,9 @@ data class ContainerData(
     val sharpnessEffect: String = "None",
     val sharpnessLevel: Int = 100,
     val sharpnessDenoise: Int = 100,
-    val lsfgEnabled: Boolean = false,
-    val lsfgTargetFps: Int = 60,
-    val lsfgMultiplier: Int = 2,
+    val seifgEnabled: Boolean = false,
+    val seifgTargetFps: Int = 60,
+    val seifgMultiplier: Int = 2,
 ) {
     companion object {
         val Saver = mapSaver(
@@ -171,9 +171,9 @@ data class ContainerData(
                     "sharpnessEffect" to state.sharpnessEffect,
                     "sharpnessLevel" to state.sharpnessLevel,
                     "sharpnessDenoise" to state.sharpnessDenoise,
-                    "lsfgEnabled" to state.lsfgEnabled,
-                    "lsfgTargetFps" to state.lsfgTargetFps,
-                    "lsfgMultiplier" to state.lsfgMultiplier,
+                    "seifgEnabled" to state.seifgEnabled,
+                    "seifgTargetFps" to state.seifgTargetFps,
+                    "seifgMultiplier" to state.seifgMultiplier,
                 )
             },
             restore = { savedMap ->
@@ -241,9 +241,9 @@ data class ContainerData(
                     sharpnessEffect = (savedMap["sharpnessEffect"] as? String) ?: "None",
                     sharpnessLevel = (savedMap["sharpnessLevel"] as? Int) ?: 100,
                     sharpnessDenoise = (savedMap["sharpnessDenoise"] as? Int) ?: 100,
-                    lsfgEnabled = (savedMap["lsfgEnabled"] as? Boolean) ?: false,
-                    lsfgTargetFps = (savedMap["lsfgTargetFps"] as? Int) ?: 60,
-                    lsfgMultiplier = (savedMap["lsfgMultiplier"] as? Int) ?: 2,
+                    seifgEnabled = (savedMap["seifgEnabled"] as? Boolean) ?: false,
+                    seifgTargetFps = (savedMap["seifgTargetFps"] as? Int) ?: 60,
+                    seifgMultiplier = (savedMap["seifgMultiplier"] as? Int) ?: 2,
                 )
             },
         )

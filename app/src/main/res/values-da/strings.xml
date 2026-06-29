@@ -240,7 +240,7 @@
     <string name="performance_hud_fps_limiter_target">Mål-FPS</string>
     <string name="performance_hud_fps_limiter_off">Ubegrænset</string>
     <string name="performance_hud_fps_limiter_value">%1$d FPS</string>
-    <string name="performance_hud_fps_limiter_lsfg_override">Begrænser tilsidesat, mens LSFG er aktiv. Kildehastigheden styres af multiplikatoren.</string>
+    <string name="performance_hud_fps_limiter_seifg_override">Begrænser tilsidesat mens billedgenerering er aktiv. Kildehastigheden styres af multiplikatoren.</string>
     <string name="performance_hud_presets">Forudindstillinger</string>
     <string name="performance_hud_presets_description">Skift hurtigt mellem almindelige HUD-layouts.</string>
     <string name="performance_hud_preset_fps_only">1</string>
@@ -1343,21 +1343,20 @@
     <string name="hltb_hours_value">%sh</string>
     <string name="hltb_section_title">HLTB</string>
 
-    <!-- LSFG-VK frame generation -->
-    <string name="lsfg_tab_title">LSFG-VK</string>
-    <string name="lsfg_description">Generer mellemliggende billeder ved hjælp af Lossless Scalings Vulkan-lag. Virkede kun på Adreno 6xx og nyere, så vidt vides.</string>
-    <string name="lsfg_enable">Aktivér LSFG-VK billedgenerering</string>
-    <string name="lsfg_multiplier">Billedmultiplikator</string>
-    <string name="lsfg_flow_scale">Flow-skala</string>
-    <string name="lsfg_flow_scale_desc">Lavere er mere stabilt; højere er mere flydende men kan give artefakter.</string>
-    <string name="lsfg_performance_mode">Ydelsestilstand</string>
-    <string name="lsfg_not_supported">Billedgenerering kræver en Bionic-container</string>
-    <string name="lsfg_install_prompt">Lossless Scaling er ikke installeret. Tryk for at installere. Virkede kun på Adreno 6xx og nyere, så vidt vides.</string>
-    <string name="lsfg_not_in_library">Lossless Scaling er ikke i dit Steam-bibliotek</string>
-    <string name="lsfg_install_title">Installer Lossless Scaling?</string>
-    <string name="lsfg_install_message">Dette downloader Lossless Scaling fra Steam for at aktivere billedgenerering.</string>
-    <string name="lsfg_installing">Downloader Lossless Scaling…</string>
-    <string name="lsfg_performance_mode_desc">Reducerer kvalitet for højere gennemstrømning</string>
+    <string name="seifg_tab_title">Frame Generation</string>
+    <string name="seifg_description">Generer mellemliggende billeder med libseifg, en Vulkan compute-billedgenereringsmotor. Virker kun på Adreno 6xx og nyere.</string>
+    <string name="seifg_enable">Aktivér billedgenerering</string>
+    <string name="seifg_multiplier">Billedmultiplikator</string>
+    <string name="seifg_flow_scale">Flow-skala</string>
+    <string name="seifg_flow_scale_desc">Lavere er mere stabilt; højere er mere flydende men kan give artefakter.</string>
+    <string name="seifg_performance_mode">Ydelsestilstand</string>
+    <string name="seifg_not_supported">Billedgenerering kræver en Bionic-container</string>
+    <string name="seifg_install_prompt">Unused — will be removed</string>
+    <string name="seifg_not_in_library">Unused — will be removed</string>
+    <string name="seifg_install_title">Unused — will be removed</string>
+    <string name="seifg_install_message">Unused — will be removed</string>
+    <string name="seifg_installing">Unused — will be removed</string>
+    <string name="seifg_performance_mode_desc">Reducerer kvalitet for højere gennemstrømning</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">Opstart kan tage et par minutter ved første lancering</string>
     <string name="game_launch_tip_2">Tip: Du kan se spilfilerne ved at trykke på \"%s\" i spilindstillingerne.</string>

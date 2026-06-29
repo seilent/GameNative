@@ -485,43 +485,43 @@ private fun SeifgSection(state: ContainerConfigState) {
     SettingsGroup {
         SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
-            title = { Text(text = stringResource(R.string.lsfg_enable)) },
-            subtitle = { Text(text = stringResource(R.string.lsfg_description)) },
-            state = config.lsfgEnabled,
+            title = { Text(text = stringResource(R.string.seifg_enable)) },
+            subtitle = { Text(text = stringResource(R.string.seifg_description)) },
+            state = config.seifgEnabled,
             onCheckedChange = {
-                state.config.value = config.copy(lsfgEnabled = it)
+                state.config.value = config.copy(seifgEnabled = it)
             },
         )
-        if (config.lsfgEnabled) {
+        if (config.seifgEnabled) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(text = stringResource(R.string.lsfg_multiplier))
+                Text(text = stringResource(R.string.seifg_multiplier))
                 Slider(
-                    value = config.lsfgMultiplier.toFloat(),
+                    value = config.seifgMultiplier.toFloat(),
                     onValueChange = { newValue ->
                         val clamped = newValue.roundToInt().coerceIn(2, 4)
-                        state.config.value = state.config.value.copy(lsfgMultiplier = clamped)
+                        state.config.value = state.config.value.copy(seifgMultiplier = clamped)
                     },
                     valueRange = 2f..4f,
                     steps = 1,
                 )
-                Text(text = "${config.lsfgMultiplier}x")
+                Text(text = "${config.seifgMultiplier}x")
             }
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(text = stringResource(R.string.lsfg_target_fps))
+                Text(text = stringResource(R.string.seifg_target_fps))
                 Slider(
-                    value = config.lsfgTargetFps.toFloat(),
+                    value = config.seifgTargetFps.toFloat(),
                     onValueChange = { newValue ->
                         val clamped = newValue.roundToInt().coerceIn(30, 120)
-                        state.config.value = state.config.value.copy(lsfgTargetFps = clamped)
+                        state.config.value = state.config.value.copy(seifgTargetFps = clamped)
                     },
                     valueRange = 30f..120f,
-                    steps = 2,
+                    steps = 17,
                 )
-                Text(text = "${config.lsfgTargetFps} fps")
+                Text(text = "${config.seifgTargetFps} fps")
                 Text(
                     text = stringResource(
-                        R.string.lsfg_target_fps_desc,
-                        config.lsfgTargetFps / config.lsfgMultiplier.coerceAtLeast(2),
+                        R.string.seifg_target_fps_desc,
+                        config.seifgTargetFps / config.seifgMultiplier.coerceAtLeast(2),
                     ),
                 )
             }

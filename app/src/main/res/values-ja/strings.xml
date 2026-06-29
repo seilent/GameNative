@@ -305,7 +305,7 @@
     <string name="performance_hud_fps_limiter_target">ターゲットFPS</string>
     <string name="performance_hud_fps_limiter_off">無制限</string>
     <string name="performance_hud_fps_limiter_value">%1$d FPS</string>
-    <string name="performance_hud_fps_limiter_lsfg_override">LSFG がアクティブな間、リミッターはオーバーライドされます。ソースレートは乗数によって調整されます。</string>
+    <string name="performance_hud_fps_limiter_seifg_override">フレーム生成がアクティブな間、リミッターはオーバーライドされます。ソースレートは乗数によって調整されます。</string>
     <string name="performance_hud_presets">プリセット</string>
     <string name="performance_hud_presets_description">一般的な HUD レイアウトをすばやく切り替えます。</string>
     <string name="performance_hud_preset_fps_only">1</string>
@@ -1515,21 +1515,20 @@
     <string name="review_mixed">混合</string>
     <string name="review_mostly_negative">ほとんどが否定的</string>
     <string name="review_overwhelmingly_negative">圧倒的にネガティブ</string>
-    <!-- LSFG Frame Generation -->
-    <string name="lsfg_tab_title">LSFG-VK</string>
-    <string name="lsfg_description">Lossless Scaling\'s Vulkan レイヤーを使用して中間フレームを生成します。 Adreno 6xx 以降でのみ動作することが知られています。</string>
-    <string name="lsfg_enable">LSFG-VK フレーム生成を有効にする</string>
-    <string name="lsfg_multiplier">フレーム乗数</string>
-    <string name="lsfg_flow_scale">流量スケール</string>
-    <string name="lsfg_flow_scale_desc">低いほど安定します。高いほどスムーズになりますが、アーティファクトが発生する可能性があります。</string>
-    <string name="lsfg_performance_mode">パフォーマンスモード</string>
-    <string name="lsfg_not_supported">フレーム生成には Bionic コンテナが必要です</string>
-    <string name="lsfg_install_prompt">Lossless Scaling がインストールされていません。タップしてインストールしてください。Adreno 6xx 以降でのみ動作確認されています。</string>
-    <string name="lsfg_not_in_library">Lossless Scaling が Steam ライブラリにありません</string>
-    <string name="lsfg_install_title">Lossless Scaling をインストールしますか？</string>
-    <string name="lsfg_install_message">これにより、Steam から Lossless Scaling がダウンロードされ、フレーム生成が有効になります。</string>
-    <string name="lsfg_installing">Lossless Scaling をダウンロード中…</string>
-    <string name="lsfg_performance_mode_desc">スループットを上げるために品質を下げる</string>
+    <string name="seifg_tab_title">Frame Generation</string>
+    <string name="seifg_description">libseifg（Vulkan コンピュート フレーム生成エンジン）を使用して中間フレームを生成します。Adreno 6xx 以降でのみ動作することが知られています。</string>
+    <string name="seifg_enable">フレーム生成を有効にする</string>
+    <string name="seifg_multiplier">フレーム乗数</string>
+    <string name="seifg_flow_scale">流量スケール</string>
+    <string name="seifg_flow_scale_desc">低いほど安定します。高いほどスムーズになりますが、アーティファクトが発生する可能性があります。</string>
+    <string name="seifg_performance_mode">パフォーマンスモード</string>
+    <string name="seifg_not_supported">フレーム生成には Bionic コンテナが必要です</string>
+    <string name="seifg_install_prompt">Unused — will be removed</string>
+    <string name="seifg_not_in_library">Unused — will be removed</string>
+    <string name="seifg_install_title">Unused — will be removed</string>
+    <string name="seifg_install_message">Unused — will be removed</string>
+    <string name="seifg_installing">Unused — will be removed</string>
+    <string name="seifg_performance_mode_desc">スループットを上げるために品質を下げる</string>
     <string name="settings_interface_show_recommendations_title">ゲームのおすすめを表示</string>
     <string name="settings_interface_show_recommendations_subtitle">厳選されたインディー ゲームのおすすめをライブラリに表示します。これをオンにしておくと、インディー開発者と GameNative のサポートに役立ちます。</string>
     <!-- Game Launch Tips -->

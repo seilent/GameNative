@@ -309,7 +309,7 @@
     <string name="performance_hud_fps_limiter_target">目标 FPS</string>
     <string name="performance_hud_fps_limiter_off">无限制</string>
     <string name="performance_hud_fps_limiter_value">%1$d FPS</string>
-    <string name="performance_hud_fps_limiter_lsfg_override">LSFG 启用时，限制器被覆盖。源帧率由倍数控制。</string>
+    <string name="performance_hud_fps_limiter_seifg_override">帧生成启用时，限制器被覆盖。源帧率由倍数控制。</string>
     <string name="performance_hud_presets">预设</string>
     <string name="performance_hud_presets_description">快速切换常用 HUD 布局。</string>
     <string name="performance_hud_preset_fps_only">1</string>
@@ -1558,21 +1558,20 @@
     <string name="hltb_hours_value">%sh</string>
     <string name="hltb_section_title">HLTB</string>
 
-    <!-- LSFG-VK frame generation -->
-    <string name="lsfg_tab_title">LSFG-VK</string>
-    <string name="lsfg_description">使用 Lossless Scaling 的 Vulkan 层生成中间帧。已知仅在 Adreno 6xx 及更高版本上可用。</string>
-    <string name="lsfg_enable">启用 LSFG-VK 帧生成</string>
-    <string name="lsfg_multiplier">帧倍率</string>
-    <string name="lsfg_flow_scale">光流缩放</string>
-    <string name="lsfg_flow_scale_desc">数值越低越稳定；越高越流畅，但可能出现伪影。</string>
-    <string name="lsfg_performance_mode">性能模式</string>
-    <string name="lsfg_not_supported">帧生成需要 Bionic 容器</string>
-    <string name="lsfg_install_prompt">Lossless Scaling 未安装。点击安装。已知仅在 Adreno 6xx 及更高版本上可用。</string>
-    <string name="lsfg_not_in_library">Lossless Scaling 不在你的 Steam 库中</string>
-    <string name="lsfg_install_title">安装 Lossless Scaling？</string>
-    <string name="lsfg_install_message">将从 Steam 下载 Lossless Scaling 以启用帧生成。</string>
-    <string name="lsfg_installing">正在下载 Lossless Scaling…</string>
-    <string name="lsfg_performance_mode_desc">降低画质以提升吞吐量</string>
+    <string name="seifg_tab_title">Frame Generation</string>
+    <string name="seifg_description">使用 libseifg（Vulkan 计算帧生成引擎）生成中间帧。已知仅在 Adreno 6xx 及更高版本上可用。</string>
+    <string name="seifg_enable">启用帧生成</string>
+    <string name="seifg_multiplier">帧倍率</string>
+    <string name="seifg_flow_scale">光流缩放</string>
+    <string name="seifg_flow_scale_desc">数值越低越稳定；越高越流畅，但可能出现伪影。</string>
+    <string name="seifg_performance_mode">性能模式</string>
+    <string name="seifg_not_supported">帧生成需要 Bionic 容器</string>
+    <string name="seifg_install_prompt">Unused — will be removed</string>
+    <string name="seifg_not_in_library">Unused — will be removed</string>
+    <string name="seifg_install_title">Unused — will be removed</string>
+    <string name="seifg_install_message">Unused — will be removed</string>
+    <string name="seifg_installing">Unused — will be removed</string>
+    <string name="seifg_performance_mode_desc">降低画质以提升吞吐量</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">首次启动可能需要几分钟时间</string>
     <string name="game_launch_tip_2">提示：你可以在游戏设置中点击\"%s\"来查看游戏文件。</string>

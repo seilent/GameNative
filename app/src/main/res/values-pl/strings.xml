@@ -323,7 +323,7 @@
     <string name="performance_hud_fps_limiter_target">Docelowy FPS</string>
     <string name="performance_hud_fps_limiter_off">Bez limitu</string>
     <string name="performance_hud_fps_limiter_value">%1$d FPS</string>
-    <string name="performance_hud_fps_limiter_lsfg_override">Limiter pomijany gdy LSFG jest aktywny. Tempo źródła kontroluje mnożnik.</string>
+    <string name="performance_hud_fps_limiter_seifg_override">Limiter pomijany gdy generowanie klatek jest aktywne. Tempo źródła kontroluje mnożnik.</string>
     <string name="performance_hud_presets">Presety</string>
     <string name="performance_hud_presets_description">Szybko przełączaj między typowymi układami HUD.</string>
     <string name="performance_hud_preset_fps_only">1</string>
@@ -1475,21 +1475,20 @@
     <string name="hltb_hours_value">%sh</string>
     <string name="hltb_section_title">HLTB</string>
 
-    <!-- LSFG-VK frame generation -->
-    <string name="lsfg_tab_title">LSFG-VK</string>
-    <string name="lsfg_description">Generuj pośrednie klatki przy użyciu warstwy Vulkan z Lossless Scaling. Wiadomo, że działa tylko na Adreno 6xx i nowszych.</string>
-    <string name="lsfg_enable">Włącz generowanie klatek LSFG-VK</string>
-    <string name="lsfg_multiplier">Mnożnik klatek</string>
-    <string name="lsfg_flow_scale">Skala przepływu</string>
-    <string name="lsfg_flow_scale_desc">Niższa wartość jest stabilniejsza; wyższa jest płynniejsza, ale może powodować artefakty.</string>
-    <string name="lsfg_performance_mode">Tryb wydajności</string>
-    <string name="lsfg_not_supported">Generowanie klatek wymaga kontenera Bionic</string>
-    <string name="lsfg_install_prompt">Lossless Scaling nie jest zainstalowany. Dotknij, aby zainstalować. Wiadomo, że działa tylko na Adreno 6xx i nowszych.</string>
-    <string name="lsfg_not_in_library">Lossless Scaling nie jest w Twojej bibliotece Steam</string>
-    <string name="lsfg_install_title">Zainstalować Lossless Scaling?</string>
-    <string name="lsfg_install_message">Spowoduje to pobranie Lossless Scaling ze Steam, aby umożliwić generowanie klatek.</string>
-    <string name="lsfg_installing">Pobieranie Lossless Scaling…</string>
-    <string name="lsfg_performance_mode_desc">Zmniejsza jakość dla wyższej przepustowości</string>
+    <string name="seifg_tab_title">Frame Generation</string>
+    <string name="seifg_description">Generuj pośrednie klatki za pomocą libseifg — silnika generowania klatek opartego na Vulkan compute. Działa tylko na Adreno 6xx i nowszych.</string>
+    <string name="seifg_enable">Włącz generowanie klatek</string>
+    <string name="seifg_multiplier">Mnożnik klatek</string>
+    <string name="seifg_flow_scale">Skala przepływu</string>
+    <string name="seifg_flow_scale_desc">Niższa wartość jest stabilniejsza; wyższa jest płynniejsza, ale może powodować artefakty.</string>
+    <string name="seifg_performance_mode">Tryb wydajności</string>
+    <string name="seifg_not_supported">Generowanie klatek wymaga kontenera Bionic</string>
+    <string name="seifg_install_prompt">Unused — will be removed</string>
+    <string name="seifg_not_in_library">Unused — will be removed</string>
+    <string name="seifg_install_title">Unused — will be removed</string>
+    <string name="seifg_install_message">Unused — will be removed</string>
+    <string name="seifg_installing">Unused — will be removed</string>
+    <string name="seifg_performance_mode_desc">Zmniejsza jakość dla wyższej przepustowości</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">Uruchamianie może zająć kilka minut przy pierwszym starcie</string>
     <string name="game_launch_tip_2">Wskazówka: Możesz wyświetlić pliki gry, naciskając \"%s\" w ustawieniach gry.</string>
