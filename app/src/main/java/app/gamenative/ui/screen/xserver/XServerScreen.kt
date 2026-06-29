@@ -470,6 +470,7 @@ fun XServerScreen(
     var isPerformanceHudEnabled by remember { mutableStateOf(PrefManager.showFps) }
     val shouldTrackDisplayedFrames = remember { AtomicBoolean(false) }
     var detectedMaxRefreshRateHz by remember { mutableIntStateOf(detectMaxRefreshRateHz(context, null)) }
+    var lsfgHostSpikeRan by remember { mutableStateOf(false) }
     var fpsLimiterEnabled by rememberSaveable(container.id) { mutableStateOf(initialFpsLimiterEnabled(container)) }
     var fpsLimiterTarget by rememberSaveable(container.id) { mutableIntStateOf(initialFpsLimiterTarget(container)) }
 
@@ -572,6 +573,13 @@ fun XServerScreen(
 
     fun applyScanoutPacing() {
         xServerView?.setScanoutPacing(scanoutPacingIntervalNs())
+        if (!lsfgHostSpikeRan && isLsfgAvailable) {
+            val dll = LsfgVkManager.losslessHostDllPath()
+            if (dll != null) {
+                lsfgHostSpikeRan = true
+                xServerView?.lsfgHostSpike(dll)
+            }
+        }
     }
 
     fun effectiveFpsLimit(): Int =

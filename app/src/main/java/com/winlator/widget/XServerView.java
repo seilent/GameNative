@@ -46,6 +46,12 @@ public class XServerView extends SurfaceView implements SurfaceHolder.Callback, 
         return renderer;
     }
 
+    public void lsfgHostSpike(String dllPath) {
+        if (renderer instanceof ASurfaceRenderer scRenderer) {
+            scRenderer.lsfgHostSpike(dllPath);
+        }
+    }
+
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         if (renderer instanceof VulkanRenderer vkRenderer) {

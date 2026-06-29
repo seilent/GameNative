@@ -93,6 +93,9 @@ object LsfgVkManager {
     @JvmStatic
     fun isDllAvailable(): Boolean = findSteamDll() != null
 
+    @JvmStatic
+    fun losslessHostDllPath(): String? = findSteamDll()?.absolutePath
+
     /** Whether the user owns Lossless Scaling in their Steam library. */
     @JvmStatic
     fun ownsLosslessScaling(): Boolean =

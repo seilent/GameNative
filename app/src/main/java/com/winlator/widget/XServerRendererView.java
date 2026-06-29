@@ -16,6 +16,7 @@ public interface XServerRendererView {
     void requestRender();
     void setFrameRateLimit(int limit);
     default void setScanoutPacing(long intervalNs) {}
+    default void lsfgHostSpike(String dllPath) {}
     void onResume();
     void onPause();
     XServer getxServer();
