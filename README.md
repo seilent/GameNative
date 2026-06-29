@@ -1,7 +1,5 @@
 
 
-https://github.com/user-attachments/assets/e80e85aa-aefd-4d2b-8144-662a220c6222
-
 <div align="center">
 
 # GameNative (seilent fork)
@@ -13,7 +11,7 @@ Fork of [utkarshdalal/GameNative](https://github.com/utkarshdalal/GameNative) wi
 
 [**Download**](https://github.com/seilent/GameNative/releases/latest)
 
-<video src="https://github.com/seilent/GameNative/releases/download/v1.1.0/glassui-demo.mp4" autoplay loop muted playsinline width="100%"></video>
+<video src="https://github.com/user-attachments/assets/e80e85aa-aefd-4d2b-8144-662a220c6222" autoplay loop muted playsinline width="100%"></video>
 
 </div>
 
@@ -31,11 +29,11 @@ Host-side Vulkan compute frame interpolation. The game renders at a capped base 
 
 ### External storage pipeline
 
-SD card installs stage on internal storage then sequential-copy completed files to external. Bypasses the exFAT/FUSE metadata storm that throttled direct SD writes to ~3 MB/s.
+SD card installs no longer crawl at 3 MB/s. Each file is assembled on fast internal storage then immediately copied to external and deleted, keeping internal usage bounded to ~1-2 GB regardless of game size. Bypasses the exFAT/FUSE metadata storm that throttled direct SD writes.
 
 - Per-game storage target picker (Steam Deck-style)
 - SD hot-plug detection with library availability reconciliation
-- Bounded internal staging (~1-2 GB) so small-internal devices still work
+- Bounded internal staging so small-internal devices still work
 
 ### Glassmorphism UI
 
