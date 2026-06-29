@@ -500,7 +500,10 @@ private fun DxWrapperSection(state: ContainerConfigState) {
 private fun SettingsAdjustmentRow(
     title: String,
     valueText: String,
-    progress: Float,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int,
+    onValueChange: (Float) -> Unit,
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
     modifier: Modifier = Modifier,
@@ -568,21 +571,20 @@ private fun SettingsAdjustmentRow(
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(3.dp)
-                    .clip(RoundedCornerShape(1.5.dp))
-                    .background(Color.White.copy(alpha = 0.12f)),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(progress.coerceIn(0f, 1f))
-                        .height(3.dp)
-                        .clip(RoundedCornerShape(1.5.dp))
-                        .background(accent),
-                )
-            }
+            Slider(
+                value = value,
+                onValueChange = onValueChange,
+                valueRange = valueRange,
+                steps = steps,
+                colors = androidx.compose.material3.SliderDefaults.colors(
+                    thumbColor = accent,
+                    activeTrackColor = accent,
+                    inactiveTrackColor = Color.White.copy(alpha = 0.12f),
+                    activeTickColor = Color.Transparent,
+                    inactiveTickColor = Color.Transparent,
+                ),
+                modifier = Modifier.fillMaxWidth().height(24.dp),
+            )
         }
     }
 }
@@ -607,7 +609,13 @@ private fun SeifgSection(state: ContainerConfigState) {
             SettingsAdjustmentRow(
                 title = stringResource(R.string.seifg_multiplier),
                 valueText = "${config.seifgMultiplier}x",
-                progress = (config.seifgMultiplier - 2f) / 2f,
+                value = config.seifgMultiplier.toFloat(),
+                valueRange = 2f..4f,
+                steps = 1,
+                onValueChange = { newValue ->
+                    val clamped = newValue.roundToInt().coerceIn(2, 4)
+                    state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                },
                 onDecrease = {
                     val clamped = (config.seifgMultiplier - 1).coerceIn(2, 4)
                     state.config.value = state.config.value.copy(seifgMultiplier = clamped)
@@ -620,7 +628,13 @@ private fun SeifgSection(state: ContainerConfigState) {
             SettingsAdjustmentRow(
                 title = stringResource(R.string.seifg_target_fps),
                 valueText = "${config.seifgTargetFps} fps",
-                progress = (config.seifgTargetFps - 30f) / 90f,
+                value = config.seifgTargetFps.toFloat(),
+                valueRange = 30f..120f,
+                steps = 17,
+                onValueChange = { newValue ->
+                    val clamped = newValue.roundToInt().coerceIn(30, 120)
+                    state.config.value = state.config.value.copy(seifgTargetFps = clamped)
+                },
                 onDecrease = {
                     val clamped = (config.seifgTargetFps - 5).coerceIn(30, 120)
                     state.config.value = state.config.value.copy(seifgTargetFps = clamped)
@@ -644,7 +658,12 @@ private fun SeifgSection(state: ContainerConfigState) {
                 SettingsAdjustmentRow(
                     title = stringResource(R.string.seifg_quality),
                     valueText = qualityNames[config.seifgQuality.coerceIn(0, 4)],
-                    progress = config.seifgQuality / 4f,
+                    value = config.seifgQuality.toFloat(),
+                    valueRange = 0f..4f,
+                    steps = 3,
+                    onValueChange = { newVal ->
+                        state.config.value = state.config.value.copy(seifgQuality = newVal.toInt().coerceIn(0, 4))
+                    },
                     onDecrease = {
                         val clamped = (config.seifgQuality - 1).coerceIn(0, 4)
                         state.config.value = state.config.value.copy(seifgQuality = clamped)
