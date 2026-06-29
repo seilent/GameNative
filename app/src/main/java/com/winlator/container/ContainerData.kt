@@ -102,6 +102,8 @@ data class ContainerData(
     val sharpnessDenoise: Int = 100,
     val lsfgEnabled: Boolean = false,
     val lsfgBaseFpsCap: Int = 30,
+    val lsfgMultiplier: Int = 2,
+    val lsfgFlowScale: Float = 0.5f,
 ) {
     companion object {
         val Saver = mapSaver(
@@ -172,6 +174,8 @@ data class ContainerData(
                     "sharpnessDenoise" to state.sharpnessDenoise,
                     "lsfgEnabled" to state.lsfgEnabled,
                     "lsfgBaseFpsCap" to state.lsfgBaseFpsCap,
+                    "lsfgMultiplier" to state.lsfgMultiplier,
+                    "lsfgFlowScale" to state.lsfgFlowScale,
                 )
             },
             restore = { savedMap ->
@@ -241,6 +245,8 @@ data class ContainerData(
                     sharpnessDenoise = (savedMap["sharpnessDenoise"] as? Int) ?: 100,
                     lsfgEnabled = (savedMap["lsfgEnabled"] as? Boolean) ?: false,
                     lsfgBaseFpsCap = (savedMap["lsfgBaseFpsCap"] as? Int) ?: 30,
+                    lsfgMultiplier = (savedMap["lsfgMultiplier"] as? Int) ?: 2,
+                    lsfgFlowScale = (savedMap["lsfgFlowScale"] as? Number)?.toFloat() ?: 0.5f,
                 )
             },
         )

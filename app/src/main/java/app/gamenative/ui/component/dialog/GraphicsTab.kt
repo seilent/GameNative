@@ -494,6 +494,31 @@ private fun SeifgSection(state: ContainerConfigState) {
         )
         if (config.lsfgEnabled) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(text = stringResource(R.string.lsfg_multiplier))
+                Slider(
+                    value = config.lsfgMultiplier.toFloat(),
+                    onValueChange = { newValue ->
+                        val clamped = newValue.roundToInt().coerceIn(2, 4)
+                        state.config.value = state.config.value.copy(lsfgMultiplier = clamped)
+                    },
+                    valueRange = 2f..4f,
+                    steps = 1,
+                )
+                Text(text = "${config.lsfgMultiplier}x")
+            }
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(text = stringResource(R.string.lsfg_flow_scale))
+                Slider(
+                    value = config.lsfgFlowScale,
+                    onValueChange = { newValue ->
+                        val clamped = newValue.coerceIn(0.25f, 1.0f)
+                        state.config.value = state.config.value.copy(lsfgFlowScale = clamped)
+                    },
+                    valueRange = 0.25f..1.0f,
+                )
+                Text(text = String.format(java.util.Locale.US, "%.2f", config.lsfgFlowScale))
+            }
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(text = stringResource(R.string.lsfg_base_fps_cap))
                 Slider(
                     value = config.lsfgBaseFpsCap.toFloat(),

@@ -1,6 +1,5 @@
 package app.gamenative.utils
 
-import android.content.Context
 import com.winlator.container.Container
 import com.winlator.core.envvars.EnvVars
 import java.util.Locale
@@ -13,7 +12,6 @@ object SeifgManager {
     const val EXTRA_ARMED = "lsfgEnabled"
     const val EXTRA_MULTIPLIER = "lsfgMultiplier"
     const val EXTRA_FLOW_SCALE = "lsfgFlowScale"
-    const val EXTRA_PERFORMANCE_MODE = "lsfgPerformanceMode"
     const val EXTRA_BASE_FPS_CAP = "lsfgBaseFpsCap"
 
     const val SEIFG_BASE_FPS_CAP = 30
@@ -33,6 +31,10 @@ object SeifgManager {
         isSupported(container) &&
             parseBool(container.getExtra(EXTRA_ARMED, "false"))
 
+    @JvmStatic
+    fun isAvailable(container: Container): Boolean =
+        isSupported(container) && isArmed(container)
+
     fun multiplier(container: Container): Int {
         val raw = container.getExtra(EXTRA_MULTIPLIER, "2").toIntOrNull() ?: 2
         return if (raw == 0) 0 else raw.coerceIn(2, 4)
@@ -40,9 +42,6 @@ object SeifgManager {
 
     fun flowScale(container: Container): Float =
         container.getExtra(EXTRA_FLOW_SCALE, "0.30").toFloatOrNull()?.coerceIn(0.25f, 1.0f) ?: 0.30f
-
-    fun performanceMode(container: Container): Boolean =
-        parseBool(container.getExtra(EXTRA_PERFORMANCE_MODE, "true"))
 
     fun baseFpsCap(container: Container): Int =
         container.getExtra(EXTRA_BASE_FPS_CAP, SEIFG_BASE_FPS_CAP.toString())
@@ -63,9 +62,8 @@ object SeifgManager {
         }
 
         Timber.tag(TAG).i(
-            "SEIFG armed: multiplier=%d, flowScale=%.2f, perf=%s",
-            multiplier(container), flowScale(container),
-            if (performanceMode(container)) "on" else "off"
+            "SEIFG armed: multiplier=%d, flowScale=%.2f",
+            multiplier(container), flowScale(container)
         )
 
         applyRealFrameCap(container, envVars)

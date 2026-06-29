@@ -112,7 +112,6 @@ import app.gamenative.utils.ContainerUtils
 import app.gamenative.utils.downloader.CoreDriverDownloader
 import app.gamenative.utils.CustomGameScanner
 import app.gamenative.utils.ExecutableSelectionUtils
-import app.gamenative.utils.SeifgQuickMenuHelper
 import app.gamenative.utils.SeifgManager
 import app.gamenative.utils.ManifestComponentHelper
 import app.gamenative.utils.downloader.DXWrapperDownloader
@@ -473,11 +472,7 @@ fun XServerScreen(
     var fpsLimiterEnabled by rememberSaveable(container.id) { mutableStateOf(initialFpsLimiterEnabled(container)) }
     var fpsLimiterTarget by rememberSaveable(container.id) { mutableIntStateOf(initialFpsLimiterTarget(container)) }
 
-    val isSeifgAvailable = SeifgQuickMenuHelper.isAvailable(container)
-    val initialSeifgSettings = remember(container.id) { SeifgQuickMenuHelper.readSettings(container) }
-    var seifgMultiplier by rememberSaveable(container.id) { mutableIntStateOf(initialSeifgSettings.multiplier) }
-    var seifgFlowScale by rememberSaveable(container.id) { mutableStateOf(initialSeifgSettings.flowScale) }
-    var seifgPerformanceMode by rememberSaveable(container.id) { mutableStateOf(initialSeifgSettings.performanceMode) }
+    val isSeifgAvailable = SeifgManager.isAvailable(container)
 
     fun persistFpsLimiterState() {
         container.putExtra(FPS_LIMITER_ENABLED_EXTRA, fpsLimiterEnabled)
@@ -562,10 +557,11 @@ fun XServerScreen(
     }
 
     fun scanoutPacingIntervalNs(): Long {
-        if (!isSeifgAvailable || seifgMultiplier < 2) return 0L
+        val seifgMult = SeifgManager.multiplier(container)
+        if (!isSeifgAvailable || seifgMult < 2) return 0L
         val refresh = if (detectedMaxRefreshRateHz > 0) detectedMaxRefreshRateHz else 60
         val baseCap = SeifgManager.baseFpsCap(container)
-        val outputFps = if (baseCap > 0) (baseCap * seifgMultiplier).coerceAtMost(refresh) else refresh
+        val outputFps = if (baseCap > 0) (baseCap * seifgMult).coerceAtMost(refresh) else refresh
         return if (outputFps > 0) 1_000_000_000L / outputFps else 0L
     }
 
@@ -573,16 +569,17 @@ fun XServerScreen(
         xServerView?.setScanoutPacing(scanoutPacingIntervalNs())
         if (SeifgManager.HOST_SIDE_FRAMEGEN && isSeifgAvailable) {
             xServerView?.setHostFramegen(
-                true, SeifgManager.flowScale(container), seifgMultiplier)
+                true, SeifgManager.flowScale(container), SeifgManager.multiplier(container))
         }
     }
 
     fun effectiveFpsLimit(): Int =
-        if (isSeifgAvailable && seifgMultiplier >= 2) {
+        if (isSeifgAvailable && SeifgManager.multiplier(container) >= 2) {
             val refresh = if (detectedMaxRefreshRateHz > 0) detectedMaxRefreshRateHz else 60
             val baseCap = SeifgManager.baseFpsCap(container)
+            val seifgMult = SeifgManager.multiplier(container)
             if (SeifgManager.HOST_SIDE_FRAMEGEN) baseCap.coerceAtLeast(1)
-            else if (baseCap > 0) (baseCap * seifgMultiplier).coerceAtMost(refresh) else refresh
+            else if (baseCap > 0) (baseCap * seifgMult).coerceAtMost(refresh) else refresh
         } else if (fpsLimiterEnabled) fpsLimiterTarget
         else 0
 
@@ -601,30 +598,6 @@ fun XServerScreen(
         }
         applyScanoutPacing()
         persistFpsLimiterState()
-    }
-
-    fun applySeifgSettings() {
-        SeifgQuickMenuHelper.applySettings(
-            container,
-            SeifgQuickMenuHelper.Settings(seifgMultiplier, seifgFlowScale, seifgPerformanceMode),
-        )
-    }
-
-    fun applySeifgMultiplier(mult: Int) {
-        seifgMultiplier = SeifgQuickMenuHelper.sanitizeMultiplier(mult)
-        applySeifgSettings()
-        applyFpsLimiterToEngines(effectiveFpsLimit())
-        applyScanoutPacing()
-    }
-
-    fun applySeifgFlowScale(scale: Float) {
-        seifgFlowScale = SeifgQuickMenuHelper.sanitizeFlowScale(scale)
-        applySeifgSettings()
-    }
-
-    fun applySeifgPerformanceMode(enabled: Boolean) {
-        seifgPerformanceMode = enabled
-        applySeifgSettings()
     }
 
     LaunchedEffect(xServerView) {
@@ -2530,12 +2503,7 @@ fun XServerScreen(
                 if (isDisableMouseInput) add(QuickMenuAction.DISABLE_MOUSE)
             },
             isSeifgAvailable = isSeifgAvailable,
-            seifgMultiplier = seifgMultiplier,
-            seifgFlowScale = seifgFlowScale,
-            seifgPerformanceMode = seifgPerformanceMode,
-            onSeifgMultiplierChanged = ::applySeifgMultiplier,
-            onSeifgFlowScaleChanged = ::applySeifgFlowScale,
-            onSeifgPerformanceModeChanged = ::applySeifgPerformanceMode,
+            seifgMultiplier = SeifgManager.multiplier(container),
             onAnimationComplete = { isMenuVisible ->
                 if (isMenuVisible) {
                     pauseForOverlayIfAllowed()
