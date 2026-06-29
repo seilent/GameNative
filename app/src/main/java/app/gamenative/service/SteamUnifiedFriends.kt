@@ -37,7 +37,12 @@ class SteamUnifiedFriends(service: SteamService) : AutoCloseable {
             includeExtendedAppinfo = true
         }.build()
 
-        val result = player?.getOwnedGames(request)?.await()
+        val result = try {
+            player?.getOwnedGames(request)?.await()
+        } catch (e: Exception) {
+            Timber.w("getOwnedGames async job failed: ${e.message}")
+            return emptyList()
+        }
 
         if (result == null || result.result != EResult.OK) {
             Timber.w("Unable to get owned games!")

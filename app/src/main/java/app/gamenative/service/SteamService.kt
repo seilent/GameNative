@@ -137,6 +137,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlin.io.path.pathString
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -3013,10 +3014,15 @@ class SteamService : Service(), IChallengeUrlChanged {
             val steamApps = instance?._steamApps ?: return@withContext false
 
             // ── 1. Fetch the latest app header from Steam (PICS).
-            val pics = steamApps.picsGetProductInfo(
-                apps = listOf(PICSRequest(id = appId)),
-                packages = emptyList(),
-            ).await()
+            val pics = try {
+                steamApps.picsGetProductInfo(
+                    apps = listOf(PICSRequest(id = appId)),
+                    packages = emptyList(),
+                ).await()
+            } catch (e: Exception) {
+                Timber.w("isUpdatePending: async job failed for appId=$appId: ${e.message}")
+                return@withContext false
+            }
 
             val remoteAppInfo = pics.results
                 .firstOrNull()
@@ -3617,8 +3623,10 @@ class SteamService : Service(), IChallengeUrlChanged {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun connectToSteam() {
-        CoroutineScope(Dispatchers.Default).launch {
-            // this call errors out if run on the main thread
+        val connectExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+            Timber.w(throwable, "Steam connection coroutine exception (non-fatal)")
+        }
+        CoroutineScope(Dispatchers.Default + connectExceptionHandler).launch {
             steamClient!!.connect()
 
             delay(5000)
