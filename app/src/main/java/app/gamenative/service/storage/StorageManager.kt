@@ -68,6 +68,16 @@ object StorageManager {
         return internalTarget()
     }
 
+    fun setDefaultTarget(target: StorageTarget) {
+        PrefManager.defaultStorageTargetId = target.id
+        if (target.isInternal) {
+            PrefManager.useExternalStorage = false
+        } else {
+            PrefManager.useExternalStorage = true
+            PrefManager.externalStoragePath = target.rootPath
+        }
+    }
+
     fun freeBytes(target: StorageTarget): Long = try {
         StorageUtils.getAvailableSpaceForUncreatedPath(target.rootPath)
     } catch (e: Exception) {

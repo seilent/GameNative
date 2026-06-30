@@ -172,7 +172,7 @@ fun StorageTargetTabs(
                     indication = null,
                     enabled = selectedTarget.isMounted && !isDefault,
                 ) {
-                    PrefManager.defaultStorageTargetId = selectedTarget.id
+                    StorageManager.setDefaultTarget(selectedTarget)
                     defaultTargetId = selectedTarget.id
                 }
                 .semantics {

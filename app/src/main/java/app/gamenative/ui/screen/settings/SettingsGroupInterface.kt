@@ -514,68 +514,6 @@ fun SettingsGroupInterface(
             }
         }
 
-        val ctx = LocalContext.current
-        val sm = ctx.getSystemService(StorageManager::class.java)
-
-        // All writable non-primary volumes (SD / USB).
-        // getExternalFilesDirs misses USB OTG on most devices, so StorageUtils also
-        // enumerates StorageManager.storageVolumes and synthesizes the per-app files dir.
-        // Runs off the composition thread because synthesizing the USB candidate
-        // may need mkdirs() on first plug-in.
-        val externalStorageFallbackLabel = stringResource(R.string.storage_external)
-        val dirs by produceState(initialValue = emptyList<File>(), ctx) {
-            value = withContext(Dispatchers.IO) {
-                StorageUtils.getAllExternalFilesDirs(ctx)
-                    .filter { Environment.getExternalStorageState(it) == Environment.MEDIA_MOUNTED }
-                    .filter { sm?.getStorageVolume(it)?.isPrimary != true }
-            }
-        }
-
-        // Labels the user sees
-        val labels = remember(dirs) {
-            dirs.map { dir ->
-                sm?.getStorageVolume(dir)?.getDescription(ctx) ?: externalStorageFallbackLabel
-            }
-        }
-        var useExternalStorage by rememberSaveable { mutableStateOf(PrefManager.useExternalStorage) }
-        SettingsSwitchWithAction(
-            colors = settingsTileColorsAlt(),
-            enabled = dirs.isNotEmpty(),
-            title = { Text(text = stringResource(R.string.settings_interface_external_storage_title)) },
-            subtitle = {
-                if (dirs.isEmpty())
-                    Text(stringResource(R.string.settings_interface_no_external_storage))
-                else
-                    Text(stringResource(R.string.settings_interface_external_storage_subtitle))
-            },
-            state = useExternalStorage,
-            onCheckedChange = {
-                useExternalStorage = it
-                PrefManager.useExternalStorage = it
-                if (it && dirs.isNotEmpty()) {
-                    PrefManager.externalStoragePath = dirs[0].absolutePath
-                }
-            },
-        )
-        if (useExternalStorage) {
-            // Currently selected item
-            var selectedIndex by rememberSaveable {
-                mutableStateOf(
-                    dirs.indexOfFirst { it.absolutePath == PrefManager.externalStoragePath }
-                        .takeIf { it >= 0 } ?: 0,
-                )
-            }
-            SettingsListDropdown(
-                title = { Text(text = stringResource(R.string.settings_interface_storage_volume_title)) },
-                items = labels,
-                value = selectedIndex,
-                onItemSelected = { idx ->
-                    selectedIndex = idx
-                    PrefManager.externalStoragePath = dirs[idx].absolutePath
-                },
-                colors = settingsTileColorsAlt(),
-            )
-        }
         // Steam download server selection
         SettingsMenuLink(
             colors = settingsTileColorsAlt(),

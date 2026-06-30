@@ -150,7 +150,7 @@ class PluviaApp : SplitCompatApplication() {
                 targets.firstOrNull { it.isRemovable && it.isMounted }
             }
             if (match != null) {
-                PrefManager.defaultStorageTargetId = match.id
+                StorageManager.setDefaultTarget(match)
             }
         }
         PrefManager.storageTargetMigrated = true
