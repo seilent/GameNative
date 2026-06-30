@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import app.gamenative.PluviaApp
 import app.gamenative.R
 import app.gamenative.data.DownloadInfo
+import app.gamenative.data.DownloadPhase
 import app.gamenative.data.GameSource
 import app.gamenative.data.LibraryItem
 import app.gamenative.db.dao.AmazonGameDao
@@ -33,6 +34,8 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,12 +68,14 @@ class DownloadsViewModel @Inject constructor(
         val statusJob: Job,
         val syncingJob: Job,
         val verifyingJob: Job,
+        val tickerJob: Job,
     ) {
         fun dispose() {
             info.removeProgressListener(progressListener)
             statusJob.cancel()
             syncingJob.cancel()
             verifyingJob.cancel()
+            tickerJob.cancel()
         }
     }
 
@@ -294,11 +299,13 @@ class DownloadsViewModel @Inject constructor(
             rawProgress < 0f || statusMessage?.startsWith("Failed", ignoreCase = true) == true -> DownloadItemStatus.FAILED
             info.isQueued() -> DownloadItemStatus.QUEUED
             isRunning && info.isVerifying() -> DownloadItemStatus.VERIFYING
+            isRunning && info.getPhase() == DownloadPhase.WRITING -> DownloadItemStatus.WRITING
+            isRunning && info.getPhase() == DownloadPhase.DECOMPRESSING -> DownloadItemStatus.DECOMPRESSING
             isRunning -> DownloadItemStatus.DOWNLOADING
             else -> DownloadItemStatus.PAUSED
         }
 
-        if (status == DownloadItemStatus.DOWNLOADING || status == DownloadItemStatus.VERIFYING) {
+        if (status == DownloadItemStatus.DOWNLOADING || status == DownloadItemStatus.DECOMPRESSING || status == DownloadItemStatus.WRITING || status == DownloadItemStatus.VERIFYING) {
             recentFailureMessages.remove(key)
         } else if (status == DownloadItemStatus.FAILED) {
             recentFailureMessages[key] = failureMessage(statusMessage)
@@ -319,6 +326,8 @@ class DownloadsViewModel @Inject constructor(
             isActive = info.isActive(),
             isPartial = false,
             status = status,
+            writeSpeedBytesPerSec = info.getWriteSpeedBytesPerSec().takeIf { it > 0L },
+            pendingWriteBytes = info.getPendingWriteBytes().takeIf { it > 0L },
         )
     }
 
@@ -440,12 +449,20 @@ class DownloadsViewModel @Inject constructor(
                 }
             }
 
+            val tickerJob = viewModelScope.launch(Dispatchers.Default) {
+                while (isActive) {
+                    delay(500)
+                    updateObservedDownloadItem(binding)
+                }
+            }
+
             observedDownloads[key] = ObservedDownload(
                 info = binding.info,
                 progressListener = progressListener,
                 statusJob = statusJob,
                 syncingJob = syncingJob,
                 verifyingJob = verifyingJob,
+                tickerJob = tickerJob,
             )
         }
     }

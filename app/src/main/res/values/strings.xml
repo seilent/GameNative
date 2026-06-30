@@ -584,8 +584,12 @@
     <string name="install_wifi_only_enabled">Install over WiFi only enabled</string>
     <string name="installation_progress">Installation Progress</string>
     <string name="downloading">Downloading...</string>
+    <string name="decompressing">Decompressing...</string>
+    <string name="writing">Writing...</string>
     <string name="verifying">Verifying...</string>
     <string name="queued">Queued</string>
+    <string name="download_writing">Writing %1$s/s</string>
+    <string name="download_pending_write">%1$s to write</string>
     <string name="calculating_time">Calculating...</string>
     <string name="download_failed_try_again">Download failed. Please try again.</string>
     <string name="update_available">Update Available</string>

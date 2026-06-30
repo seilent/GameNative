@@ -9,6 +9,8 @@ import timber.log.Timber
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
+enum class DownloadPhase { DOWNLOADING, DECOMPRESSING, WRITING }
+
 data class DownloadInfo(
     val jobCount: Int = 1,
     val gameId: Int,
@@ -26,9 +28,15 @@ data class DownloadInfo(
     private var bytesDownloaded: Long = 0L
     private var persistencePath: String? = null
 
+    private var bytesWritten: Long = 0L
+    private var lastWriteMs: Long = 0L
+    private var fetchedBytes: Long = 0L
+    private var decompressedUncompressedBytes: Long = 0L
+
     private data class SpeedSample(val timeMs: Long, val bytes: Long)
 
     private val speedSamples = CopyOnWriteArrayList<SpeedSample>()
+    private val writeSamples = CopyOnWriteArrayList<SpeedSample>()
     private var emaSpeedBytesPerSec: Double = 0.0
     private var hasEmaSpeed: Boolean = false
     private var isActive: Boolean = true
@@ -228,6 +236,53 @@ data class DownloadInfo(
         } else {
             0L to 0L
         }
+    }
+
+    fun recordWrite(deltaBytes: Long, timestampMs: Long = System.currentTimeMillis()) {
+        if (deltaBytes <= 0L) return
+        bytesWritten += deltaBytes
+        lastWriteMs = timestampMs
+        writeSamples.add(SpeedSample(timestampMs, bytesWritten))
+        val cutoff = timestampMs - 10_000L
+        while (writeSamples.isNotEmpty() && writeSamples.first().timeMs < cutoff) {
+            writeSamples.removeAt(0)
+        }
+    }
+
+    fun getBytesWritten(): Long = bytesWritten
+
+    fun getWriteSpeedBytesPerSec(): Long {
+        if (System.currentTimeMillis() - lastWriteMs > 2_000L) return 0L
+        val samples = writeSamples.toTypedArray().toList()
+        if (samples.size < 2) return 0L
+        val first = samples.first()
+        val last = samples.last()
+        val elapsedMs = last.timeMs - first.timeMs
+        if (elapsedMs <= 0L) return 0L
+        return ((last.bytes - first.bytes) * 1000L) / elapsedMs
+    }
+
+    fun isWriting(): Boolean =
+        System.currentTimeMillis() - lastWriteMs <= 2_000L && getWriteSpeedBytesPerSec() > 0L
+
+    fun recordFetched(deltaBytes: Long) {
+        if (deltaBytes <= 0L) return
+        fetchedBytes += deltaBytes
+    }
+
+    fun getFetchedBytes(): Long = fetchedBytes
+
+    fun addDecompressedUncompressed(deltaBytes: Long) {
+        if (deltaBytes <= 0L) return
+        decompressedUncompressedBytes += deltaBytes
+    }
+
+    fun getPendingWriteBytes(): Long = (decompressedUncompressedBytes - bytesWritten).coerceAtLeast(0L)
+
+    fun getPhase(): DownloadPhase {
+        if (totalExpectedBytes > 0L && bytesDownloaded >= totalExpectedBytes) return DownloadPhase.WRITING
+        if (fetchedBytes - bytesDownloaded > 100L * 1024 * 1024) return DownloadPhase.DECOMPRESSING
+        return DownloadPhase.DOWNLOADING
     }
 
     /**

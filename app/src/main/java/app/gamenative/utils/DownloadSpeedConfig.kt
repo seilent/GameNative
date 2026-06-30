@@ -35,5 +35,5 @@ class DownloadSpeedConfig {
         get() = (cpuCores * ratios.download).toInt().coerceAtLeast(1)
 
     val maxDecompress: Int
-        get() = (cpuCores * ratios.decompress).toInt().coerceAtLeast(1)
+        get() = (cpuCores - 1).coerceAtLeast(1)
 }

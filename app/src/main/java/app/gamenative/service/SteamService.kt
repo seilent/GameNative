@@ -2265,6 +2265,7 @@ class SteamService : Service(), IChallengeUrlChanged {
             // compressedBytes from onChunkCompleted is cumulative per depot, and matches the
             // unit of totalExpectedBytes which is summed from manifest.download.
             private val depotCumulativeCompressedBytes = mutableMapOf<Int, Long>()
+            private val depotCumulativeUncompressedBytes = mutableMapOf<Int, Long>()
             override fun onItemAdded(item: DownloadItem) {
                 Timber.d("Item ${item.appId} added to queue")
             }
@@ -2314,6 +2315,13 @@ class SteamService : Service(), IChallengeUrlChanged {
                     downloadInfo.updateBytesDownloaded(deltaBytes, System.currentTimeMillis())
                 }
 
+                val previousUncompressed = depotCumulativeUncompressedBytes[depotId] ?: 0L
+                val uncompressedDelta = uncompressedBytes - previousUncompressed
+                depotCumulativeUncompressedBytes[depotId] = uncompressedBytes
+                if (uncompressedDelta > 0L) {
+                    downloadInfo.addDecompressedUncompressed(uncompressedDelta)
+                }
+
                 if (!staging) {
                     depotIdToIndex[depotId]?.let { index ->
                         downloadInfo.setProgress(depotPercentComplete, index)
@@ -2334,6 +2342,14 @@ class SteamService : Service(), IChallengeUrlChanged {
                 downloadInfo.persistProgressSnapshot()
             }
 
+            override fun onFileWriteProgress(deltaBytes: Long) {
+                downloadInfo.recordWrite(deltaBytes)
+            }
+
+            override fun onChunkDownloaded(compressedBytes: Long) {
+                downloadInfo.recordFetched(compressedBytes)
+            }
+
             override fun onDepotCompleted(depotId: Int, compressedBytes: Long, uncompressedBytes: Long) {
                 Timber.i("Depot $depotId completed (compressed: $compressedBytes, uncompressed: $uncompressedBytes)")
 
@@ -2343,6 +2359,13 @@ class SteamService : Service(), IChallengeUrlChanged {
 
                 if (deltaBytes > 0L) {
                     downloadInfo.updateBytesDownloaded(deltaBytes, System.currentTimeMillis())
+                }
+
+                val previousUncompressed = depotCumulativeUncompressedBytes[depotId] ?: 0L
+                val uncompressedDelta = uncompressedBytes - previousUncompressed
+                depotCumulativeUncompressedBytes[depotId] = uncompressedBytes
+                if (uncompressedDelta > 0L) {
+                    downloadInfo.addDecompressedUncompressed(uncompressedDelta)
                 }
 
                 depotIdToIndex[depotId]?.let { index ->

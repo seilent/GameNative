@@ -749,6 +749,8 @@ private fun DownloadItemCard(
         DownloadItemStatus.PAUSED,
         DownloadItemStatus.RESUMABLE,
         -> PluviaTheme.colors.accentWarning
+        DownloadItemStatus.DECOMPRESSING -> Color(0xFF4F9BFF)
+        DownloadItemStatus.WRITING -> Color(0xFF14B8A6)
         DownloadItemStatus.DOWNLOADING -> LocalGameAccent.current
         DownloadItemStatus.VERIFYING -> LocalGameAccent.current
         DownloadItemStatus.QUEUED -> PluviaTheme.colors.statusAway
@@ -872,9 +874,27 @@ private fun DownloadItemCard(
                             item.bytesDownloaded != null -> Formatter.formatFileSize(context, item.bytesDownloaded)
                             else -> null
                         }
-                        if (bytesText != null) {
+                        val isFinalizing = item.status == DownloadItemStatus.WRITING
+                        val writingStr = if (item.writeSpeedBytesPerSec != null && item.writeSpeedBytesPerSec > 0L) {
+                            stringResource(R.string.download_writing, Formatter.formatFileSize(context, item.writeSpeedBytesPerSec))
+                        } else {
+                            null
+                        }
+                        val pendingStr = if (isFinalizing && item.pendingWriteBytes != null) {
+                            stringResource(R.string.download_pending_write, Formatter.formatFileSize(context, item.pendingWriteBytes))
+                        } else {
+                            null
+                        }
+                        val bytesLine = if (isFinalizing) {
+                            listOfNotNull(writingStr, pendingStr).joinToString(", ").ifEmpty { null }
+                        } else if (bytesText != null && writingStr != null) {
+                            "$bytesText - $writingStr"
+                        } else {
+                            bytesText
+                        }
+                        if (bytesLine != null) {
                             Text(
-                                text = bytesText,
+                                text = bytesLine,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White.copy(alpha = 0.7f),
                             )
@@ -1065,6 +1085,8 @@ private fun sourceLabel(gameSource: GameSource): String = when (gameSource) {
 
 @Composable
 private fun statusLabel(status: DownloadItemStatus): String = when (status) {
+    DownloadItemStatus.DECOMPRESSING -> stringResource(R.string.decompressing)
+    DownloadItemStatus.WRITING -> stringResource(R.string.writing)
     DownloadItemStatus.DOWNLOADING -> stringResource(R.string.downloading)
     DownloadItemStatus.VERIFYING -> stringResource(R.string.verifying)
     DownloadItemStatus.QUEUED -> stringResource(R.string.queued)
@@ -1095,6 +1117,8 @@ private fun sourceContentColor(gameSource: GameSource): Color = when (gameSource
 
 @Composable
 private fun statusContainerColor(status: DownloadItemStatus): Color = when (status) {
+    DownloadItemStatus.DECOMPRESSING -> Color(0xFF4F9BFF).copy(alpha = 0.15f)
+    DownloadItemStatus.WRITING -> Color(0xFF14B8A6).copy(alpha = 0.15f)
     DownloadItemStatus.DOWNLOADING -> LocalGameAccent.current.copy(alpha = 0.15f)
     DownloadItemStatus.VERIFYING -> LocalGameAccent.current.copy(alpha = 0.15f)
     DownloadItemStatus.QUEUED -> PluviaTheme.colors.statusAway.copy(alpha = 0.15f)
@@ -1109,6 +1133,8 @@ private fun statusContainerColor(status: DownloadItemStatus): Color = when (stat
 
 @Composable
 private fun statusContentColor(status: DownloadItemStatus): Color = when (status) {
+    DownloadItemStatus.DECOMPRESSING -> Color(0xFF4F9BFF)
+    DownloadItemStatus.WRITING -> Color(0xFF14B8A6)
     DownloadItemStatus.DOWNLOADING -> LocalGameAccent.current
     DownloadItemStatus.VERIFYING -> LocalGameAccent.current
     DownloadItemStatus.QUEUED -> PluviaTheme.colors.statusAway

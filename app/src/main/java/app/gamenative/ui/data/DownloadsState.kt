@@ -4,6 +4,8 @@ import app.gamenative.data.GameSource
 
 enum class DownloadItemStatus {
     DOWNLOADING,
+    DECOMPRESSING,
+    WRITING,
     VERIFYING,
     QUEUED,
     PAUSED,
@@ -27,13 +29,15 @@ data class DownloadItemState(
     val isActive: Boolean?,
     val isPartial: Boolean,
     val status: DownloadItemStatus,
+    val writeSpeedBytesPerSec: Long? = null,
+    val pendingWriteBytes: Long? = null,
     val updatedAtMs: Long = System.currentTimeMillis(),
 ) {
     val uniqueId: String
         get() = "${gameSource.name}_$appId"
 
     val canPause: Boolean
-        get() = status == DownloadItemStatus.DOWNLOADING
+        get() = status == DownloadItemStatus.DOWNLOADING || status == DownloadItemStatus.DECOMPRESSING || status == DownloadItemStatus.WRITING
 
     val canResume: Boolean
         get() = isPartial && (
@@ -43,7 +47,7 @@ data class DownloadItemState(
             )
 
     val canCancel: Boolean
-        get() = status == DownloadItemStatus.DOWNLOADING || status == DownloadItemStatus.VERIFYING || status == DownloadItemStatus.QUEUED || isPartial
+        get() = status == DownloadItemStatus.DOWNLOADING || status == DownloadItemStatus.DECOMPRESSING || status == DownloadItemStatus.WRITING || status == DownloadItemStatus.VERIFYING || status == DownloadItemStatus.QUEUED || isPartial
 
     val isFinished: Boolean
         get() = !isPartial && (
