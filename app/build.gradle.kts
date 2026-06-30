@@ -166,6 +166,7 @@ android {
             isDebuggable = true
             isMinifyEnabled = false
             isShrinkResources = false
+            applicationIdSuffix = ".dev"
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
