@@ -1558,11 +1558,6 @@
     <string name="seifg_quality">Quality</string>
     <string name="seifg_performance_mode">Performance mode</string>
     <string name="seifg_not_supported">Frame generation requires a Bionic container</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">Reduces quality for higher throughput</string>
     <string name="seifg_base_fps_cap">Base frame rate cap</string>
     <string name="seifg_base_fps_cap_desc">Real frames per second before generation. The multiplier scales this to the displayed rate. Set to 0 to leave uncapped.</string>

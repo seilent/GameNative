@@ -1486,11 +1486,6 @@
     <string name="seifg_flow_scale_desc">Mai mic este mai stabil; mai mare este mai fluid, dar poate produce artefacte.</string>
     <string name="seifg_performance_mode">Mod performanță</string>
     <string name="seifg_not_supported">Generarea de cadre necesită un container Bionic</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
 	<string name="seifg_performance_mode_desc">Reduce calitatea pentru un debit mai mare</string>
 	<!-- Game Launch Tips -->
 	<string name="game_launch_tip_1">Pornirea poate dura câteva minute la prima lansare</string>

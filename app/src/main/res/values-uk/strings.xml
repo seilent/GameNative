@@ -1479,11 +1479,6 @@
     <string name="seifg_flow_scale_desc">Нижче — стабільніше; вище — плавніше, але можуть з’являтися артефакти.</string>
     <string name="seifg_performance_mode">Режим продуктивності</string>
     <string name="seifg_not_supported">Для генерації кадрів потрібен контейнер Bionic</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">Знижує якість для вищої пропускної здатності</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">Завантаження може зайняти кілька хвилин при першому запуску</string>

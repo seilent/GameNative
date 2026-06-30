@@ -1557,11 +1557,6 @@
     <string name="seifg_flow_scale_desc">數值越低越穩定；越高越流暢，但可能出現偽影。</string>
     <string name="seifg_performance_mode">效能模式</string>
     <string name="seifg_not_supported">幀生成需要 Bionic 容器</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">降低畫質以提升吞吐量</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">首次啟動可能需要幾分鐘時間</string>

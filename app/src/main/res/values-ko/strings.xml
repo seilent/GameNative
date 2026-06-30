@@ -1482,11 +1482,6 @@
     <string name="seifg_flow_scale_desc">낮을수록 더 안정적이고, 높을수록 더 부드럽지만 아티팩트가 생길 수 있습니다.</string>
     <string name="seifg_performance_mode">성능 모드</string>
     <string name="seifg_not_supported">프레임 생성에는 Bionic 컨테이너가 필요합니다</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">처리량 향상을 위해 품질 감소</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">처음 실행 시 부팅에 몇 분 정도 걸릴 수 있습니다</string>

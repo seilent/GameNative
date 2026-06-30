@@ -1483,11 +1483,6 @@
     <string name="seifg_flow_scale_desc">Niższa wartość jest stabilniejsza; wyższa jest płynniejsza, ale może powodować artefakty.</string>
     <string name="seifg_performance_mode">Tryb wydajności</string>
     <string name="seifg_not_supported">Generowanie klatek wymaga kontenera Bionic</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">Zmniejsza jakość dla wyższej przepustowości</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">Uruchamianie może zająć kilka minut przy pierwszym starcie</string>

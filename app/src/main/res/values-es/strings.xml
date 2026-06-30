@@ -1486,11 +1486,6 @@
     <string name="seifg_flow_scale_desc">Más bajo es más estable; más alto es más fluido pero puede generar artefactos.</string>
     <string name="seifg_performance_mode">Modo de rendimiento</string>
     <string name="seifg_not_supported">La generación de fotogramas requiere un contenedor Bionic</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">Reduce calidad para mayor rendimiento</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">El inicio puede tardar unos minutos en la primera ejecución</string>

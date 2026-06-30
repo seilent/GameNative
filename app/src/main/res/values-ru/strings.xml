@@ -1414,11 +1414,6 @@ https://gamenative.app
     <string name="seifg_flow_scale_desc">Ниже — стабильнее; выше — плавнее, но могут появляться артефакты.</string>
     <string name="seifg_performance_mode">Режим производительности</string>
     <string name="seifg_not_supported">Для генерации кадров требуется контейнер Bionic</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">Снижает качество для повышения пропускной способности</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">Загрузка может занять несколько минут при первом запуске</string>

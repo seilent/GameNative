@@ -1523,11 +1523,6 @@
     <string name="seifg_flow_scale_desc">低いほど安定します。高いほどスムーズになりますが、アーティファクトが発生する可能性があります。</string>
     <string name="seifg_performance_mode">パフォーマンスモード</string>
     <string name="seifg_not_supported">フレーム生成には Bionic コンテナが必要です</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">スループットを上げるために品質を下げる</string>
     <string name="settings_interface_show_recommendations_title">ゲームのおすすめを表示</string>
     <string name="settings_interface_show_recommendations_subtitle">厳選されたインディー ゲームのおすすめをライブラリに表示します。これをオンにしておくと、インディー開発者と GameNative のサポートに役立ちます。</string>

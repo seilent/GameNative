@@ -1351,11 +1351,6 @@
     <string name="seifg_flow_scale_desc">Lavere er mere stabilt; højere er mere flydende men kan give artefakter.</string>
     <string name="seifg_performance_mode">Ydelsestilstand</string>
     <string name="seifg_not_supported">Billedgenerering kræver en Bionic-container</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">Reducerer kvalitet for højere gennemstrømning</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">Opstart kan tage et par minutter ved første lancering</string>

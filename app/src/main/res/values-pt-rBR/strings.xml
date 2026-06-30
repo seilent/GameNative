@@ -1351,11 +1351,6 @@
     <string name="seifg_flow_scale_desc">Mais baixo é mais estável; mais alto é mais suave, mas pode gerar artefatos.</string>
     <string name="seifg_performance_mode">Modo de desempenho</string>
     <string name="seifg_not_supported">A geração de quadros requer um contêiner Bionic</string>
-    <string name="seifg_install_prompt">Unused — will be removed</string>
-    <string name="seifg_not_in_library">Unused — will be removed</string>
-    <string name="seifg_install_title">Unused — will be removed</string>
-    <string name="seifg_install_message">Unused — will be removed</string>
-    <string name="seifg_installing">Unused — will be removed</string>
     <string name="seifg_performance_mode_desc">Reduz qualidade para maior taxa de processamento</string>
     <!-- Game Launch Tips -->
     <string name="game_launch_tip_1">A inicialização pode levar alguns minutos na primeira execução</string>
