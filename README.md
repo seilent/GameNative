@@ -26,6 +26,7 @@ Host-side Vulkan compute frame interpolation. The game renders at a capped base 
 - Configurable per-game in Graphics settings: target FPS (30-120), multiplier (2-4x), quality (0-4)
 - Real-frame cap is derived automatically (target / multiplier)
 - Vsync-aligned pacing via AChoreographer
+- Requires the SurfaceFlinger renderer. Frame images are AHardwareBuffer-backed, which only that renderer provides; the GL and Vulkan renderers won't generate frames.
 
 ### External storage pipeline
 
