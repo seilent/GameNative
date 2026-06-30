@@ -49,10 +49,6 @@ object GameAccent {
         return color
     }
 
-    /**
-     * Dependency-free, all-API box blur (two separable passes ≈ Gaussian). Cheap on a small bitmap.
-     * Alpha is forced opaque; only RGB is blurred.
-     */
     fun boxBlur(src: Bitmap, radius: Int, passes: Int = 2): Bitmap {
         val w = src.width
         val h = src.height

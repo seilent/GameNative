@@ -11,8 +11,8 @@ namespace {
     using frame_cb64 = void (*)(int64_t, void*);
     using pfn_postFrameCallback64 = void (*)(void*, frame_cb64, void*);
 
-    constexpr int64_t kMinPeriodNs = 1'000'000;    // 1000 Hz
-    constexpr int64_t kMaxPeriodNs = 100'000'000;  // 10 Hz
+    constexpr int64_t kMinPeriodNs = 1'000'000;
+    constexpr int64_t kMaxPeriodNs = 100'000'000;
 }
 
 VsyncClock::~VsyncClock() {

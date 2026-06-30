@@ -7,12 +7,6 @@
 
 struct ALooper;
 
-// Tracks the host display's real vsync timeline via AChoreographer on a
-// dedicated Looper thread. Vortek presents asynchronously inside the container
-// (no vsync visible to the guest), so frame pacing must happen host-side and be
-// anchored to the true vsync grid. This exposes the latest vsync timestamp and
-// the measured period so the scanout path can align ASurfaceTransaction
-// desiredPresentTime to actual vsync slots instead of a free-running clock.
 class VsyncClock {
 public:
     VsyncClock() = default;
@@ -21,9 +15,7 @@ public:
     void start();
     void stop();
 
-    // Latest real vsync timestamp (CLOCK_MONOTONIC ns); 0 until warmed up.
     int64_t lastVsyncNs() const { return lastVsync.load(std::memory_order_relaxed); }
-    // Measured vsync period (ns); 0 until warmed up.
     int64_t periodNs() const { return period.load(std::memory_order_relaxed); }
 
     VsyncClock(const VsyncClock&) = delete;

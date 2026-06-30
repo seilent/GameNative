@@ -20,16 +20,6 @@ import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.GlassSheen
 import app.gamenative.ui.theme.LocalGameAccent
 
-/**
- * A translucent "frosted glass" surface: a tinted fill, a faint top sheen, and a hairline border.
- *
- * Drop-in replacement for opaque `Surface(...)` panels. Because the app paints a blurred
- * game-thumbnail [app.gamenative.ui.component.BlurredBackdrop] behind everything, the translucent
- * fill reads as real glass without any live backdrop blur.
- *
- * @param dark use the dark-glass variant (for panels over the live game surface, e.g. the in-game
- *   overlay, where there is no blurred backdrop behind them).
- */
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,

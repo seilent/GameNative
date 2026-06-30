@@ -91,7 +91,6 @@ fun LibrarySearchBar(
         ) + fadeOut(),
         modifier = modifier,
     ) {
-        // Glass background container
         Box(
             modifier = Modifier
                 .fillMaxWidth()

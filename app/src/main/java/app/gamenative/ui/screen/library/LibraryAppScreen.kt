@@ -836,7 +836,6 @@ private fun HeroSection(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
-        // Hero background image
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -884,12 +883,6 @@ private fun HeroSection(
                 ),
         )
 
-        // Back button (top left).
-        // The hero image is intentionally drawn full-bleed through the status bar
-        // and any display cutout (notch / hole-punch / side cutout). The button
-        // itself, however, has to stay tappable, so it's pushed inwards by whichever
-        // is larger of the status bar inset or the cutout inset on each affected
-        // edge before the visual 16dp padding is applied.
         ActionIconButton(
             icon = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = stringResource(R.string.back),
@@ -947,13 +940,11 @@ private fun ActionBarOverlay(
     onOptionsClick: () -> Unit,
     onProgressBarPositioned: (Rect) -> Unit,
 ) {
-    // Bottom overlay with title and action bar
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 128.dp, start = 20.dp, end = 20.dp, bottom = 16.dp),
     ) {
-        // Game title
         Text(
             text = displayInfo.name,
             style = MaterialTheme.typography.headlineMedium.copy(
@@ -969,7 +960,6 @@ private fun ActionBarOverlay(
             overflow = TextOverflow.Ellipsis,
         )
 
-        // Developer and year
         val releaseYear = remember(displayInfo.releaseDate) {
             if (displayInfo.releaseDate > 0) {
                 SimpleDateFormat("yyyy", Locale.getDefault()).format(Date(displayInfo.releaseDate * 1000))
@@ -985,7 +975,6 @@ private fun ActionBarOverlay(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Integrated action bar - overlaid on hero
         val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
         GlassSurface(
             modifier = Modifier.fillMaxWidth(),
@@ -1000,7 +989,6 @@ private fun ActionBarOverlay(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // Primary action button (left-aligned)
                 if (isDownloading || hasPartialDownload) {
                     PrimaryActionButton(
                         text = if (isDownloading) {
@@ -1062,7 +1050,6 @@ private fun ActionBarOverlay(
                     Spacer(modifier = Modifier.weight(1f))
                 }
 
-                // Secondary action icons (right-aligned)
                 ActionIconButton(
                     icon = Icons.Default.Settings,
                     contentDescription = stringResource(R.string.options),
@@ -1120,13 +1107,11 @@ private fun InfoSection(
     val context = LocalContext.current
     val accent = LocalGameAccent.current
 
-    // Content section below hero with solid background
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp),
     ) {
-        // Update available banner
         if (isUpdatePending) {
             GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
@@ -1164,7 +1149,6 @@ private fun InfoSection(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Game information section
         Row(
             modifier = Modifier.padding(bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -1184,7 +1168,6 @@ private fun InfoSection(
             }
         }
 
-        // Info cards in 2-column grid
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -1254,7 +1237,6 @@ private fun InfoSection(
             )
         }
 
-        // Install location (when installed)
         if (isInstalled && displayInfo.installLocation != null) {
             Spacer(modifier = Modifier.height(10.dp))
             InfoCard(
@@ -1266,7 +1248,6 @@ private fun InfoSection(
             )
         }
 
-        // Play time and last played
         if (displayInfo.playtimeText != null || displayInfo.lastPlayedText != null) {
             Spacer(modifier = Modifier.height(10.dp))
             Row(
@@ -1356,7 +1337,6 @@ private fun BoxScope.OverlayLayer(
         visible = !optionsMenuVisible,
     )
 
-    // Options panel - slides in from right
     GameOptionsPanel(
         isOpen = optionsMenuVisible,
         onDismiss = onOptionsMenuDismiss,
@@ -1364,7 +1344,6 @@ private fun BoxScope.OverlayLayer(
         modifier = Modifier.align(Alignment.CenterEnd),
     )
 
-    // Ambient mode during downloads
     if (isDownloading) {
         AmbientDownloadOverlay(
             gameName = displayInfo.name,

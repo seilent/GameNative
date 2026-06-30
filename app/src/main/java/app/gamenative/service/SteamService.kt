@@ -1871,10 +1871,6 @@ class SteamService : Service(), IChallengeUrlChanged {
 
                         DownloadGate.withSlot(di) {
                         // Create DepotDownloader instance
-                        // When installing to external (slow exFAT/FUSE) storage, stage the
-                        // download+decompress on fast internal storage and let JavaSteam copy
-                        // each completed file out to external sequentially. Bounded by a byte
-                        // budget so internal never holds the whole game.
                         val stagingRootPath = if (!appDirPath.startsWith(DownloadService.baseDataDirPath)) {
                             (DownloadService.baseDataDirPath + "/depot_staging").toPath()
                         } else {
