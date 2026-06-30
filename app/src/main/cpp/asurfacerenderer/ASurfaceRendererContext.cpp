@@ -367,9 +367,7 @@ int64_t ASurfaceRendererContext::nextVsyncSlot() {
         scanoutNextPresentNs = vsync;
 
     int64_t target = scanoutNextPresentNs + period;
-    while (target <= now + period / 4)
-        target += period;
-    if (target > now + period * 4)
+    if (target < now - period / 2 || target > now + period * 4)
         target = vsync + ((now - vsync) / period + 1) * period;
 
     int64_t phase = (target - vsync) % period;
