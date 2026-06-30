@@ -1921,7 +1921,7 @@ class SteamService : Service(), IChallengeUrlChanged {
 
                             val mainAppItem = AppItem(
                                 appId,
-                                installDirectory = getAppDirPath(appId),
+                                installDirectory = appDirPath,
                                 depot = mainAppDepotIds,
                                 branch = branch,
                                 branchPassword = branchPassword,
@@ -1936,7 +1936,7 @@ class SteamService : Service(), IChallengeUrlChanged {
 
                             val dlcAppItem = AppItem(
                                 dlcAppId,
-                                installDirectory = getAppDirPath(appId),
+                                installDirectory = appDirPath,
                                 depot = dlcDepotIds,
                                 branch = branch,
                                 branchPassword = branchPassword,
@@ -1951,7 +1951,7 @@ class SteamService : Service(), IChallengeUrlChanged {
                         // Start Download
                         depotDownloader.startDownloading()
 
-                        Timber.i("Downloading game to " + defaultAppInstallPath)
+                        Timber.i("Downloading game to " + appDirPath)
 
                         // Wait for completion
                         depotDownloader.getCompletion().await()
@@ -1966,7 +1966,7 @@ class SteamService : Service(), IChallengeUrlChanged {
                                 .let { selectSteamControllerConfig(it) }
 
                             if (controllerConfig != null) {
-                                val appDirPath = getAppDirPath(appId)
+                                val appDirPath = getAppDirPath(appId, target)
                                 val publishedFileId = controllerConfig.publishedFileId
 
                                 runCatching {
