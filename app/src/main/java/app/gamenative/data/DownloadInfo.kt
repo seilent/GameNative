@@ -67,9 +67,6 @@ data class DownloadInfo(
     }
 
     fun getProgress(): Float {
-        if (staging) {
-            return weightedDepotProgress()
-        }
         if (totalExpectedBytes > 0L) {
             return (bytesDownloaded.toFloat() / totalExpectedBytes.toFloat()).coerceIn(0f, 1f)
         }
