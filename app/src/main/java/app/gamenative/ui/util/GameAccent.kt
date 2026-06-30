@@ -5,14 +5,6 @@ import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * Extracts and caches a per-game accent color from artwork, and provides an all-API blur.
- *
- * Designed to run on a tiny (~160x90) bitmap that is already being decoded for the backdrop, so
- * the incremental cost is ~1-5ms. Results (a single ARGB int per game) are cached in-memory, so
- * extraction happens at most once per game per process — the same "extract once, cache" model MIU
- * uses on its backend.
- */
 object GameAccent {
     private val cache = ConcurrentHashMap<String, Int>()
 
@@ -31,11 +23,6 @@ object GameAccent {
 
     fun putBlur(key: String, bmp: Bitmap) { synchronized(blurCache) { blurCache[key] = bmp } }
 
-    /**
-     * Extract an accent ARGB from [bitmap]. MUST run off the main thread.
-     * Always extract from the UNBLURRED source — a blurred image yields muddy, desaturated swatches.
-     * Falls back to [fallbackArgb] when no usable swatch is found.
-     */
     fun accentFromBitmap(bitmap: Bitmap, fallbackArgb: Int): Int {
         val palette = Palette.from(bitmap).generate()
         val swatch = palette.vibrantSwatch

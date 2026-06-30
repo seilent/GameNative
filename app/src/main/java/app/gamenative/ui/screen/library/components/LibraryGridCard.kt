@@ -269,7 +269,6 @@ internal fun GridViewCard(
                     compatibilityStatus
                 }
 
-                // Frosted glass title bar — title, then a row of stats + compat/source + installed
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)

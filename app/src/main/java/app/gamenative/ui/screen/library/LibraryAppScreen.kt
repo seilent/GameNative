@@ -1032,7 +1032,6 @@ private fun ActionBarOverlay(
                     )
                 }
 
-                // Download size / ETA text — inline only in landscape
                 if (isDownloading && !isPortrait) {
                     Column(
                         modifier = Modifier

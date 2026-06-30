@@ -831,9 +831,6 @@ private fun LibraryScreenContent(
             .onFocusChanged { focusState ->
                 rootHasFocus = focusState.hasFocus
                 rootSelfFocused = focusState.isFocused
-                // Bootstrap is needed when nothing in the subtree has focus, OR when only the root
-                // container itself holds focus (i.e. no content item is focused yet) — otherwise the
-                // dpad gets stuck on the root with nowhere to traverse.
                 controllerBootstrapNeeded = !focusState.hasFocus || focusState.isFocused
             }
             .focusGroup()
