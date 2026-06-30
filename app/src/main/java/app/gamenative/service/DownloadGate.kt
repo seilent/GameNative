@@ -15,11 +15,11 @@ object DownloadGate {
             return block()
         }
         if (semaphore.availablePermits == 0) {
-            downloadInfo.updateStatusMessage("Queued")
+            downloadInfo.setQueued(true)
             downloadInfo.emitProgressChange()
         }
         return semaphore.withPermit {
-            downloadInfo.updateStatusMessage(null)
+            downloadInfo.setQueued(false)
             downloadInfo.emitProgressChange()
             block()
         }

@@ -32,9 +32,11 @@ data class DownloadInfo(
     private var emaSpeedBytesPerSec: Double = 0.0
     private var hasEmaSpeed: Boolean = false
     private var isActive: Boolean = true
+    private var staging: Boolean = false
     private val statusMessage = MutableStateFlow<String?>(null)
     private val postInstallSyncing = MutableStateFlow(false)
     private val verifying = MutableStateFlow(false)
+    private val queued = MutableStateFlow(false)
 
     fun cancel() {
         cancel("Cancelled by user")
@@ -65,18 +67,32 @@ data class DownloadInfo(
     }
 
     fun getProgress(): Float {
-        // Always use bytes-based progress when available for accuracy
-        if (totalExpectedBytes > 0L) {
-            val bytesProgress = (bytesDownloaded.toFloat() / totalExpectedBytes.toFloat()).coerceIn(0f, 1f)
-            return bytesProgress
+        if (staging) {
+            return weightedDepotProgress()
         }
+        if (totalExpectedBytes > 0L) {
+            return (bytesDownloaded.toFloat() / totalExpectedBytes.toFloat()).coerceIn(0f, 1f)
+        }
+        return weightedDepotProgress()
+    }
 
-        // Fallback to depot-based progress only if we don't have byte tracking
+    fun getBufferProgress(): Float {
+        if (totalExpectedBytes > 0L) {
+            return (bytesDownloaded.toFloat() / totalExpectedBytes.toFloat()).coerceIn(0f, 1f)
+        }
+        return weightedDepotProgress()
+    }
+
+    private fun weightedDepotProgress(): Float {
         var total = 0f
         for (i in progresses.indices) {
-            total += progresses[i] * weights[i]   // weight each depot
+            total += progresses[i] * weights[i]
         }
-        return if (weightSum == 0f) 0f else total / weightSum
+        return if (weightSum == 0f) 0f else (total / weightSum).coerceIn(0f, 1f)
+    }
+
+    fun setStaging(value: Boolean) {
+        staging = value
     }
 
 
@@ -159,6 +175,14 @@ data class DownloadInfo(
     fun isVerifying(): Boolean = verifying.value
 
     fun getVerifyingFlow(): StateFlow<Boolean> = verifying
+
+    fun setQueued(value: Boolean) {
+        queued.value = value
+    }
+
+    fun isQueued(): Boolean = queued.value
+
+    fun getQueuedFlow(): StateFlow<Boolean> = queued
 
     private fun addSpeedSample(timestampMs: Long) {
         speedSamples.add(SpeedSample(timestampMs, bytesDownloaded))

@@ -43,7 +43,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -750,8 +749,9 @@ private fun DownloadItemCard(
         DownloadItemStatus.PAUSED,
         DownloadItemStatus.RESUMABLE,
         -> PluviaTheme.colors.accentWarning
-        DownloadItemStatus.DOWNLOADING -> PluviaTheme.colors.statusDownloading
-        DownloadItemStatus.VERIFYING -> PluviaTheme.colors.statusDownloading
+        DownloadItemStatus.DOWNLOADING -> LocalGameAccent.current
+        DownloadItemStatus.VERIFYING -> LocalGameAccent.current
+        DownloadItemStatus.QUEUED -> PluviaTheme.colors.statusAway
     }
 
     GlassSurface(
@@ -817,17 +817,28 @@ private fun DownloadItemCard(
 
                 item.progress?.let { progress ->
                     Spacer(modifier = Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        progress = { progress.coerceIn(0f, 1f) },
+                    val solid = progress.coerceIn(0f, 1f)
+                    val buffer = (item.bufferProgress ?: solid).coerceIn(solid, 1f)
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        color = progressColor,
-                        trackColor = GlassFill,
-                        gapSize = 0.dp,
-                        drawStopIndicator = {},
-                    )
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(GlassFill),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(buffer)
+                                .background(progressColor.copy(alpha = 0.3f)),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(solid)
+                                .background(progressColor),
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -1056,6 +1067,7 @@ private fun sourceLabel(gameSource: GameSource): String = when (gameSource) {
 private fun statusLabel(status: DownloadItemStatus): String = when (status) {
     DownloadItemStatus.DOWNLOADING -> stringResource(R.string.downloading)
     DownloadItemStatus.VERIFYING -> stringResource(R.string.verifying)
+    DownloadItemStatus.QUEUED -> stringResource(R.string.queued)
     DownloadItemStatus.PAUSED -> stringResource(R.string.downloads_status_paused)
     DownloadItemStatus.RESUMABLE -> stringResource(R.string.downloads_resume_available)
     DownloadItemStatus.COMPLETED -> stringResource(R.string.downloads_status_complete)
@@ -1083,8 +1095,9 @@ private fun sourceContentColor(gameSource: GameSource): Color = when (gameSource
 
 @Composable
 private fun statusContainerColor(status: DownloadItemStatus): Color = when (status) {
-    DownloadItemStatus.DOWNLOADING -> PluviaTheme.colors.statusDownloading.copy(alpha = 0.15f)
-    DownloadItemStatus.VERIFYING -> PluviaTheme.colors.statusDownloading.copy(alpha = 0.15f)
+    DownloadItemStatus.DOWNLOADING -> LocalGameAccent.current.copy(alpha = 0.15f)
+    DownloadItemStatus.VERIFYING -> LocalGameAccent.current.copy(alpha = 0.15f)
+    DownloadItemStatus.QUEUED -> PluviaTheme.colors.statusAway.copy(alpha = 0.15f)
     DownloadItemStatus.PAUSED,
     DownloadItemStatus.RESUMABLE,
     -> GlassFill
@@ -1096,8 +1109,9 @@ private fun statusContainerColor(status: DownloadItemStatus): Color = when (stat
 
 @Composable
 private fun statusContentColor(status: DownloadItemStatus): Color = when (status) {
-    DownloadItemStatus.DOWNLOADING -> PluviaTheme.colors.statusDownloading
-    DownloadItemStatus.VERIFYING -> PluviaTheme.colors.statusDownloading
+    DownloadItemStatus.DOWNLOADING -> LocalGameAccent.current
+    DownloadItemStatus.VERIFYING -> LocalGameAccent.current
+    DownloadItemStatus.QUEUED -> PluviaTheme.colors.statusAway
     DownloadItemStatus.PAUSED,
     DownloadItemStatus.RESUMABLE,
     -> Color.White

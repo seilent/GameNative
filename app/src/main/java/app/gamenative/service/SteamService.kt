@@ -1876,6 +1876,7 @@ class SteamService : Service(), IChallengeUrlChanged {
                         } else {
                             null
                         }
+                        di.setStaging(stagingRootPath != null)
                         val stagingBudgetBytes = if (stagingRootPath != null) {
                             val freeInternal = java.io.File(DownloadService.baseDataDirPath).usableSpace
                             minOf(2L shl 30, (freeInternal / 2).coerceAtLeast(256L shl 20))

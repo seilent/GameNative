@@ -292,6 +292,7 @@ class DownloadsViewModel @Inject constructor(
         val isRunning = info.isActive() || info.isPostInstallSyncing()
         val status = when {
             rawProgress < 0f || statusMessage?.startsWith("Failed", ignoreCase = true) == true -> DownloadItemStatus.FAILED
+            info.isQueued() -> DownloadItemStatus.QUEUED
             isRunning && info.isVerifying() -> DownloadItemStatus.VERIFYING
             isRunning -> DownloadItemStatus.DOWNLOADING
             else -> DownloadItemStatus.PAUSED
@@ -310,6 +311,7 @@ class DownloadsViewModel @Inject constructor(
             gameName = gameName,
             iconUrl = iconUrl,
             progress = rawProgress.takeIf { it >= 0f },
+            bufferProgress = info.getBufferProgress().takeIf { rawProgress >= 0f },
             bytesDownloaded = downloaded.takeIf { total > 0L },
             bytesTotal = total.takeIf { it > 0L },
             etaMs = info.getEstimatedTimeRemaining(),
@@ -345,6 +347,7 @@ class DownloadsViewModel @Inject constructor(
             gameName = gameName,
             iconUrl = iconUrl,
             progress = null,
+            bufferProgress = null,
             bytesDownloaded = null,
             bytesTotal = null,
             etaMs = null,
