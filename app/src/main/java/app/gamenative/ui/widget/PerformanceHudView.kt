@@ -50,6 +50,7 @@ import kotlinx.coroutines.withContext
 class PerformanceHudView(
     context: Context,
     private val fpsProvider: () -> Float,
+    private val fpsLabelProvider: () -> String = { "FPS" },
     initialConfig: PerformanceHudConfig = PerformanceHudConfig(),
     initialCompactMode: Boolean = false,
 ) : FrameLayout(context) {
@@ -212,8 +213,9 @@ class PerformanceHudView(
             while (isActive) {
                 val rawFps = fpsProvider()
                 val currentFps = if (rawFps.isFinite()) rawFps.coerceAtLeast(0f) else 0f
+                val fpsLabel = fpsLabelProvider()
                 val snapshot = withContext(Dispatchers.IO) {
-                    collectSnapshot(currentFps)
+                    collectSnapshot(currentFps, fpsLabel)
                 }
                 renderSnapshot(snapshot)
                 delay(UPDATE_INTERVAL_MS)
@@ -308,7 +310,7 @@ class PerformanceHudView(
         }
     }
 
-    private fun collectSnapshot(currentFps: Float): HudSnapshot {
+    private fun collectSnapshot(currentFps: Float, fpsLabel: String): HudSnapshot {
         val cpuPercent = readCpuUsagePercent()
         val gpuPercent = readGpuUsagePercent()
         val batterySnapshot = collectBatterySnapshot()
@@ -316,7 +318,7 @@ class PerformanceHudView(
             fpsValue = currentFps,
             cpuValue = cpuPercent?.toFloat(),
             gpuValue = gpuPercent?.toFloat(),
-            fps = String.format(Locale.US, "FPS %.1f", currentFps),
+            fps = String.format(Locale.US, "%s %.1f", fpsLabel, currentFps),
             cpu = cpuPercent?.let { "CPU $it%" },
             gpu = gpuPercent?.let { "GPU $it%" },
             ram = "RAM ${readUsedRamText()}",

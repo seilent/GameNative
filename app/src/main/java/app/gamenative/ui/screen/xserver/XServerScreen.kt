@@ -682,7 +682,12 @@ fun XServerScreen(
         val hud = PerformanceHudView(
             context = context,
             fpsProvider = {
-                frameRating?.currentFPS ?: 0f
+                val mult = if (isSeifgAvailable && SeifgManager.multiplier(container) >= 2)
+                    SeifgManager.multiplier(container) else 1
+                (frameRating?.currentFPS ?: 0f) * mult
+            },
+            fpsLabelProvider = {
+                if (isSeifgAvailable && SeifgManager.multiplier(container) >= 2) "FG" else "FPS"
             },
             initialConfig = performanceHudConfig,
             initialCompactMode = PrefManager.performanceHudCompactMode,
