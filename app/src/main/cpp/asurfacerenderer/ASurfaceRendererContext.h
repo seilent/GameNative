@@ -9,6 +9,8 @@
 #include <atomic>
 #include <mutex>
 #include <memory>
+#include <thread>
+#include <condition_variable>
 
 #include <unordered_map>
 #include <functional>
@@ -91,6 +93,25 @@ private:
     void presentOne(void* sc, AHardwareBuffer* ahb, int fenceFd,
                     int64_t windowId, int64_t serial, int64_t target);
     int64_t nextVsyncSlot();
+
+    struct PendingHostFrame {
+        int64_t contentId = 0;
+        AHardwareBuffer* ahb = nullptr;
+        int fenceFd = -1;
+        int64_t windowId = 0;
+        int64_t serial = 0;
+    };
+    PendingHostFrame hostFgPending;
+    bool hostFgPendingValid = false;
+    std::mutex hostFgQueueMutex;
+    std::condition_variable hostFgQueueCv;
+    std::thread hostFgThread;
+    std::atomic<bool> hostFgThreadRunning{false};
+    void enqueueHostFrame(int64_t contentId, AHardwareBuffer* ahb, int fenceFd,
+                          int64_t windowId, int64_t serial);
+    void hostFramegenThreadLoop();
+    void startHostFramegenThread();
+    void stopHostFramegenThread();
 
     void* currentTx = nullptr;
 

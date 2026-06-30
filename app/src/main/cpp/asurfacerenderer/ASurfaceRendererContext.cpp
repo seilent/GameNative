@@ -77,6 +77,7 @@ ASurfaceRendererContext::ASurfaceRendererContext(ANativeWindow* win, int cWidth,
 }
 
 ASurfaceRendererContext::~ASurfaceRendererContext() {
+    stopHostFramegenThread();
     {
         std::lock_guard<std::mutex> lk(windowScMutex);
         if (!windowScMap.empty()) {
@@ -280,6 +281,11 @@ void ASurfaceRendererContext::setWindowBuffer(int64_t contentId, AHardwareBuffer
         return;
     }
 
+    if (hostFgEnabled.load(std::memory_order_relaxed)) {
+        enqueueHostFrame(contentId, ahb, fenceFd, windowId, serial);
+        return;
+    }
+
     void* sc = nullptr;
     {
         std::lock_guard<std::mutex> lk(windowScMutex);
@@ -289,11 +295,6 @@ void ASurfaceRendererContext::setWindowBuffer(int64_t contentId, AHardwareBuffer
             return;
         }
         sc = it->second;
-    }
-
-    if (hostFgEnabled.load(std::memory_order_relaxed)) {
-        hostFramegenPresent(sc, ahb, fenceFd, windowId, serial);
-        return;
     }
 
     void* tx = ST_CREATE();
@@ -352,8 +353,14 @@ void ASurfaceRendererContext::setHostFramegen(bool enabled, int quality, int mul
         hostFgMult = multiplier;
     }
     const bool on = enabled;
-    hostFgEnabled.store(on, std::memory_order_relaxed);
-    if (on) vsyncClock.start();
+    if (on) {
+        startHostFramegenThread();
+        vsyncClock.start();
+        hostFgEnabled.store(true, std::memory_order_relaxed);
+    } else {
+        hostFgEnabled.store(false, std::memory_order_relaxed);
+        stopHostFramegenThread();
+    }
     SCANOUT_LOG("setHostFramegen enabled=%d quality=%d mult=%d", (int)on, quality, multiplier);
 }
 
@@ -463,6 +470,70 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
             presentOne(sc, ahb, fenceFd, windowId, serial, target);
     }
     scanoutNextPresentNs = k + (int64_t)n * period;
+}
+
+void ASurfaceRendererContext::enqueueHostFrame(int64_t contentId, AHardwareBuffer* ahb, int fenceFd,
+        int64_t windowId, int64_t serial) {
+    AHardwareBuffer_acquire(ahb);
+    std::lock_guard<std::mutex> lk(hostFgQueueMutex);
+    if (hostFgPendingValid) {
+        if (hostFgPending.ahb) AHardwareBuffer_release(hostFgPending.ahb);
+        if (hostFgPending.fenceFd >= 0) close(hostFgPending.fenceFd);
+    }
+    hostFgPending = PendingHostFrame{ contentId, ahb, fenceFd, windowId, serial };
+    hostFgPendingValid = true;
+    hostFgQueueCv.notify_one();
+}
+
+void ASurfaceRendererContext::hostFramegenThreadLoop() {
+    while (true) {
+        PendingHostFrame f;
+        {
+            std::unique_lock<std::mutex> lk(hostFgQueueMutex);
+            hostFgQueueCv.wait(lk, [this] {
+                return hostFgPendingValid || !hostFgThreadRunning.load(std::memory_order_relaxed);
+            });
+            if (!hostFgThreadRunning.load(std::memory_order_relaxed) && !hostFgPendingValid)
+                break;
+            f = hostFgPending;
+            hostFgPendingValid = false;
+        }
+
+        void* sc = nullptr;
+        {
+            std::lock_guard<std::mutex> lk(windowScMutex);
+            auto it = windowScMap.find(f.contentId);
+            if (it != windowScMap.end()) sc = it->second;
+        }
+
+        if (sc)
+            hostFramegenPresent(sc, f.ahb, f.fenceFd, f.windowId, f.serial);
+        else if (f.fenceFd >= 0)
+            close(f.fenceFd);
+
+        AHardwareBuffer_release(f.ahb);
+    }
+}
+
+void ASurfaceRendererContext::startHostFramegenThread() {
+    if (hostFgThreadRunning.load(std::memory_order_relaxed)) return;
+    if (hostFgThread.joinable()) hostFgThread.join();
+    hostFgThreadRunning.store(true, std::memory_order_relaxed);
+    hostFgThread = std::thread(&ASurfaceRendererContext::hostFramegenThreadLoop, this);
+}
+
+void ASurfaceRendererContext::stopHostFramegenThread() {
+    if (hostFgThreadRunning.exchange(false)) {
+        std::lock_guard<std::mutex> lk(hostFgQueueMutex);
+        hostFgQueueCv.notify_all();
+    }
+    if (hostFgThread.joinable()) hostFgThread.join();
+    std::lock_guard<std::mutex> lk(hostFgQueueMutex);
+    if (hostFgPendingValid) {
+        if (hostFgPending.ahb) AHardwareBuffer_release(hostFgPending.ahb);
+        if (hostFgPending.fenceFd >= 0) close(hostFgPending.fenceFd);
+        hostFgPendingValid = false;
+    }
 }
 
 void ASurfaceRendererContext::loadSfCallbackApi() {
