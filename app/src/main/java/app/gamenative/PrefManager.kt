@@ -219,7 +219,7 @@ object PrefManager {
         get() {
             val stored = getPref(DISPLAY_RENDERER_MODE, "")
             if (stored.isNotEmpty()) return stored
-            return if (getPref(USE_LEGACY_RENDERER, false)) "gl" else "vulkan"
+            return if (getPref(USE_LEGACY_RENDERER, false)) "gl" else "surfaceflinger"
         }
         set(value) {
             setPref(DISPLAY_RENDERER_MODE, value)

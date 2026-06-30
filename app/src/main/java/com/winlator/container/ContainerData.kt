@@ -187,7 +187,7 @@ data class ContainerData(
                     graphicsDriverVersion = savedMap["graphicsDriverVersion"] as String,
                     graphicsDriverConfig = (savedMap["graphicsDriverConfig"] as? String) ?: "",
                     rendererPresentMode = (savedMap["rendererPresentMode"] as? String) ?: "fifo",
-                    displayRenderer = (savedMap["displayRenderer"] as? String) ?: "vulkan",
+                    displayRenderer = (savedMap["displayRenderer"] as? String) ?: "surfaceflinger",
                     dxwrapper = savedMap["dxwrapper"] as String,
                     dxwrapperConfig = savedMap["dxwrapperConfig"] as String,
                     audioDriver = savedMap["audioDriver"] as String,
