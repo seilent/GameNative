@@ -775,8 +775,15 @@ public class VulkanRenderer implements WindowManager.OnWindowModificationListene
         hudRef = fr;
     }
 
+    private static volatile boolean scanoutPacingUnavailable = false;
+
     public void setScanoutPacing(long intervalNs) {
-        if (nativeHandle != 0) nativeSetScanoutPacing(nativeHandle, intervalNs);
+        if (nativeHandle == 0 || scanoutPacingUnavailable) return;
+        try {
+            nativeSetScanoutPacing(nativeHandle, intervalNs);
+        } catch (UnsatisfiedLinkError e) {
+            scanoutPacingUnavailable = true;
+        }
     }
 
     @Override
