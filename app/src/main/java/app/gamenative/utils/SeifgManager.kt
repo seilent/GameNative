@@ -25,7 +25,12 @@ object SeifgManager {
 
     @JvmStatic
     fun isSupported(container: Container): Boolean =
-        container.containerVariant.equals(Container.BIONIC, ignoreCase = true)
+        container.containerVariant.equals(Container.BIONIC, ignoreCase = true) &&
+            rendererSupportsFramegen(container)
+
+    private fun rendererSupportsFramegen(container: Container): Boolean =
+        container.graphicsDriver != "virgl" &&
+            container.displayRenderer.equals(Container.DEFAULT_DISPLAY_RENDERER, ignoreCase = true)
 
     @JvmStatic
     fun isArmed(container: Container): Boolean =
