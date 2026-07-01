@@ -157,6 +157,7 @@ import com.winlator.widget.InputControlsView
 import com.winlator.widget.TouchpadView
 import com.winlator.renderer.GLRenderer
 import com.winlator.renderer.VulkanRenderer
+import com.winlator.renderer.ASurfaceRenderer
 import com.winlator.widget.XServerRendererView
 import com.winlator.widget.XServerView
 import com.winlator.widget.XServerViewGL
@@ -546,6 +547,7 @@ fun XServerScreen(
         when (val renderer = xServerView?.renderer) {
             is VulkanRenderer -> applyScreenEffectsConfig(renderer, screenEffectsConfig)
             is GLRenderer -> applyScreenEffectsConfig(renderer, screenEffectsConfig)
+            is ASurfaceRenderer -> applyScreenEffectsConfig(renderer, screenEffectsConfig)
         }
     }
 
@@ -2476,6 +2478,7 @@ fun XServerScreen(
             onItemSelected = onQuickMenuItemSelected,
             renderer = xServerView?.renderer as? VulkanRenderer,
             glRenderer = xServerView?.renderer as? GLRenderer,
+            asurfaceRenderer = if (isSeifgAvailable) xServerView?.renderer as? ASurfaceRenderer else null,
             container = container,
             wineProcesses = quickMenuWineProcesses,
             isWineProcessesLoading = quickMenuWineProcessesLoading,

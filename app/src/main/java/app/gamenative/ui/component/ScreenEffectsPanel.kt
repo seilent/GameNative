@@ -74,6 +74,7 @@ import app.gamenative.ui.util.loadScreenEffectsConfig
 import app.gamenative.ui.util.persistScreenEffectsConfig
 import app.gamenative.utils.BrightnessManager
 import com.winlator.container.Container
+import com.winlator.renderer.ASurfaceRenderer
 import com.winlator.renderer.GLRenderer
 import com.winlator.renderer.VulkanRenderer
 import kotlinx.coroutines.delay
@@ -491,6 +492,243 @@ fun ScreenEffectsTabContent(
         // Apply immediately for live preview
         applyScreenEffectsConfig(renderer, config)
         // Debounce persist to disk
+        delay(300)
+        persistScreenEffectsConfig(container, config)
+        container?.saveData()
+    }
+
+    fun resetEffects() {
+        scalingMode = ScreenEffectsConfig.SCALING_MODE_NONE
+        fsrSharpnessLevel = ScreenEffectsConfig.FSR_DEFAULT_LEVEL
+        brightness = 0f
+        contrast = 0f
+        gamma = 1.0f
+        enableToon = false
+        enableFXAA = false
+        enableVivid = false
+        enableCRT = false
+        enableNTSC = false
+    }
+
+    Column(
+        modifier = modifier
+            .verticalScroll(scrollState)
+            .focusGroup()
+            .padding(vertical = 12.dp),
+    ) {
+        DisplayBrightnessRow(focusRequester = firstItemFocusRequester)
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        ScreenEffectRadioRow(
+            title = stringResource(scalingModeLabelRes(ScreenEffectsConfig.SCALING_MODE_NONE)),
+            selected = scalingMode == ScreenEffectsConfig.SCALING_MODE_NONE,
+            onSelect = { scalingMode = ScreenEffectsConfig.SCALING_MODE_NONE },
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        OptionSectionHeader(text = stringResource(R.string.screen_effects_upscaling))
+        VULKAN_UPSCALING_MODES.forEach { mode ->
+            ScreenEffectRadioRow(
+                title = stringResource(scalingModeLabelRes(mode)),
+                subtitle = stringResource(scalingModeDescRes(mode)),
+                selected = scalingMode == mode,
+                onSelect = { scalingMode = mode },
+            )
+        }
+
+        if (scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR ||
+            scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT ||
+            scalingMode == ScreenEffectsConfig.SCALING_MODE_DLS
+        ) {
+            ScreenEffectAdjustmentRow(
+                title = stringResource(R.string.screen_effects_fsr_sharpness),
+                valueText = stringResource(R.string.screen_effects_fsr_sharpness_value, fsrSharpnessLevel),
+                progress = normalizedProgress(
+                    fsrSharpnessLevel.toFloat(),
+                    ScreenEffectsConfig.FSR_MIN_LEVEL.toFloat(),
+                    ScreenEffectsConfig.FSR_MAX_LEVEL.toFloat(),
+                ),
+                onDecrease = {
+                    fsrSharpnessLevel = (fsrSharpnessLevel - 1).coerceAtLeast(ScreenEffectsConfig.FSR_MIN_LEVEL)
+                },
+                onIncrease = {
+                    fsrSharpnessLevel = (fsrSharpnessLevel + 1).coerceAtMost(ScreenEffectsConfig.FSR_MAX_LEVEL)
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        OptionSectionHeader(text = stringResource(R.string.screen_effects_basic_scaling))
+        VULKAN_BASIC_MODES.forEach { mode ->
+            ScreenEffectRadioRow(
+                title = stringResource(scalingModeLabelRes(mode)),
+                subtitle = stringResource(scalingModeDescRes(mode)),
+                selected = scalingMode == mode,
+                onSelect = { scalingMode = mode },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        OptionSectionHeader(text = stringResource(R.string.screen_effects_color_adjustments))
+
+        ScreenEffectAdjustmentRow(
+            title = stringResource(R.string.screen_effects_brightness),
+            valueText = formatPercent(brightness),
+            progress = normalizedProgress(brightness, -100f, 100f),
+            onDecrease = {
+                brightness = (brightness - SCREEN_EFFECT_PERCENT_STEP).coerceIn(-100f, 100f)
+            },
+            onIncrease = {
+                brightness = (brightness + SCREEN_EFFECT_PERCENT_STEP).coerceIn(-100f, 100f)
+            },
+        )
+        ScreenEffectAdjustmentRow(
+            title = stringResource(R.string.screen_effects_contrast),
+            valueText = formatPercent(contrast),
+            progress = normalizedProgress(contrast, -100f, 100f),
+            onDecrease = {
+                contrast = (contrast - SCREEN_EFFECT_PERCENT_STEP).coerceIn(-100f, 100f)
+            },
+            onIncrease = {
+                contrast = (contrast + SCREEN_EFFECT_PERCENT_STEP).coerceIn(-100f, 100f)
+            },
+        )
+        ScreenEffectAdjustmentRow(
+            title = stringResource(R.string.screen_effects_gamma),
+            valueText = String.format("%.2fx", gamma),
+            progress = normalizedProgress(gamma, 0.5f, 2.5f),
+            onDecrease = {
+                gamma = (gamma - SCREEN_EFFECT_GAMMA_STEP).coerceIn(0.5f, 2.5f)
+            },
+            onIncrease = {
+                gamma = (gamma + SCREEN_EFFECT_GAMMA_STEP).coerceIn(0.5f, 2.5f)
+            },
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        OptionSectionHeader(text = stringResource(R.string.screen_effects_shader_toggles))
+
+        ScreenEffectToggleRow(
+            title = stringResource(R.string.screen_effects_toon),
+            subtitle = stringResource(R.string.screen_effects_toon_description),
+            enabled = enableToon,
+            onToggle = { enableToon = !enableToon },
+        )
+        ScreenEffectToggleRow(
+            title = stringResource(R.string.screen_effects_fxaa),
+            subtitle = stringResource(R.string.screen_effects_fxaa_description),
+            enabled = enableFXAA,
+            onToggle = { enableFXAA = !enableFXAA },
+        )
+        ScreenEffectToggleRow(
+            title = stringResource(R.string.screen_effects_vivid),
+            subtitle = stringResource(R.string.screen_effects_vivid_description),
+            enabled = enableVivid,
+            onToggle = { enableVivid = !enableVivid },
+        )
+        ScreenEffectToggleRow(
+            title = stringResource(R.string.screen_effects_crt),
+            subtitle = stringResource(R.string.screen_effects_crt_description),
+            enabled = enableCRT,
+            onToggle = { enableCRT = !enableCRT },
+        )
+        ScreenEffectToggleRow(
+            title = stringResource(R.string.screen_effects_ntsc),
+            subtitle = stringResource(R.string.screen_effects_ntsc_description),
+            enabled = enableNTSC,
+            onToggle = { enableNTSC = !enableNTSC },
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        ScreenEffectActionRow(
+            title = stringResource(R.string.screen_effects_reset),
+            icon = Icons.Default.RestartAlt,
+            accentColor = LocalGameAccent.current,
+            onClick = ::resetEffects,
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+fun ASurfaceScreenEffectsTabContent(
+    renderer: ASurfaceRenderer,
+    modifier: Modifier = Modifier,
+    container: Container? = null,
+    firstItemFocusRequester: FocusRequester? = null,
+    scrollState: ScrollState = rememberScrollState(),
+) {
+    val initialConfig = remember(renderer, container) { loadScreenEffectsConfig(container) }
+
+    val sanitizedInitialMode = if (initialConfig.scalingMode in VULKAN_SUPPORTED_SCALING_MODES) {
+        initialConfig.scalingMode
+    } else {
+        ScreenEffectsConfig.SCALING_MODE_NONE
+    }
+
+    var scalingMode by remember(renderer, container) {
+        mutableIntStateOf(sanitizedInitialMode)
+    }
+    var fsrSharpnessLevel by remember(renderer, container) {
+        mutableIntStateOf(initialConfig.fsrSharpnessLevel)
+    }
+    var brightness by remember(renderer, container) {
+        mutableFloatStateOf(initialConfig.brightness)
+    }
+    var contrast by remember(renderer, container) {
+        mutableFloatStateOf(initialConfig.contrast)
+    }
+    var gamma by remember(renderer, container) {
+        mutableFloatStateOf(initialConfig.gamma)
+    }
+    var enableToon by remember(renderer, container) {
+        mutableStateOf(initialConfig.enableToon)
+    }
+    var enableFXAA by remember(renderer, container) {
+        mutableStateOf(initialConfig.enableFXAA)
+    }
+    var enableVivid by remember(renderer, container) {
+        mutableStateOf(initialConfig.enableVivid)
+    }
+    var enableCRT by remember(renderer, container) {
+        mutableStateOf(initialConfig.enableCRT)
+    }
+    var enableNTSC by remember(renderer, container) {
+        mutableStateOf(initialConfig.enableNTSC)
+    }
+
+    LaunchedEffect(
+        scalingMode,
+        fsrSharpnessLevel,
+        brightness,
+        contrast,
+        gamma,
+        enableToon,
+        enableFXAA,
+        enableVivid,
+        enableCRT,
+        enableNTSC,
+    ) {
+        val config = initialConfig.copy(
+            scalingMode = scalingMode,
+            fsrSharpnessLevel = fsrSharpnessLevel,
+            brightness = brightness,
+            contrast = contrast,
+            gamma = gamma,
+            enableToon = enableToon,
+            enableFXAA = enableFXAA,
+            enableVivid = enableVivid,
+            enableCRT = enableCRT,
+            enableNTSC = enableNTSC,
+        )
+        applyScreenEffectsConfig(renderer, config)
         delay(300)
         persistScreenEffectsConfig(container, config)
         container?.saveData()

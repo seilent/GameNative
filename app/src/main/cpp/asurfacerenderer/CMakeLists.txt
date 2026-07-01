@@ -49,11 +49,33 @@ add_subdirectory(${SEIFG_DIR} ${CMAKE_BINARY_DIR}/seifg EXCLUDE_FROM_ALL)
 
 set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_ANDROID_KHR CACHE STRING "" FORCE)
 
+# Host effects shaders (FSR/color/FXAA pass)
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/host_effects_vert.h
+    COMMAND glslangValidator -V --vn host_effects_vert_code -x
+            -o ${CMAKE_CURRENT_BINARY_DIR}/host_effects_vert.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/shaders/host_effects.vert
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/host_effects.vert
+)
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/host_effects_frag.h
+    COMMAND glslangValidator -V --vn host_effects_frag_code -x
+            -o ${CMAKE_CURRENT_BINARY_DIR}/host_effects_frag.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/shaders/host_effects.frag
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/host_effects.frag
+)
+
 target_sources(asurface_renderer PRIVATE
         seifg_host.cpp
         seifg_copy.cpp
         seifg_framegen.cpp
+        host_effects.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/host_effects_vert.h
+        ${CMAKE_CURRENT_BINARY_DIR}/host_effects_frag.h
 )
+
+target_include_directories(asurface_renderer PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 set_target_properties(asurface_renderer PROPERTIES
         CXX_STANDARD 20

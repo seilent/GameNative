@@ -18,6 +18,7 @@
 
 #include "VsyncClock.h"
 #include "seifg_framegen.h"
+#include "host_effects.h"
 
 #define WLOG_TAG "asr_renderer"
 #define RLOG(...) __android_log_print(ANDROID_LOG_INFO, WLOG_TAG, __VA_ARGS__)
@@ -56,6 +57,8 @@ public:
                          int64_t windowId = 0, int64_t serial = 0);
     void setScanoutPacing(int64_t intervalNs);
     void setHostFramegen(bool enabled, int quality, int multiplier);
+    void setHostEffect(int effectId, float sharpness, int effectMask,
+                       float brightness, float contrast, float gamma);
 
     void scanoutSetCursorVisibility(bool visible);
     void applyCursorGeometry(short x, short y, short hotX, short hotY, bool cursorVisible);
@@ -88,6 +91,18 @@ private:
     std::mutex hostFgMutex;
     int hostFgQuality = 2;
     int hostFgMult = 2;
+
+    HostEffects hostEffects;
+    std::atomic<int> hostEffectId{0};
+    std::atomic<float> hostEffectSharpness{0.0f};
+    std::atomic<int> hostEffectMask{0};
+    std::atomic<float> hostEffectBrightness{0.0f};
+    std::atomic<float> hostEffectContrast{0.0f};
+    std::atomic<float> hostEffectGamma{1.0f};
+    bool hostEffectsGeometrySet = false;
+    ARect lastGameSrcRect{};
+    ARect lastGameDstRect{};
+    bool lastGameGeoValid = false;
     void hostFramegenPresent(void* sc, AHardwareBuffer* ahb, int fenceFd,
                              int64_t windowId, int64_t serial);
     void presentOne(void* sc, AHardwareBuffer* ahb, int fenceFd,

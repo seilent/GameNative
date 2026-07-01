@@ -73,6 +73,16 @@ Java_com_winlator_renderer_ASurfaceRenderer_nativeSetHostFramegen(
 }
 
 extern "C" JNIEXPORT void JNICALL
+Java_com_winlator_renderer_ASurfaceRenderer_nativeSetHostEffect(
+        JNIEnv*, jobject, jint effectId, jfloat sharpness, jint effectMask,
+        jfloat brightness, jfloat contrast, jfloat gamma) {
+    std::shared_lock lk(g_ctxMutex);
+    if (auto* r = g_ctx) {
+        r->setHostEffect(effectId, sharpness, effectMask, brightness, contrast, gamma);
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
 Java_com_winlator_renderer_ASurfaceRenderer_nativeSetSfCallbackTarget(
         JNIEnv* env, jobject, jobject rendererRef)
 {

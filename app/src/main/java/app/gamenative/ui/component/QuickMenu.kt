@@ -92,6 +92,7 @@ import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.adaptivePanelWidth
 import app.gamenative.utils.MathUtils.normalizedProgress
 import com.winlator.container.Container
+import com.winlator.renderer.ASurfaceRenderer
 import com.winlator.renderer.GLRenderer
 import com.winlator.renderer.VulkanRenderer
 import com.winlator.winhandler.ProcessInfo
@@ -237,6 +238,7 @@ fun QuickMenu(
     onItemSelected: (Int) -> Boolean,
     renderer: VulkanRenderer? = null,
     glRenderer: GLRenderer? = null,
+    asurfaceRenderer: ASurfaceRenderer? = null,
     container: Container? = null,
     wineProcesses: List<ProcessInfo> = emptyList(),
     isWineProcessesLoading: Boolean = false,
@@ -450,7 +452,7 @@ fun QuickMenu(
                                     modifier = Modifier.width(56.dp),
                                     focusRequester = hudTabFocusRequester,
                                 )
-                                if (renderer != null || glRenderer != null) {
+                                if (renderer != null || glRenderer != null || asurfaceRenderer != null) {
                                     QuickMenuTabButton(
                                         icon = Icons.Default.AutoFixHigh,
                                         contentDescriptionResId = R.string.screen_effects,
@@ -566,6 +568,14 @@ fun QuickMenu(
                                         } else if (glRenderer != null) {
                                             GLScreenEffectsTabContent(
                                                 renderer = glRenderer,
+                                                container = container,
+                                                modifier = Modifier.fillMaxSize(),
+                                                firstItemFocusRequester = effectsItemFocusRequester,
+                                                scrollState = effectsScrollState,
+                                            )
+                                        } else if (asurfaceRenderer != null) {
+                                            ASurfaceScreenEffectsTabContent(
+                                                renderer = asurfaceRenderer,
                                                 container = container,
                                                 modifier = Modifier.fillMaxSize(),
                                                 firstItemFocusRequester = effectsItemFocusRequester,

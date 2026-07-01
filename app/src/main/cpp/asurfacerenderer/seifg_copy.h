@@ -14,6 +14,14 @@ public:
     void destroy();
     bool ok() const { return ready; }
 
+    VkDevice getDevice() const { return device; }
+    VkQueue getQueue() const { return queue; }
+    uint32_t getQueueFamily() const { return qfam; }
+    const VolkDeviceTable& getTable() const { return t; }
+    VkCommandPool getCommandPool() const { return pool; }
+    const VkPhysicalDeviceMemoryProperties& getMemProps() const { return memProps; }
+    VkPhysicalDevice getPhysicalDevice() const { return phys; }
+
 private:
     struct Img { VkImage image{}; VkDeviceMemory mem{}; };
     bool importImage(AHardwareBuffer* ahb, VkFormat format,

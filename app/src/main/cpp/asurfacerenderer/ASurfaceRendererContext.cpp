@@ -5,6 +5,7 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <time.h>
+#include <poll.h>
 #include <android/api-level.h>
 #include <android/log.h>
 #include <unordered_map>
@@ -78,6 +79,7 @@ ASurfaceRendererContext::ASurfaceRendererContext(ANativeWindow* win, int cWidth,
 
 ASurfaceRendererContext::~ASurfaceRendererContext() {
     stopHostFramegenThread();
+    hostEffects.destroy();
     {
         std::lock_guard<std::mutex> lk(windowScMutex);
         if (!windowScMap.empty()) {
@@ -364,6 +366,16 @@ void ASurfaceRendererContext::setHostFramegen(bool enabled, int quality, int mul
     SCANOUT_LOG("setHostFramegen enabled=%d quality=%d mult=%d", (int)on, quality, multiplier);
 }
 
+void ASurfaceRendererContext::setHostEffect(int effectId, float sharpness, int effectMask,
+                                            float brightness, float contrast, float gamma) {
+    hostEffectId.store(effectId, std::memory_order_relaxed);
+    hostEffectSharpness.store(sharpness, std::memory_order_relaxed);
+    hostEffectMask.store(effectMask, std::memory_order_relaxed);
+    hostEffectBrightness.store(brightness, std::memory_order_relaxed);
+    hostEffectContrast.store(contrast, std::memory_order_relaxed);
+    hostEffectGamma.store(gamma, std::memory_order_relaxed);
+}
+
 int64_t ASurfaceRendererContext::nextVsyncSlot() {
     const int64_t now = scanoutNowNs();
     const int64_t vsync = vsyncClock.lastVsyncNs();
@@ -423,6 +435,48 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
         return;
     }
 
+    HostEffectParams efx;
+    efx.effectId = hostEffectId.load(std::memory_order_relaxed);
+    efx.sharpness = hostEffectSharpness.load(std::memory_order_relaxed);
+    efx.effectMask = hostEffectMask.load(std::memory_order_relaxed);
+    efx.brightness = hostEffectBrightness.load(std::memory_order_relaxed);
+    efx.contrast = hostEffectContrast.load(std::memory_order_relaxed);
+    efx.gamma = hostEffectGamma.load(std::memory_order_relaxed);
+    const bool doEffects = hostEffects.isActive(efx);
+
+    if (doEffects) {
+        int64_t wh = scanoutDstWH.load(std::memory_order_acquire);
+        uint32_t panelW = (uint32_t)(wh >> 32);
+        uint32_t panelH = (uint32_t)(wh & 0xFFFFFFFF);
+        if (panelW == 0 || panelH == 0) { panelW = hostFg.width(); panelH = hostFg.height(); }
+
+        if (!hostEffects.init(hostFg.getCopier(), panelW, panelH, hostFg.ahbFormat(), hostFg.vkFormat())) {
+            presentOne(sc, interps[0], -1, 0, 0, nextVsyncSlot());
+            for (uint32_t i = 1; i < n; i++)
+                presentOne(sc, interps[i], -1, 0, 0, 0);
+            presentOne(sc, ahb, fenceFd, windowId, serial, 0);
+            return;
+        }
+
+        if (!hostEffectsGeometrySet) {
+            ARect srcR{0, 0, (int32_t)panelW, (int32_t)panelH};
+            ARect dstR = lastGameGeoValid ? lastGameDstRect : ARect{0, 0, (int32_t)panelW, (int32_t)panelH};
+            void* tx = ST_CREATE();
+            ST_SETGEO(tx, sc, &srcR, &dstR, 0);
+            ST_APPLY(tx);
+            ST_DELETE(tx);
+            hostEffectsGeometrySet = true;
+        }
+    } else if (hostEffectsGeometrySet) {
+        hostEffectsGeometrySet = false;
+        if (lastGameGeoValid) {
+            void* tx = ST_CREATE();
+            ST_SETGEO(tx, sc, &lastGameSrcRect, &lastGameDstRect, 0);
+            ST_APPLY(tx);
+            ST_DELETE(tx);
+        }
+    }
+
     const int64_t k = nextVsyncSlot();
     {
         static int64_t pe = 0, pk = 0;
@@ -460,14 +514,29 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
         }
     };
 
-    presentOne(sc, interps[0], -1, 0, 0, k);
+    presentOne(sc, doEffects ? hostEffects.apply(interps[0], hostFg.width(), hostFg.height(), efx) : interps[0],
+               -1, 0, 0, k);
     for (uint32_t i = 1; i <= n; i++) {
         busyWaitUntil(k + (int64_t)(i - 1) * period);
         const int64_t target = k + (int64_t)i * period;
-        if (i < n)
-            presentOne(sc, interps[i], -1, 0, 0, target);
-        else
-            presentOne(sc, ahb, fenceFd, windowId, serial, target);
+        if (i < n) {
+            presentOne(sc,
+                doEffects ? hostEffects.apply(interps[i], hostFg.width(), hostFg.height(), efx) : interps[i],
+                -1, 0, 0, target);
+        } else {
+            if (doEffects) {
+                if (fenceFd >= 0) {
+                    struct pollfd pfd = { fenceFd, POLLIN, 0 };
+                    poll(&pfd, 1, 1000);
+                    close(fenceFd);
+                    fenceFd = -1;
+                }
+                AHardwareBuffer* out = hostEffects.apply(ahb, hostFg.width(), hostFg.height(), efx);
+                presentOne(sc, out, -1, windowId, serial, target);
+            } else {
+                presentOne(sc, ahb, fenceFd, windowId, serial, target);
+            }
+        }
     }
     scanoutNextPresentNs = k + (int64_t)n * period;
 }
@@ -633,6 +702,9 @@ void ASurfaceRendererContext::updateWindow(int64_t contentId, bool visible, int 
         ARect local_dstR{dstL, dstT, dstR, dstB};
         ST_SETGEO(tx, sc, &local_srcR, &local_dstR, 0);
         ST_SETZORDER(tx, sc, zOrder);
+        lastGameSrcRect = local_srcR;
+        lastGameDstRect = local_dstR;
+        lastGameGeoValid = true;
     }
 
     if (!currentTx) {

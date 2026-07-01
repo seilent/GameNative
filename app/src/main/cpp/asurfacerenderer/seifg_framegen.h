@@ -15,6 +15,9 @@ public:
     bool ok() const { return ready; }
     uint32_t width() const { return w; }
     uint32_t height() const { return h; }
+    HostCopier& getCopier() { return copier; }
+    uint32_t ahbFormat() const { return ahbFmt; }
+    VkFormat vkFormat() const { return static_cast<VkFormat>(vkFmt); }
 
 private:
     HostCopier copier;

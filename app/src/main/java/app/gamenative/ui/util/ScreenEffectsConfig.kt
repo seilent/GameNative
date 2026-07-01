@@ -1,6 +1,7 @@
 package app.gamenative.ui.util
 
 import com.winlator.container.Container
+import com.winlator.renderer.ASurfaceRenderer
 import com.winlator.renderer.GLRenderer
 import com.winlator.renderer.VulkanRenderer
 import com.winlator.renderer.effects.ColorEffect
@@ -41,7 +42,6 @@ data class ScreenEffectsConfig(
         const val FSR_MAX_LEVEL = 5
         const val FSR_DEFAULT_LEVEL = 3
 
-        // Container extra keys
         const val KEY_BRIGHTNESS = "screenEffectsBrightness"
         const val KEY_CONTRAST = "screenEffectsContrast"
         const val KEY_GAMMA = "screenEffectsGamma"
@@ -193,6 +193,37 @@ fun applyScreenEffectsConfig(renderer: VulkanRenderer, config: ScreenEffectsConf
         effectId,
         sharpness,
         outputScalingMode,
+        effectMask,
+        config.brightness / 100f,
+        config.contrast / 100f,
+        config.gamma,
+    )
+}
+
+fun applyScreenEffectsConfig(renderer: ASurfaceRenderer, config: ScreenEffectsConfig) {
+    val effectId = when {
+        config.scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR ||
+            config.scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT -> 1
+        config.scalingMode == ScreenEffectsConfig.SCALING_MODE_DLS -> 2
+        config.scalingMode == ScreenEffectsConfig.SCALING_MODE_NATURAL -> 5
+        else -> 0
+    }
+    val sharpnessRange = ScreenEffectsConfig.FSR_MAX_LEVEL - ScreenEffectsConfig.FSR_MIN_LEVEL
+    val sharpness = if (sharpnessRange > 0) {
+        (config.fsrSharpnessLevel.coerceIn(ScreenEffectsConfig.FSR_MIN_LEVEL, ScreenEffectsConfig.FSR_MAX_LEVEL) -
+            ScreenEffectsConfig.FSR_MIN_LEVEL).toFloat() / sharpnessRange.toFloat()
+    } else {
+        0f
+    }
+    val effectMask =
+        (if (config.enableToon) 1 else 0) or
+            (if (config.enableFXAA) 2 else 0) or
+            (if (config.enableVivid) 4 else 0) or
+            (if (config.enableCRT) 8 else 0) or
+            (if (config.enableNTSC) 16 else 0)
+    renderer.setHostEffect(
+        effectId,
+        sharpness,
         effectMask,
         config.brightness / 100f,
         config.contrast / 100f,
