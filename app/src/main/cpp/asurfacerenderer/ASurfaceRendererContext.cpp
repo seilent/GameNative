@@ -414,17 +414,23 @@ void ASurfaceRendererContext::presentOne(void* sc, AHardwareBuffer* ahb, int fen
 
 void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb, int fenceFd,
         int64_t windowId, int64_t serial) {
+    AHardwareBuffer_Desc incDesc{};
+    AHardwareBuffer_describe(ahb, &incDesc);
+
     if (!hostFg.ok()) {
         int q; int mult;
         { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; }
-        AHardwareBuffer_Desc d{};
-        AHardwareBuffer_describe(ahb, &d);
-        SCANOUT_LOG("hostFg incoming AHB fmt=%u %ux%u", d.format, d.width, d.height);
-        if (!hostFg.init(d.width, d.height, d.format, (uint32_t)q, (uint32_t)mult)) {
+        SCANOUT_LOG("hostFg incoming AHB fmt=%u %ux%u", incDesc.format, incDesc.width, incDesc.height);
+        if (!hostFg.init(incDesc.width, incDesc.height, incDesc.format, (uint32_t)q, (uint32_t)mult)) {
             hostFgEnabled.store(false, std::memory_order_relaxed);
             presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
             return;
         }
+    }
+
+    if (incDesc.width != hostFg.width() || incDesc.height != hostFg.height()) {
+        presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
+        return;
     }
 
     AHardwareBuffer* interps[HostFramegen::MAX_INTERPS] = { nullptr, nullptr, nullptr };
