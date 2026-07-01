@@ -1782,6 +1782,7 @@ fun XServerScreen(
                 win32AppWorkarounds = Win32AppWorkarounds(getxServer())
                 touchMouse = TouchMouse(getxServer())
                 keyboard = Keyboard(getxServer())
+                (renderer as? ASurfaceRenderer)?.setDesktopMode(bootToContainer)
                 if (!bootToContainer) {
                     renderer.setUnviewableWMClasses("explorer.exe")
                     // TODO: make 'force fullscreen' be an option of the app being launched

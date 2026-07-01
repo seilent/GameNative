@@ -158,7 +158,7 @@ void ASurfaceRendererContext::initScanout() {
     }
     oneShot([&](void* tx) {
         ST_SETZORDER(tx, scanoutCursorSC, INT_MAX);
-        ST_SETVIS   (tx, scanoutCursorSC, 1);
+        ST_SETVIS   (tx, scanoutCursorSC, 0);
     });
     scanoutCursorFence   = -1;
     scanoutActive.store(true);

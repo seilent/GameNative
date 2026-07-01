@@ -42,6 +42,7 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     private String forceFullscreenWMClass = null;
     private boolean containerCursorVisible = true;
     private boolean gameCursorVisible = true;
+    private boolean desktopMode = false;
     private final Drawable rootCursorDrawable;
     private Cursor lastCursor = null;
     private boolean surfaceInitialized = false;
@@ -432,6 +433,7 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
 
     private void sendCursorToNative(Cursor cursor) {
         if (!containerCursorVisible) return;
+        if (cursor == null && !desktopMode) return;
         Drawable cd = cursor != null ? cursor.cursorImage : rootCursorDrawable;
         if (cursor != null && !cursor.isVisible()) return;
         if (cd == null || cd.getBuffer() == null) return;
@@ -635,6 +637,10 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
                 sendCursorToNative(lastCursor);
             }
         }
+    }
+
+    public void setDesktopMode(boolean desktop) {
+        desktopMode = desktop;
     }
 
     public void setCursorVisible(boolean visible) {
