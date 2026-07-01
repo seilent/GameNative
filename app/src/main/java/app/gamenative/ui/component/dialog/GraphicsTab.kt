@@ -36,6 +36,7 @@ import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.component.settings.SettingsListDropdownSearchable
 import app.gamenative.ui.component.settings.SettingsMultiListDropdown
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.theme.settingsTileColors
 import app.gamenative.ui.theme.settingsTileColorsAlt
 import app.gamenative.utils.SeifgManager
@@ -595,17 +596,28 @@ private fun SeifgSection(state: ContainerConfigState) {
     val seifgSupported = config.containerVariant.equals(Container.BIONIC, ignoreCase = true)
     if (!seifgSupported) return
 
+    val isSurfaceFlinger = config.displayRenderer.equals(Container.DEFAULT_DISPLAY_RENDERER, ignoreCase = true)
+
     SettingsGroup {
         SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.seifg_enable)) },
             subtitle = { Text(text = stringResource(R.string.seifg_description)) },
             state = config.seifgEnabled,
+            enabled = isSurfaceFlinger,
             onCheckedChange = {
                 state.config.value = config.copy(seifgEnabled = it)
             },
         )
-        if (config.seifgEnabled) {
+        if (!isSurfaceFlinger) {
+            Text(
+                text = stringResource(R.string.seifg_requires_surfaceflinger),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = PluviaTheme.colors.textMuted,
+            )
+        }
+        if (config.seifgEnabled && isSurfaceFlinger) {
             SettingsAdjustmentRow(
                 title = stringResource(R.string.seifg_multiplier),
                 valueText = "${config.seifgMultiplier}x",
