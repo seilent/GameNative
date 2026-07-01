@@ -38,6 +38,7 @@ data class ScreenEffectsConfig(
         const val SCALING_MODE_FSR_ASPECT = 6
         const val SCALING_MODE_DLS = 7
         const val SCALING_MODE_NATURAL = 8
+        const val SCALING_MODE_SGSR = 9
         const val FSR_MIN_LEVEL = 1
         const val FSR_MAX_LEVEL = 5
         const val FSR_DEFAULT_LEVEL = 3
@@ -168,6 +169,7 @@ fun applyScreenEffectsConfig(renderer: VulkanRenderer, config: ScreenEffectsConf
             config.scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT -> VulkanRenderer.EFFECT_FSR
         config.scalingMode == ScreenEffectsConfig.SCALING_MODE_DLS -> VulkanRenderer.EFFECT_DLS
         config.scalingMode == ScreenEffectsConfig.SCALING_MODE_NATURAL -> VulkanRenderer.EFFECT_NATURAL
+        config.scalingMode == ScreenEffectsConfig.SCALING_MODE_SGSR -> VulkanRenderer.EFFECT_SGSR
         else -> VulkanRenderer.EFFECT_NONE
     }
     val sharpnessRange = ScreenEffectsConfig.FSR_MAX_LEVEL - ScreenEffectsConfig.FSR_MIN_LEVEL
@@ -206,6 +208,7 @@ fun applyScreenEffectsConfig(renderer: ASurfaceRenderer, config: ScreenEffectsCo
             config.scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT -> 1
         config.scalingMode == ScreenEffectsConfig.SCALING_MODE_DLS -> 2
         config.scalingMode == ScreenEffectsConfig.SCALING_MODE_NATURAL -> 5
+        config.scalingMode == ScreenEffectsConfig.SCALING_MODE_SGSR -> 6
         else -> 0
     }
     val sharpnessRange = ScreenEffectsConfig.FSR_MAX_LEVEL - ScreenEffectsConfig.FSR_MIN_LEVEL

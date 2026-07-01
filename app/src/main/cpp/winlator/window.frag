@@ -215,6 +215,101 @@ vec3 applyNatural(vec2 uv) {
     return clamp(t * toRGB, 0.0, 1.0);
 }
 
+// ---- Snapdragon Game Super Resolution 1.0 (mobile, spatial) ----
+// Ported from Qualcomm snapdragon-gsr, SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2023, Qualcomm Innovation Center, Inc. All rights reserved.
+
+float fastLanczos2(float x) {
+    float wA = x - 4.0;
+    float wB = x * wA - wA;
+    wA *= wA;
+    return wB * wA;
+}
+
+vec2 weightY(float dx, float dy, float c, vec3 data) {
+    float std = data.x;
+    vec2 dir = data.yz;
+    float edgeDis = ((dx * dir.y) + (dy * dir.x));
+    float x = (((dx * dx) + (dy * dy)) + ((edgeDis * edgeDis) * ((clamp(((c * c) * std), 0.0, 1.0) * 0.7) + -1.0)));
+    float w = fastLanczos2(x);
+    return vec2(w, w * c);
+}
+
+vec2 edgeDirection(vec4 left, vec4 right) {
+    float RxLz = (right.x + (-left.z));
+    float RwLy = (right.w + (-left.y));
+    vec2 delta;
+    delta.x = (RxLz + RwLy);
+    delta.y = (RxLz + (-RwLy));
+    float lengthInv = inversesqrt((delta.x * delta.x + 3.075740e-05) + (delta.y * delta.y));
+    return vec2(delta.x * lengthInv, delta.y * lengthInv);
+}
+
+vec3 applySGSR(vec2 uv, float sharp) {
+    vec2 inRes = max(vec2(pc.resW, pc.resH), vec2(1.0));
+    vec2 outRes = max(vec2(pc.outW, pc.outH), vec2(1.0));
+    vec4 ViewportInfo = vec4(1.0 / inRes.x, 1.0 / inRes.y, inRes.x, inRes.y);
+    vec4 TechniqueInfo = vec4(1.0, 1.0, outRes.x, outRes.y);
+    float EdgeThreshold = 8.0 / 255.0;
+    float EdgeSharpness = 1.0 + sharp * 2.0;
+
+    vec2 MODIFIED_TEXCOORD = floor(uv * TechniqueInfo.zw) / TechniqueInfo.zw;
+    vec3 color = textureLod(texSampler, MODIFIED_TEXCOORD, 0.0).rgb;
+    float colorG = color.g;
+
+    vec2 imgCoord = MODIFIED_TEXCOORD * ViewportInfo.zw + vec2(-0.5, 0.5);
+    vec2 imgCoordPixel = floor(imgCoord);
+    vec2 coord = imgCoordPixel * ViewportInfo.xy;
+    vec2 pl = imgCoord - imgCoordPixel;
+
+    vec4 left = textureGather(texSampler, coord, 1);
+    float edgeVote = abs(left.z - left.y) + abs(colorG - left.y) + abs(colorG - left.z);
+
+    if (edgeVote > EdgeThreshold) {
+        coord.x += ViewportInfo.x;
+        vec4 right = textureGather(texSampler, coord + vec2(ViewportInfo.x, 0.0), 1);
+        vec4 upDown;
+        upDown.xy = textureGather(texSampler, coord + vec2(0.0, -ViewportInfo.y), 1).wz;
+        upDown.zw = textureGather(texSampler, coord + vec2(0.0, ViewportInfo.y), 1).yx;
+
+        float mean = (left.y + left.z + right.x + right.w) * 0.25;
+        left -= mean;
+        right -= mean;
+        upDown -= mean;
+        float cw = colorG - mean;
+
+        float sum = abs(left.x) + abs(left.y) + abs(left.z) + abs(left.w)
+                  + abs(right.x) + abs(right.y) + abs(right.z) + abs(right.w)
+                  + abs(upDown.x) + abs(upDown.y) + abs(upDown.z) + abs(upDown.w);
+        float sumMean = 1.014185e+01 / sum;
+        float std = sumMean * sumMean;
+
+        vec3 data = vec3(std, edgeDirection(left, right));
+
+        vec2 aWY  = weightY(pl.x,       pl.y + 1.0, upDown.x, data);
+        aWY      += weightY(pl.x - 1.0, pl.y + 1.0, upDown.y, data);
+        aWY      += weightY(pl.x - 1.0, pl.y - 2.0, upDown.z, data);
+        aWY      += weightY(pl.x,       pl.y - 2.0, upDown.w, data);
+        aWY      += weightY(pl.x + 1.0, pl.y - 1.0, left.x,  data);
+        aWY      += weightY(pl.x,       pl.y - 1.0, left.y,  data);
+        aWY      += weightY(pl.x,       pl.y,       left.z,  data);
+        aWY      += weightY(pl.x + 1.0, pl.y,       left.w,  data);
+        aWY      += weightY(pl.x - 1.0, pl.y - 1.0, right.x, data);
+        aWY      += weightY(pl.x - 2.0, pl.y - 1.0, right.y, data);
+        aWY      += weightY(pl.x - 2.0, pl.y,       right.z, data);
+        aWY      += weightY(pl.x - 1.0, pl.y,       right.w, data);
+
+        float finalY = aWY.y / aWY.x;
+        float maxY = max(max(left.y, left.z), max(right.x, right.w));
+        float minY = min(min(left.y, left.z), min(right.x, right.w));
+        float deltaY = clamp(EdgeSharpness * finalY, minY, maxY) - cw;
+        deltaY = clamp(deltaY, -23.0 / 255.0, 23.0 / 255.0);
+        color = clamp(color + deltaY, 0.0, 1.0);
+    }
+
+    return color;
+}
+
 vec3 applyFXAA(vec2 uv) {
     vec2 texel = 1.0 / max(vec2(pc.resW, pc.resH), vec2(1.0));
     vec3 center = texture(texSampler, uv).rgb;
@@ -275,6 +370,7 @@ void main() {
     else if (pc.effectId == 3) rgb = applyCRT    (uv);
     else if (pc.effectId == 4) rgb = applyHDR    (uv);
     else if (pc.effectId == 5) rgb = applyNatural(uv);
+    else if (pc.effectId == 6) rgb = applySGSR   (uv, pc.sharpness);
     else                       rgb = src.rgb;
 
     if (pc.useTexAlpha == 0) {

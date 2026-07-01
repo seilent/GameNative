@@ -94,6 +94,7 @@ private val VULKAN_SUPPORTED_SCALING_MODES = listOf(
     ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT,
     ScreenEffectsConfig.SCALING_MODE_DLS,
     ScreenEffectsConfig.SCALING_MODE_NATURAL,
+    ScreenEffectsConfig.SCALING_MODE_SGSR,
 )
 
 private fun scalingModeLabelRes(mode: Int): Int = when (mode) {
@@ -105,6 +106,7 @@ private fun scalingModeLabelRes(mode: Int): Int = when (mode) {
     ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT -> R.string.screen_effects_scaling_mode_fsr_aspect
     ScreenEffectsConfig.SCALING_MODE_DLS -> R.string.screen_effects_scaling_mode_dls
     ScreenEffectsConfig.SCALING_MODE_NATURAL -> R.string.screen_effects_scaling_mode_natural
+    ScreenEffectsConfig.SCALING_MODE_SGSR -> R.string.screen_effects_scaling_mode_sgsr
     else -> R.string.screen_effects_scaling_mode_none
 }
 
@@ -117,6 +119,7 @@ private fun scalingModeDescRes(mode: Int): Int = when (mode) {
     ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT -> R.string.screen_effects_scaling_mode_fsr_aspect_desc
     ScreenEffectsConfig.SCALING_MODE_DLS -> R.string.screen_effects_scaling_mode_dls_desc
     ScreenEffectsConfig.SCALING_MODE_NATURAL -> R.string.screen_effects_scaling_mode_natural_desc
+    ScreenEffectsConfig.SCALING_MODE_SGSR -> R.string.screen_effects_scaling_mode_sgsr_desc
     else -> R.string.screen_effects_scaling_mode_none_desc
 }
 
@@ -126,6 +129,7 @@ private val VULKAN_UPSCALING_MODES = listOf(
     ScreenEffectsConfig.SCALING_MODE_FSR,
     ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT,
     ScreenEffectsConfig.SCALING_MODE_DLS,
+    ScreenEffectsConfig.SCALING_MODE_SGSR,
 )
 // "None" is rendered as a standalone first row, so it is omitted from these lists.
 private val VULKAN_BASIC_MODES = listOf(
@@ -540,7 +544,8 @@ fun ScreenEffectsTabContent(
 
         if (scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR ||
             scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT ||
-            scalingMode == ScreenEffectsConfig.SCALING_MODE_DLS
+            scalingMode == ScreenEffectsConfig.SCALING_MODE_DLS ||
+            scalingMode == ScreenEffectsConfig.SCALING_MODE_SGSR
         ) {
             ScreenEffectAdjustmentRow(
                 title = stringResource(R.string.screen_effects_fsr_sharpness),
@@ -777,7 +782,8 @@ fun ASurfaceScreenEffectsTabContent(
 
         if (scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR ||
             scalingMode == ScreenEffectsConfig.SCALING_MODE_FSR_ASPECT ||
-            scalingMode == ScreenEffectsConfig.SCALING_MODE_DLS
+            scalingMode == ScreenEffectsConfig.SCALING_MODE_DLS ||
+            scalingMode == ScreenEffectsConfig.SCALING_MODE_SGSR
         ) {
             ScreenEffectAdjustmentRow(
                 title = stringResource(R.string.screen_effects_fsr_sharpness),
