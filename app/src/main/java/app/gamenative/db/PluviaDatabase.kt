@@ -8,6 +8,7 @@ import app.gamenative.data.ChangeNumbers
 import app.gamenative.data.AppInfo
 import app.gamenative.data.FileChangeLists
 import app.gamenative.data.SteamApp
+import app.gamenative.data.SteamAppOwner
 import app.gamenative.data.SteamCollection
 import app.gamenative.data.SteamFileHashCache
 import app.gamenative.data.SteamLicense
@@ -27,6 +28,7 @@ import app.gamenative.db.converters.GOGConverter
 import app.gamenative.db.dao.ChangeNumbersDao
 import app.gamenative.db.dao.FileChangeListsDao
 import app.gamenative.db.dao.SteamAppDao
+import app.gamenative.db.dao.SteamAppOwnerDao
 import app.gamenative.db.dao.SteamCollectionDao
 import app.gamenative.db.dao.SteamFileHashCacheDao
 import app.gamenative.db.dao.SteamLicenseDao
@@ -49,6 +51,7 @@ const val DATABASE_NAME = "pluvia.db"
         EncryptedAppTicket::class,
         FileChangeLists::class,
         SteamApp::class,
+        SteamAppOwner::class,
         SteamCollection::class,
         SteamFileHashCache::class,
         SteamLicense::class,
@@ -58,7 +61,7 @@ const val DATABASE_NAME = "pluvia.db"
         DownloadingAppInfo::class,
         SteamUnlockedBranch::class,
     ],
-    version = 23,
+    version = 24,
     // For db migration, visit https://developer.android.com/training/data-storage/room/migrating-db-versions for more information
     exportSchema = true, // It is better to handle db changes carefully, as GN is getting much more users.
     autoMigrations = [
@@ -96,6 +99,8 @@ abstract class PluviaDatabase : RoomDatabase() {
     abstract fun steamLicenseDao(): SteamLicenseDao
 
     abstract fun steamAppDao(): SteamAppDao
+
+    abstract fun steamAppOwnerDao(): SteamAppOwnerDao
 
     abstract fun steamCollectionDao(): SteamCollectionDao
 

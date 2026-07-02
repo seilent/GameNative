@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import app.gamenative.db.dao.AmazonGameDao
 import app.gamenative.db.dao.GOGGameDao
+import app.gamenative.db.dao.SteamAppDao
 import app.gamenative.events.EventDispatcher
 import app.gamenative.service.ActiveGameRegistry
 import app.gamenative.data.GameSource
@@ -49,6 +50,7 @@ class PluviaApp : SplitCompatApplication() {
 
     @Inject lateinit var gogGameDao: GOGGameDao
     @Inject lateinit var amazonGameDao: AmazonGameDao
+    @Inject lateinit var steamAppDao: SteamAppDao
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -87,9 +89,19 @@ class PluviaApp : SplitCompatApplication() {
 
         DownloadService.populateDownloadService(this)
 
+        appScope.launch {
+            val dirs = DownloadService.getDownloadDirectoryApps() + SteamService.getImportedAppDirs()
+            steamAppDao.syncInstalledFlags(dirs)
+            events.emitJava(AndroidEvent.LibraryInstallStatusChanged(-1, GameSource.STEAM))
+        }
+
         migrateStorageTarget()
 
         StorageManager.registerVolumeCallback(this) {
+            appScope.launch {
+                val dirs = DownloadService.getDownloadDirectoryApps() + SteamService.getImportedAppDirs()
+                steamAppDao.syncInstalledFlags(dirs)
+            }
             events.emitJava(AndroidEvent.LibraryInstallStatusChanged(-1, GameSource.STEAM))
         }
 

@@ -2,6 +2,7 @@ package app.gamenative.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import app.gamenative.enums.AppType
 import app.gamenative.enums.ControllerSupport
@@ -12,7 +13,15 @@ import app.gamenative.service.SteamService
 import `in`.dragonbra.javasteam.enums.ELicenseFlags
 import java.util.EnumSet
 
-@Entity("steam_app")
+@Entity(
+    "steam_app",
+    indices = [
+        Index("name_lower"),
+        Index("size_bytes"),
+        Index("is_installed"),
+        Index("type"),
+    ]
+)
 data class SteamApp(
     @PrimaryKey val id: Int,
     @ColumnInfo("package_id")
@@ -152,6 +161,19 @@ data class SteamApp(
 
     @ColumnInfo(name = "workshop_download_pending", defaultValue = "0")
     val workshopDownloadPending: Boolean = false,
+
+    @ColumnInfo("size_bytes", defaultValue = "0")
+    val sizeBytes: Long = 0L,
+    @ColumnInfo("name_lower", defaultValue = "")
+    val nameLower: String = "",
+    @ColumnInfo("capsule_url", defaultValue = "")
+    val capsuleUrl: String = "",
+    @ColumnInfo("hero_url", defaultValue = "")
+    val heroUrl: String = "",
+    @ColumnInfo("header_url_cached", defaultValue = "")
+    val headerUrlCached: String = "",
+    @ColumnInfo("is_installed", defaultValue = "0")
+    val isInstalled: Boolean = false,
 ) {
     val logoUrl: String
         get() = "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/$id/$logoHash.jpg"

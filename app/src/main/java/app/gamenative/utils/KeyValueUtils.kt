@@ -33,7 +33,7 @@ const val CURRENT_UFS_PARSE_VERSION = 4
  */
 
 fun KeyValue.generateSteamApp(): SteamApp {
-    return SteamApp(
+    val base = SteamApp(
         id = this["appid"].asInteger(INVALID_APP_ID),
         depots = this["depots"].children
             .filter { currentDepot ->
@@ -223,6 +223,12 @@ fun KeyValue.generateSteamApp(): SteamApp {
                 },
             )
         },
+    )
+    return base.copy(
+        nameLower = base.name.unaccent().lowercase(),
+        capsuleUrl = base.getCapsuleUrl(),
+        heroUrl = base.getHeroUrl(),
+        headerUrlCached = base.headerUrl,
     )
 }
 

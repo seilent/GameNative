@@ -13,7 +13,7 @@ import app.gamenative.PrefManager
 import app.gamenative.data.GameCompatibilityStatus
 import app.gamenative.data.GameSource
 import app.gamenative.data.LibraryItem
-import app.gamenative.data.SteamApp
+import app.gamenative.data.LibraryRow
 import app.gamenative.events.AndroidEvent
 import app.gamenative.data.GOGGame
 import app.gamenative.data.EpicGame
@@ -54,16 +54,14 @@ import javax.inject.Inject
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -91,7 +89,10 @@ class LibraryViewModel @Inject constructor(
     var listState: LazyGridState by mutableStateOf(LazyGridState(0, 0))
 
     private val onInstallStatusChanged: (AndroidEvent.LibraryInstallStatusChanged) -> Unit = {
-        onFilterApps(paginationCurrentPage)
+        viewModelScope.launch(Dispatchers.IO) {
+            steamAppDao.syncInstalledFlags(DownloadService.getDownloadDirectoryApps() + SteamService.getImportedAppDirs())
+            onFilterApps(paginationCurrentPage)
+        }
     }
 
     private val onCustomGameImagesFetched: (AndroidEvent.CustomGameImagesFetched) -> Unit = {
@@ -117,8 +118,6 @@ class LibraryViewModel @Inject constructor(
     @Volatile private var paginationCurrentPage: Int = 0
     @Volatile private var lastPageInCurrentFilter: Int = 0
 
-    // Complete and unfiltered app list
-    private var appList: List<SteamApp> = emptyList()
     private var gogGameList: List<GOGGame> = emptyList()
     private var epicGameList: List<EpicGame> = emptyList()
     private var amazonGameList: List<AmazonGame> = emptyList()
@@ -186,24 +185,12 @@ class LibraryViewModel @Inject constructor(
             }
         }
 
-        @OptIn(ExperimentalCoroutinesApi::class)
+        @OptIn(kotlinx.coroutines.FlowPreview::class)
         viewModelScope.launch(Dispatchers.IO) {
-            // Re-create the underlying DAO Flow whenever the EXPIRED filter is toggled,
-            // so apps with Expired or missing licenses are surfaced/hidden accordingly.
-            _state
-                .map { it.appInfoSortType.contains(AppFilter.EXPIRED) }
+            steamAppDao.observeOwnedAppCount()
                 .distinctUntilChanged()
-                .flatMapLatest { includeExpired ->
-                    steamAppDao.getAllOwnedApps(includeExpired = includeExpired)
-                }
-                .collect { apps ->
-                    Timber.tag("LibraryViewModel").d("Collecting ${apps.size} apps")
-                    // Check if the list has actually changed before triggering a re-filter
-                    if (appList.size != apps.size) {
-                        appList = apps
-                        onFilterApps(paginationCurrentPage)
-                    }
-                }
+                .debounce(300)
+                .collect { onFilterApps(paginationCurrentPage) }
         }
 
         // Collect GOG games
@@ -603,7 +590,7 @@ class LibraryViewModel @Inject constructor(
     private var filterJob: Job? = null
 
     private fun onFilterApps(paginationPage: Int = 0): Job {
-        Timber.tag("LibraryViewModel").d("onFilterApps - appList.size: ${appList.size}, isFirstLoad: $isFirstLoad")
+        Timber.tag("LibraryViewModel").d("onFilterApps - isFirstLoad: $isFirstLoad")
         filterJob?.cancel()
         val job = viewModelScope.launch(Dispatchers.IO) {
             _state.update { it.copy(isLoading = true) }
@@ -618,10 +605,6 @@ class LibraryViewModel @Inject constructor(
             }
             val currentFilter = AppFilter.getAppType(currentState.appInfoSortType)
 
-            // Fetch download directory apps once on IO thread and cache as a HashSet for O(1) lookups
-            val downloadDirectoryApps = DownloadService.getDownloadDirectoryApps() + SteamService.getImportedAppDirs()
-            val downloadDirectorySet = downloadDirectoryApps.toHashSet()
-
             fun passesCompatibleFilter(gameName: String): Boolean {
                 if (!currentState.appInfoSortType.contains(AppFilter.COMPATIBLE)) {
                     return true
@@ -631,97 +614,50 @@ class LibraryViewModel @Inject constructor(
                 return status == GameCompatibilityStatus.COMPATIBLE || status == GameCompatibilityStatus.GPU_COMPATIBLE
             }
 
-            val steamFilteredBeforeCompatibility: List<SteamApp> = appList
-                .asSequence()
-                .filter { item ->
-                    SteamService.familyMembers.ifEmpty {
-                        // Handle the case where userSteamId might be null
-                        SteamService.userSteamId?.let { steamId ->
-                            listOf(steamId.accountID.toInt())
-                        } ?: emptyList()
-                    }.let { owners ->
-                        if (owners.isEmpty()) {
-                            true // no owner info ⇒ don’t filter the item out
-                        } else {
-                            owners.any { item.ownerAccountId.contains(it) }
-                        }
-                    }
-                }
-                .filter { item ->
-                    currentFilter.any { item.type == it }
-                }
-                .filter { item ->
-                    if (currentState.appInfoSortType.contains(AppFilter.SHARED)) {
-                        true
-                    } else {
-                        item.ownerAccountId.contains(PrefManager.steamUserAccountId) || PrefManager.steamUserAccountId == 0
-                    }
-                }
-                .filter { item ->
-                    if (currentState.searchQuery.isNotEmpty()) {
-                        matches(item.name, currentState.searchQuery)
-                    } else {
-                        true
-                    }
-                }
-                .filter { item ->
-                    currentState.showHiddenGames || item.id !in hiddenAppIds
-                }
-                .toList()
+            val selfAccountId = PrefManager.steamUserAccountId
+            val ownerAccountIds = SteamService.familyMembers.ifEmpty {
+                SteamService.userSteamId?.let { listOf(it.accountID.toInt()) } ?: emptyList()
+            }
+            val familyEmpty = if (ownerAccountIds.isEmpty()) 1 else 0
+            val typeCodes = currentFilter.map { it.code }
+            val hiddenIds = if (currentState.showHiddenGames) emptyList() else hiddenAppIds.toList()
+            val includeHidden = if (currentState.showHiddenGames) 1 else 0
+            val search = if (currentState.searchQuery.isEmpty()) "" else currentState.searchQuery.unaccent().lowercase()
+            val showShared = if (currentState.appInfoSortType.contains(AppFilter.SHARED)) 1 else 0
+            val includeExpired = if (currentState.appInfoSortType.contains(AppFilter.EXPIRED)) 1 else 0
+            val sortKey = currentState.currentSortOption.key
 
-            // Filter Steam apps first (no pagination yet)
-            // Note: Don't sort individual lists - we'll sort the combined list for consistent ordering
-            val filteredSteamApps: List<SteamApp> = steamFilteredBeforeCompatibility
-                .asSequence()
-                .filter { item -> passesCompatibleFilter(item.name) }
-                .filter { item -> passesStatsFilters(currentState, GameSource.STEAM, item.name) }
-                .sortedWith(
-                    compareByDescending<SteamApp> {
-                        downloadDirectorySet.contains(SteamService.getAppDirName(it))
-                    }.thenBy { it.name.lowercase() },
-                )
-                .toList()
+            val steamRows = steamAppDao.getLibraryRowsList(
+                selfAccountId, ownerAccountIds, familyEmpty, typeCodes, hiddenIds,
+                search, includeHidden, 0, showShared, sortKey, includeExpired,
+            )
 
-            // Map Steam apps to UI items
             data class LibraryEntry(val item: LibraryItem, val isInstalled: Boolean, val nameLower: String = item.name.lowercase())
-            val licensedDepotMap = SteamService.buildLicensedDepotMap(filteredSteamApps)
 
-            // Added this to avoid duplicate from custom imported steam game
             val steamEntriesAppIds = mutableSetOf<String>()
 
-            val steamEntries: List<LibraryEntry> = filteredSteamApps.map { item ->
-                val isInstalled = downloadDirectorySet.contains(SteamService.getAppDirName(item))
-                val installedBranch = if (isInstalled) {
-                    SteamService.getInstalledApp(item.id)?.branch ?: "public"
-                } else {
-                    "public"
-                }
-                // base-game size: ownedDlc=emptyMap excludes DLC depots
-                val licensedDepots = licensedDepotMap[item.id]
-                val resolved = SteamService.resolveDownloadableDepots(item.depots, "", emptyMap(), licensedDepots)
-                val totalSizeBytes = resolved.values.sumOf { depot ->
-                    depot.manifests[installedBranch]?.size ?: depot.manifests.values.firstOrNull()?.size ?: 0L
-                }
-
-                // Move appId here
-                val appId = "${GameSource.STEAM.name}_${item.id}"
-                steamEntriesAppIds.add(appId)
-
-                LibraryEntry(
-                    item = LibraryItem(
-                        index = 0, // temporary, will be re-indexed after combining and paginating
-                        appId = appId,
-                        name = item.name,
-                        iconHash = item.clientIconHash,
-                        capsuleImageUrl = item.getCapsuleUrl(),
-                        headerImageUrl = item.headerUrl,
-                        heroImageUrl = item.getHeroUrl(),
-                        isShared = (PrefManager.steamUserAccountId != 0 && !item.ownerAccountId.contains(PrefManager.steamUserAccountId)),
-                        sizeBytes = totalSizeBytes,
-                    ),
-                    isInstalled = isInstalled,
-                )
-            }
+            val steamEntries: List<LibraryEntry> = steamRows.asSequence()
+                .filter { passesCompatibleFilter(it.name) }
+                .filter { passesStatsFilters(currentState, GameSource.STEAM, it.name) }
+                .map { row ->
+                    val appId = "${GameSource.STEAM.name}_${row.id}"
+                    steamEntriesAppIds.add(appId)
+                    LibraryEntry(
+                        item = LibraryItem(
+                            index = 0,
+                            appId = appId,
+                            name = row.name,
+                            iconHash = row.clientIconHash,
+                            capsuleImageUrl = row.capsuleUrl,
+                            headerImageUrl = row.headerUrlCached,
+                            heroImageUrl = row.heroUrl,
+                            isShared = row.isShared,
+                            sizeBytes = row.sizeBytes,
+                        ),
+                        isInstalled = row.isInstalled,
+                        nameLower = row.nameLower,
+                    )
+                }.toList()
 
             // Scan Custom Games roots and create UI items (filtered by search query inside scanner)
             // Only include custom games if GAME filter is selected
@@ -844,13 +780,13 @@ class LibraryViewModel @Inject constructor(
             // This needs to happen before filtering by source, so we save the total counts
             if (currentState.searchQuery.isEmpty()) {
                 PrefManager.customGamesCount = customGameItems.size
-                PrefManager.steamGamesCount = steamFilteredBeforeCompatibility.size
+                PrefManager.steamGamesCount = steamRows.size
                 PrefManager.gogGamesCount = filteredGOGGames.size
                 PrefManager.gogInstalledGamesCount = gogInstalledCount
                 PrefManager.epicGamesCount = filteredEpicGames.size
                 PrefManager.epicInstalledGamesCount = epicInstalledCount
                 PrefManager.amazonInstalledGamesCount = amazonInstalledCount
-                Timber.tag("LibraryViewModel").d("Saved counts - Custom: ${customGameItems.size}, Steam: ${steamFilteredBeforeCompatibility.size}, GOG: ${filteredGOGGames.size}, GOG installed: $gogInstalledCount, Epic: ${filteredEpicGames.size}, Epic installed: $epicInstalledCount, Amazon installed: $amazonInstalledCount")
+                Timber.tag("LibraryViewModel").d("Saved counts - Custom: ${customGameItems.size}, Steam: ${steamRows.size}, GOG: ${filteredGOGGames.size}, GOG installed: $gogInstalledCount, Epic: ${filteredEpicGames.size}, Epic installed: $epicInstalledCount, Amazon installed: $amazonInstalledCount")
             }
 
             // Compute effective source filters based on current tab

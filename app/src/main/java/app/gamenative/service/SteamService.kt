@@ -28,6 +28,7 @@ import app.gamenative.data.LaunchInfo
 import app.gamenative.data.OwnedGames
 import app.gamenative.data.PostSyncInfo
 import app.gamenative.data.SteamApp
+import app.gamenative.data.SteamAppOwner
 import app.gamenative.data.SteamControllerConfigDetail
 import app.gamenative.data.SteamFriend
 import app.gamenative.data.SteamLicense
@@ -39,6 +40,7 @@ import app.gamenative.db.dao.ChangeNumbersDao
 import app.gamenative.db.dao.EncryptedAppTicketDao
 import app.gamenative.db.dao.FileChangeListsDao
 import app.gamenative.db.dao.SteamAppDao
+import app.gamenative.db.dao.SteamAppOwnerDao
 import app.gamenative.db.dao.SteamFileHashCacheDao
 import app.gamenative.db.dao.SteamLicenseDao
 import app.gamenative.enums.LoginResult
@@ -231,6 +233,9 @@ class SteamService : Service(), IChallengeUrlChanged {
 
     @Inject
     lateinit var steamUnlockedBranchDao: SteamUnlockedBranchDao
+
+    @Inject
+    lateinit var steamAppOwnerDao: SteamAppOwnerDao
 
     private lateinit var notificationHelper: NotificationHelper
 
@@ -4414,16 +4419,20 @@ class SteamService : Service(), IChallengeUrlChanged {
                             )
 
                             ensureActive()
+                            val installedSet = (DownloadService.getDownloadDirectoryApps() + getImportedAppDirs()).toHashSet()
+                            val allAppIds = picsCallback.apps.values.map { it.id }
+                            val existingAppsMap = appDao.findSteamAppWithAppIds(allAppIds).associateBy { it.id }
+                            val pkgIds = existingAppsMap.values
+                                .map { it.packageId }
+                                .filter { it != INVALID_PKG_ID }
+                                .distinct()
+                            val licensesMap = licenseDao.findLicenses(pkgIds).associateBy { it.packageId }
+
                             val steamAppsMap = picsCallback.apps.values.mapNotNull { app ->
-                                val appFromDb = appDao.findApp(app.id)
+                                val appFromDb = existingAppsMap[app.id]
                                 val packageId = appFromDb?.packageId ?: INVALID_PKG_ID
-                                val packageFromDb = if (packageId != INVALID_PKG_ID) licenseDao.findLicense(packageId) else null
+                                val packageFromDb = if (packageId != INVALID_PKG_ID) licensesMap[packageId] else null
                                 val ownerAccountId = packageFromDb?.ownerAccountId ?: emptyList()
-
-                                // Apps with -1 for the ownerAccountId should be added.
-                                //  This can help with friend game names.
-
-                                // TODO maybe apps with -1 for the ownerAccountId can be stripped with necessities and name.
 
                                 val ufsParseVersionOutdated = appFromDb != null && appFromDb.ufsParseVersion < CURRENT_UFS_PARSE_VERSION
 
@@ -4435,12 +4444,17 @@ class SteamService : Service(), IChallengeUrlChanged {
                                         lastChangeNumber = app.changeNumber,
                                         licenseFlags = packageFromDb?.licenseFlags ?: EnumSet.noneOf(ELicenseFlags::class.java),
                                     )
-                                    if (ufsParseVersionOutdated && newApp.ufs.saveFilePatterns.any { it.uploadRoot != it.root || it.uploadPath != it.path }) {
-                                        // UFS path logic changed and this app has rootoverrides: store 0 to force one
-                                        // full cloud query while preserving the local sync snapshot.
+                                    val licensedDepots = packageFromDb?.depotIds?.toSet()
+                                    val resolved = resolveDownloadableDepots(newApp.depots, "", emptyMap(), licensedDepots)
+                                    val sizeBytes = resolved.values.sumOf { it.manifests["public"]?.size ?: it.manifests.values.firstOrNull()?.size ?: 0L }
+                                    val finalApp = newApp.copy(
+                                        sizeBytes = sizeBytes,
+                                        isInstalled = installedSet.contains(getAppDirName(newApp)),
+                                    )
+                                    if (ufsParseVersionOutdated && finalApp.ufs.saveFilePatterns.any { it.uploadRoot != it.root || it.uploadPath != it.path }) {
                                         changeNumbersDao.insert(app.id, 0L)
                                     }
-                                    newApp
+                                    finalApp
                                 } else {
                                     null
                                 }
@@ -4450,6 +4464,17 @@ class SteamService : Service(), IChallengeUrlChanged {
                                 Timber.i("Inserting ${steamAppsMap.size} PICS apps to database")
                                 db.withTransaction {
                                     appDao.insertAll(steamAppsMap)
+                                }
+                                val ownerRows = steamAppsMap.flatMap { app ->
+                                    app.ownerAccountId.map { accountId ->
+                                        SteamAppOwner(appId = app.id, accountId = accountId)
+                                    }
+                                }
+                                if (ownerRows.isNotEmpty()) {
+                                    db.withTransaction {
+                                        steamAppsMap.forEach { app -> steamAppOwnerDao.deleteForApp(app.id) }
+                                        steamAppOwnerDao.insertAll(ownerRows)
+                                    }
                                 }
                             }
                         }

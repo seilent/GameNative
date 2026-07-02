@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import app.gamenative.data.LibraryRow
 import app.gamenative.data.SteamApp
 import app.gamenative.service.SteamService.Companion.INVALID_PKG_ID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -200,4 +201,81 @@ interface SteamAppDao {
 
     @Query("SELECT * FROM steam_app WHERE id IN (:appIds)")
     suspend fun findSteamAppWithAppIds(appIds: List<Int>): List<SteamApp>
+
+    @Query("UPDATE steam_app SET is_installed = 0")
+    suspend fun clearAllInstalled()
+
+    @Query(
+        "UPDATE steam_app SET is_installed = 1 WHERE " +
+            "config LIKE '%\"installDir\":\"' || :dir || '\"%' " +
+            "OR (name = :dir AND (config NOT LIKE '%\"installDir\":\"%' OR config LIKE '%\"installDir\":\"\"%'))",
+    )
+    suspend fun markInstalledForDir(dir: String)
+
+    @Transaction
+    suspend fun syncInstalledFlags(dirs: List<String>) {
+        clearAllInstalled()
+        for (dir in dirs) {
+            if (dir.isNotEmpty()) markInstalledForDir(dir)
+        }
+    }
+
+    fun observeOwnedAppCount(
+        invalidPkgId: Int = INVALID_PKG_ID,
+        includeExpired: Int = 0,
+    ): Flow<Int> = _observeOwnedAppCount(invalidPkgId, includeExpired)
+
+    @Query(
+        "SELECT app.id AS id, app.name AS name, app.name_lower AS nameLower, " +
+            "app.client_icon_hash AS clientIconHash, app.capsule_url AS capsuleUrl, " +
+            "app.hero_url AS heroUrl, app.header_url_cached AS headerUrlCached, " +
+            "app.size_bytes AS sizeBytes, app.is_installed AS isInstalled, app.type AS type, " +
+            "(CASE WHEN :selfAccountId = 0 THEN 0 " +
+            "WHEN EXISTS(SELECT 1 FROM steam_app_owner o WHERE o.app_id = app.id AND o.account_id = :selfAccountId) THEN 0 " +
+            "ELSE 1 END) AS isShared " +
+            "FROM steam_app AS app " +
+            "WHERE app.id != 480 " +
+            "AND app.package_id != :invalidPkgId " +
+            "AND app.type != 0 " +
+            "AND (" +
+            "  :includeExpired = 1 " +
+            "  OR EXISTS (" +
+            "    SELECT 1 FROM steam_license AS license " +
+            "    WHERE license.packageId = app.package_id " +
+            "    AND (license.license_flags & 8) = 0 " +
+            "  ) " +
+            "  OR EXISTS (" +
+            "    SELECT 1 FROM steam_app AS dlc " +
+            "    INNER JOIN steam_license AS license ON dlc.package_id = license.packageId " +
+            "    WHERE dlc.dlc_for_app_id = app.id " +
+            "    AND (license.license_flags & 8) = 0 " +
+            "  ) " +
+            ") " +
+            "AND app.type IN (:typeCodes) " +
+            "AND (:search = '' OR app.name_lower LIKE '%' || :search || '%') " +
+            "AND (:includeHidden = 1 OR app.id NOT IN (:hiddenIds)) " +
+            "AND (:installedOnly = 0 OR app.is_installed = 1) " +
+            "AND (:showShared = 1 OR :selfAccountId = 0 OR EXISTS(SELECT 1 FROM steam_app_owner o WHERE o.app_id = app.id AND o.account_id = :selfAccountId)) " +
+            "AND (:familyEmpty = 1 OR EXISTS(SELECT 1 FROM steam_app_owner o WHERE o.app_id = app.id AND o.account_id IN (:ownerAccountIds))) " +
+            "ORDER BY " +
+            "CASE WHEN :sortKey IN ('installed_first','recently_played') THEN (CASE WHEN app.is_installed THEN 0 ELSE 1 END) ELSE 0 END ASC, " +
+            "CASE WHEN :sortKey = 'size_smallest' THEN app.size_bytes END ASC, " +
+            "CASE WHEN :sortKey = 'size_largest' THEN app.size_bytes END DESC, " +
+            "CASE WHEN :sortKey = 'name_desc' THEN app.name_lower END DESC, " +
+            "app.name_lower ASC"
+    )
+    suspend fun getLibraryRowsList(
+        selfAccountId: Int,
+        ownerAccountIds: List<Int>,
+        familyEmpty: Int,
+        typeCodes: List<Int>,
+        hiddenIds: List<Int>,
+        search: String,
+        includeHidden: Int,
+        installedOnly: Int,
+        showShared: Int,
+        sortKey: String,
+        includeExpired: Int = 0,
+        invalidPkgId: Int = INVALID_PKG_ID,
+    ): List<LibraryRow>
 }
