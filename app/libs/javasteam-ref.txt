@@ -1,0 +1,8 @@
+Vendored JavaSteam jars, built from:
+
+repo:   https://github.com/seilent/JavaSteam
+branch: feat/internal-staging-download
+commit: 45281a2743699ad11482701d7e7995aaff46a13f
+
+Rebuild with JDK 17 (`./gradlew :jar :javasteam-depotdownloader:jar`) and recommit
+both jars plus this ref whenever the JavaSteam source changes.
