@@ -108,6 +108,9 @@ class ContainerStorageManagerUiState internal constructor(
     var pendingUninstall by mutableStateOf<ContainerStorageManager.Entry?>(null)
         private set
 
+    var uninstallingContainerId by mutableStateOf<String?>(null)
+        private set
+
     var movingEntryName by mutableStateOf<String?>(null)
         private set
 
@@ -125,6 +128,9 @@ class ContainerStorageManagerUiState internal constructor(
 
     val isMoving: Boolean
         get() = movingEntryName != null
+
+    val isUninstalling: Boolean
+        get() = uninstallingContainerId != null
 
     fun ensureLoaded() {
         if (!hasLoaded && !isLoading) {
@@ -173,7 +179,7 @@ class ContainerStorageManagerUiState internal constructor(
     }
 
     fun requestRemove(entry: ContainerStorageManager.Entry) {
-        if (isMoving) return
+        if (isMoving || isUninstalling) return
         pendingRemoval = entry
     }
 
@@ -202,7 +208,7 @@ class ContainerStorageManagerUiState internal constructor(
     }
 
     fun requestUninstall(entry: ContainerStorageManager.Entry) {
-        if (isMoving) return
+        if (isMoving || isUninstalling) return
         pendingUninstall = entry
     }
 
@@ -217,21 +223,26 @@ class ContainerStorageManagerUiState internal constructor(
             appContext.getString(R.string.container_storage_unknown_container)
         }
 
+        uninstallingContainerId = entry.containerId
         scope.launch {
-            val result = ContainerStorageManager.uninstallGameAndContainer(appContext, entry)
-            if (result.isSuccess) {
-                SnackbarManager.show(
-                    appContext.getString(R.string.container_storage_uninstall_success, entryName),
-                )
-                refresh()
-            } else {
-                SnackbarManager.show(
-                    appContext.getString(
-                        R.string.container_storage_uninstall_failed,
-                        result.exceptionOrNull()?.message
-                            ?: appContext.getString(R.string.container_storage_unknown_error),
-                    ),
-                )
+            try {
+                val result = ContainerStorageManager.uninstallGameAndContainer(appContext, entry)
+                if (result.isSuccess) {
+                    SnackbarManager.show(
+                        appContext.getString(R.string.container_storage_uninstall_success, entryName),
+                    )
+                    refresh()
+                } else {
+                    SnackbarManager.show(
+                        appContext.getString(
+                            R.string.container_storage_uninstall_failed,
+                            result.exceptionOrNull()?.message
+                                ?: appContext.getString(R.string.container_storage_unknown_error),
+                        ),
+                    )
+                }
+            } finally {
+                uninstallingContainerId = null
             }
         }
     }
@@ -240,7 +251,7 @@ class ContainerStorageManagerUiState internal constructor(
         entry: ContainerStorageManager.Entry,
         target: ContainerStorageManager.MoveTarget,
     ) {
-        if (isMoving) return
+        if (isMoving || isUninstalling) return
 
         if (target == ContainerStorageManager.MoveTarget.EXTERNAL && !ContainerStorageManager.isExternalStorageConfigured()) {
             SnackbarManager.show(appContext.getString(R.string.container_storage_move_external_disabled))
@@ -510,7 +521,8 @@ fun ContainerStorageManagerContent(
                 items(filteredEntries, key = { it.containerId }) { entry ->
                     StorageEntryCard(
                         entry = entry,
-                        actionsEnabled = !state.isMoving,
+                        actionsEnabled = !state.isMoving && !state.isUninstalling,
+                        isUninstalling = entry.containerId == state.uninstallingContainerId,
                         onOpenGame = onOpenGame,
                         onMoveToExternal = {
                             state.startMove(entry, ContainerStorageManager.MoveTarget.EXTERNAL)
@@ -577,6 +589,7 @@ fun ContainerStorageManagerDialog(
 private fun StorageEntryCard(
     entry: ContainerStorageManager.Entry,
     actionsEnabled: Boolean,
+    isUninstalling: Boolean,
     onOpenGame: ((GameSource, String, String, String) -> Unit)?,
     onMoveToExternal: () -> Unit,
     onMoveToInternal: () -> Unit,
@@ -646,6 +659,14 @@ private fun StorageEntryCard(
                             color = PluviaTheme.colors.textMuted,
                         )
                     }
+                    if (isUninstalling) {
+                        Text(
+                            text = stringResource(R.string.container_storage_uninstalling),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = accent,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
             }
 
@@ -693,11 +714,19 @@ private fun StorageEntryCard(
                         ) { onUninstall() },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = stringResource(R.string.container_storage_uninstall_button),
-                        tint = PluviaTheme.colors.accentDanger,
-                    )
+                    if (isUninstalling) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = accent,
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = stringResource(R.string.container_storage_uninstall_button),
+                            tint = PluviaTheme.colors.accentDanger,
+                        )
+                    }
                 }
             } else if (canRemoveOrphanContainer) {
                 val remShape = RoundedCornerShape(8.dp)

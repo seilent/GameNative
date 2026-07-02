@@ -1044,6 +1044,7 @@
     <string name="container_storage_remove_success">Removed container for %1$s</string>
     <string name="container_storage_remove_failed">Failed to remove container</string>
     <string name="container_storage_uninstall_button">Uninstall game</string>
+    <string name="container_storage_uninstalling">Uninstalling…</string>
     <string name="container_storage_uninstall_title">Uninstall game and container?</string>
     <string name="container_storage_uninstall_message">This uninstalls %1$s, removes its game files, and deletes the linked container.</string>
     <string name="container_storage_uninstall_game_only_title">Uninstall game?</string>
