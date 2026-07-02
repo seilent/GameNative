@@ -136,16 +136,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download built APK
         uses: actions/download-artifact@v4
         with:
           name: universal-apk
           path: ./
 
-      - name: Rename APKs
+      - name: Rename APK
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           mv universal.apk "gamenative-$TAG.apk"
+
+      - name: Verify release notes exist
+        run: |
+          NOTES="release-notes/${{ github.ref_name }}.md"
+          if [ ! -f "$NOTES" ]; then
+            echo "Missing release notes file: $NOTES" >&2
+            echo "Create it before tagging (see release-notes/README.md)." >&2
+            exit 1
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -153,14 +164,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           prerelease: true
-          body: |
-            ### Glassmorphism UI
-            - Glass redesign: frosted translucent panels with a per-game dynamic accent color.
-            - Library: removed redundant placeholder layers and sped up library loading.
-
-            ### Framegen
-            - Readded FPS cap (inside game settings)
-            - Might have some bounce / jitter.
+          body_path: release-notes/${{ github.ref_name }}.md
           files: |
             gamenative-${{ github.ref_name }}.apk
         env:
