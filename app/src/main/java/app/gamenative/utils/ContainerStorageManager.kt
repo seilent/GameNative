@@ -577,8 +577,10 @@ object ContainerStorageManager {
         val appInfosById = appInfoDao.getAll().associateBy { it.id }
         val recoveredAppInfos = mutableListOf<AppInfo>()
 
+        val steamRootDirNames = snapshotSteamRootDirNames()
+
         val ownerByPath = steamAppDao.getAllOwnedAppsAsList()
-            .mapNotNull { app -> resolveSteamInstallPath(app)?.let { app to it } }
+            .mapNotNull { app -> resolveSteamInstallPath(app, steamRootDirNames)?.let { app to it } }
             .groupBy { (_, path) -> normalizePath(path) }
             .mapValues { (_, group) ->
                 group.minWith(
@@ -621,16 +623,7 @@ object ContainerStorageManager {
         return installedGames
     }
 
-    private fun resolveSteamInstallPath(app: SteamApp): String? {
-        val installNames = listOf(
-            SteamService.getAppDirName(app),
-            app.name,
-        )
-            .filter { it.isNotBlank() }
-            .distinct()
-
-        if (installNames.isEmpty()) return null
-
+    private fun snapshotSteamRootDirNames(): List<Pair<String, Set<String>>> {
         val searchRoots = buildList {
             add(SteamService.internalAppInstallPath)
             add(SteamService.externalAppInstallPath)
@@ -642,10 +635,37 @@ object ContainerStorageManager {
         }
             .distinct()
 
-        return searchRoots.asSequence()
-            .flatMap { root -> installNames.asSequence().map { name -> File(root, name) } }
-            .firstOrNull { it.exists() && it.isDirectory }
-            ?.absolutePath
+        return searchRoots.map { root ->
+            val dirNames = File(root).listFiles()
+                ?.asSequence()
+                ?.filter { it.isDirectory }
+                ?.mapTo(HashSet()) { it.name.lowercase() }
+                ?: emptySet()
+            root to dirNames
+        }
+    }
+
+    private fun resolveSteamInstallPath(
+        app: SteamApp,
+        rootDirNames: List<Pair<String, Set<String>>>,
+    ): String? {
+        val installNames = listOf(
+            SteamService.getAppDirName(app),
+            app.name,
+        )
+            .filter { it.isNotBlank() }
+            .distinct()
+
+        if (installNames.isEmpty()) return null
+
+        for ((root, dirNames) in rootDirNames) {
+            for (name in installNames) {
+                if (dirNames.contains(name.lowercase())) {
+                    return File(root, name).absolutePath
+                }
+            }
+        }
+        return null
     }
 
     private suspend fun buildContainerEntry(
