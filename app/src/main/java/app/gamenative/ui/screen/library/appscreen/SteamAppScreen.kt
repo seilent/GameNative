@@ -1335,7 +1335,7 @@ class SteamAppScreen : BaseAppScreen() {
                 onGetDisplayInfo = { context ->
                     return@GameManagerDialog getGameDisplayInfo(context, libraryItem)
                 },
-                onInstall = { dlcAppIds, target ->
+                onInstall = { dlcAppIds, target, branch ->
                     hideGameManagerDialog(gameId)
 
                     val installedApp = SteamService.getInstalledApp(gameId)
@@ -1350,7 +1350,7 @@ class SteamAppScreen : BaseAppScreen() {
                         properties = mapOf("game_name" to (appInfo?.name ?: ""))
                     )
                     CoroutineScope(Dispatchers.IO).launch {
-                        SteamService.downloadApp(gameId, dlcAppIds, isUpdateOrVerify = false, target = target)
+                        SteamService.downloadApp(gameId, dlcAppIds, branch = branch, isUpdateOrVerify = false, target = target)
                     }
                 },
                 onDismissRequest = {
