@@ -506,18 +506,15 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
     }
 
     auto busyWaitUntil = [](int64_t t) {
-        const int64_t spin = 1'000'000;
-        int64_t cur = scanoutNowNs();
-        if (cur < t) {
-            const int64_t s = t - cur - spin;
-            if (s > 0) {
-                struct timespec ts{};
-                ts.tv_sec = s / 1'000'000'000LL;
-                ts.tv_nsec = s % 1'000'000'000LL;
-                nanosleep(&ts, nullptr);
-            }
-            while (scanoutNowNs() < t) { }
+        const int64_t spinTail = 250'000;
+        for (int64_t rem = t - scanoutNowNs(); rem > spinTail; rem = t - scanoutNowNs()) {
+            const int64_t s = rem - spinTail;
+            struct timespec ts{};
+            ts.tv_sec = s / 1'000'000'000LL;
+            ts.tv_nsec = s % 1'000'000'000LL;
+            nanosleep(&ts, nullptr);
         }
+        while (scanoutNowNs() < t) { }
     };
 
     presentOne(sc, doEffects ? hostEffects.apply(interps[0], hostFg.width(), hostFg.height(), efx) : interps[0],
