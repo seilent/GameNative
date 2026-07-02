@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +28,8 @@ import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 
 @Composable
 fun SettingsGroupEmulation() {
+    val context = LocalContext.current
+    val panelRefreshHz = remember { app.gamenative.utils.detectMaxRefreshRateHz(context) }
     SettingsGroup(
     ) {
         var showConfigDialog by rememberSaveable { mutableStateOf(false) }
@@ -43,6 +46,7 @@ fun SettingsGroupEmulation() {
             title = stringResource(R.string.settings_emulation_default_config_dialog_title),
             default = true,
             initialConfig = ContainerUtils.getDefaultContainerData(),
+            panelRefreshHz = panelRefreshHz,
             onDismissRequest = { showConfigDialog = false },
             onSave = {
                 showConfigDialog = false

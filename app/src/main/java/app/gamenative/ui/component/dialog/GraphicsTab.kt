@@ -50,7 +50,7 @@ import com.winlator.core.envvars.EnvVars
 import kotlin.math.roundToInt
 
 @Composable
-fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
+fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false, panelRefreshHz: Int = 120) {
     val config = state.config.value
     GlassSurface(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(20.dp)) {
     Column {
@@ -354,7 +354,7 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false) {
             }
         }
 
-        if (!default) SeifgSection(state)
+        if (!default) SeifgSection(state, panelRefreshHz)
 
         SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
@@ -591,7 +591,7 @@ private fun SettingsAdjustmentRow(
 }
 
 @Composable
-private fun SeifgSection(state: ContainerConfigState) {
+private fun SeifgSection(state: ContainerConfigState, panelRefreshHz: Int = 120) {
     val config = state.config.value
     val seifgSupported = config.containerVariant.equals(Container.BIONIC, ignoreCase = true)
     if (!seifgSupported) return
@@ -637,22 +637,24 @@ private fun SeifgSection(state: ContainerConfigState) {
                     state.config.value = state.config.value.copy(seifgMultiplier = clamped)
                 },
             )
+            val maxFps = (panelRefreshHz.coerceAtLeast(35) / 5) * 5
+            val displayTarget = config.seifgTargetFps.coerceIn(30, maxFps)
             SettingsAdjustmentRow(
                 title = stringResource(R.string.seifg_target_fps),
-                valueText = "${config.seifgTargetFps} fps",
-                value = config.seifgTargetFps.toFloat(),
-                valueRange = 30f..120f,
-                steps = 17,
+                valueText = "$displayTarget fps",
+                value = displayTarget.toFloat(),
+                valueRange = 30f..maxFps.toFloat(),
+                steps = ((maxFps - 30) / 5 - 1).coerceAtLeast(0),
                 onValueChange = { newValue ->
-                    val clamped = newValue.roundToInt().coerceIn(30, 120)
+                    val clamped = newValue.roundToInt().coerceIn(30, maxFps)
                     state.config.value = state.config.value.copy(seifgTargetFps = clamped)
                 },
                 onDecrease = {
-                    val clamped = (config.seifgTargetFps - 5).coerceIn(30, 120)
+                    val clamped = (config.seifgTargetFps - 5).coerceIn(30, maxFps)
                     state.config.value = state.config.value.copy(seifgTargetFps = clamped)
                 },
                 onIncrease = {
-                    val clamped = (config.seifgTargetFps + 5).coerceIn(30, 120)
+                    val clamped = (config.seifgTargetFps + 5).coerceIn(30, maxFps)
                     state.config.value = state.config.value.copy(seifgTargetFps = clamped)
                 },
             )

@@ -296,6 +296,7 @@ fun PluviaMain(
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
+    val panelRefreshHz = remember { app.gamenative.utils.detectMaxRefreshRateHz(context) }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -1189,6 +1190,7 @@ fun PluviaMain(
                         visible = true,
                         title = context.getString(R.string.container_config_title),
                         initialConfig = config,
+                        panelRefreshHz = panelRefreshHz,
                         onDismissRequest = { openContainerConfigForAppId = null },
                         onSave = { newConfig ->
                             scope.launch {

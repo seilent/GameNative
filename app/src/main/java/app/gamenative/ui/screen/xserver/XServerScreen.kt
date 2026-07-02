@@ -16,7 +16,6 @@ import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.hardware.display.DisplayManager
 import android.hardware.input.InputManager
 import android.view.InputDevice
 import androidx.activity.ComponentActivity
@@ -236,26 +235,8 @@ private fun initialFpsLimiterTarget(container: Container): Int =
     parsePositiveFpsLimit(container.getExtra(FPS_LIMITER_TARGET_EXTRA))
         ?: DEFAULT_FPS_LIMITER_TARGET_HZ
 
-private fun detectMaxRefreshRateHz(context: Context, attachedView: View?): Int {
-    val display = attachedView?.display
-        ?: context.display
-        ?: ContextCompat.getSystemService(context, DisplayManager::class.java)?.getDisplay(Display.DEFAULT_DISPLAY)
-
-    val refreshRate = when {
-        display == null -> DEFAULT_FPS_LIMITER_MAX_HZ.toFloat()
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-            val supportedMax = display.supportedModes.maxOfOrNull { it.refreshRate } ?: display.refreshRate
-            if (supportedMax.isFinite() && supportedMax > 0f) supportedMax else display.refreshRate
-        }
-        else -> display.refreshRate
-    }
-
-    return refreshRate
-        .takeIf { it.isFinite() && it > 0f }
-        ?.roundToInt()
-        ?.coerceAtLeast(5)
-        ?: DEFAULT_FPS_LIMITER_MAX_HZ
-}
+private fun detectMaxRefreshRateHz(context: Context, attachedView: View?): Int =
+    app.gamenative.utils.detectMaxRefreshRateHz(context, attachedView)
 
 private data class XServerViewReleaseBinding(
     val xServerView: XServerRendererView,

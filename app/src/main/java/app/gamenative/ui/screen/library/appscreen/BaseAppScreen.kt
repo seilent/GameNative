@@ -900,6 +900,7 @@ abstract class BaseAppScreen {
         onBack: () -> Unit,
     ) {
         val context = LocalContext.current
+        val panelRefreshHz = remember { app.gamenative.utils.detectMaxRefreshRateHz(context) }
         val displayInfoBase = getGameDisplayInfo(context, libraryItem)
         val appId = libraryItem.appId
 
@@ -1260,6 +1261,7 @@ abstract class BaseAppScreen {
             ContainerConfigDialog(
                 title = "${displayInfo.name} Config",
                 initialConfig = containerData,
+                panelRefreshHz = panelRefreshHz,
                 onDismissRequest = { showConfigDialog = false },
                 onSave = {
                     saveContainerConfig(context, libraryItem, it)
