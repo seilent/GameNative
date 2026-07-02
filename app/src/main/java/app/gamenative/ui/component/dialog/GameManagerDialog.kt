@@ -88,7 +88,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.collections.orEmpty
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class InstallSizeInfo(
     val downloadSize: String,
@@ -134,18 +136,16 @@ fun GameManagerDialog(
         SteamService.getMainAppDlcIdsWithoutProperDepotDlcIds(gameId).toList()
     }
 
-    val appBranches = remember(gameId) {
-        SteamService.getAppInfoOf(gameId)?.branches.orEmpty()
-    }
-    val hasPrivateBranches = remember(appBranches) {
-        appBranches.any { it.value.pwdRequired }
-    }
-    val publicBranches = remember(appBranches) {
-        appBranches.filter { !it.value.pwdRequired }.keys.sorted()
-    }
+    var hasPrivateBranches by remember(gameId) { mutableStateOf(false) }
+    var publicBranches by remember(gameId) { mutableStateOf<List<String>>(emptyList()) }
     var unlockedBranchNames by remember(gameId) { mutableStateOf<List<String>>(emptyList()) }
     LaunchedEffect(gameId) {
-        unlockedBranchNames = SteamService.getSteamUnlockedBranches(gameId).map { it.branchName }
+        withContext(Dispatchers.IO) {
+            val branches = SteamService.getAppInfoOf(gameId)?.branches.orEmpty()
+            hasPrivateBranches = branches.any { it.value.pwdRequired }
+            publicBranches = branches.filter { !it.value.pwdRequired }.keys.sorted()
+            unlockedBranchNames = SteamService.getSteamUnlockedBranches(gameId).map { it.branchName }
+        }
     }
     val availableBranches = remember(publicBranches, unlockedBranchNames) {
         (listOf("public") + publicBranches + unlockedBranchNames).distinct().sorted()
@@ -160,41 +160,43 @@ fun GameManagerDialog(
     LaunchedEffect(visible) {
         scrollState.animateScrollTo(0)
 
-        downloadableDepots.clear()
-        allDownloadableApps.clear()
+        withContext(Dispatchers.IO) {
+            downloadableDepots.clear()
+            allDownloadableApps.clear()
 
-        val allPossibleDownloadableDepots = SteamService.getDownloadableDepots(gameId)
-        downloadableDepots.putAll(allPossibleDownloadableDepots)
+            val allPossibleDownloadableDepots = SteamService.getDownloadableDepots(gameId)
+            downloadableDepots.putAll(allPossibleDownloadableDepots)
 
-        val optionalDlcIds = allPossibleDownloadableDepots
-            .filter { it.value.optionalDlcId == it.value.dlcAppId }
-            .map { it.value.dlcAppId }
+            val optionalDlcIds = allPossibleDownloadableDepots
+                .filter { it.value.optionalDlcId == it.value.dlcAppId }
+                .map { it.value.dlcAppId }
 
-        downloadableDepots
-            .toSortedMap()
-            .filter { (_, depot) ->
-                return@filter depot.dlcAppId != INVALID_APP_ID
-            }.values
-                .groupBy { it.dlcAppId }
-                .mapValues { it.value.first() }
-                .toMap()
-            .forEach { (_, depotInfo) ->
-                allDownloadableApps.add(Pair(depotInfo.dlcAppId, depotInfo))
-                val installed = SteamService.isAppInstalled(depotInfo.dlcAppId)
-                selectedAppIds[depotInfo.dlcAppId] =
-                        installed ||
-                        installedDlcIds.contains(depotInfo.dlcAppId) ||
-                        ( !indirectDlcAppIds.contains(depotInfo.dlcAppId) && !optionalDlcIds.contains(depotInfo.dlcAppId) )
+            downloadableDepots
+                .toSortedMap()
+                .filter { (_, depot) ->
+                    return@filter depot.dlcAppId != INVALID_APP_ID
+                }.values
+                    .groupBy { it.dlcAppId }
+                    .mapValues { it.value.first() }
+                    .toMap()
+                .forEach { (_, depotInfo) ->
+                    allDownloadableApps.add(Pair(depotInfo.dlcAppId, depotInfo))
+                    val installed = SteamService.isAppInstalled(depotInfo.dlcAppId)
+                    selectedAppIds[depotInfo.dlcAppId] =
+                            installed ||
+                            installedDlcIds.contains(depotInfo.dlcAppId) ||
+                            ( !indirectDlcAppIds.contains(depotInfo.dlcAppId) && !optionalDlcIds.contains(depotInfo.dlcAppId) )
 
-                enabledAppIds[depotInfo.dlcAppId] = !installedDlcIds.contains(depotInfo.dlcAppId) && !installed
-            }
+                    enabledAppIds[depotInfo.dlcAppId] = !installedDlcIds.contains(depotInfo.dlcAppId) && !installed
+                }
 
-        allDownloadableApps.sortBy { it.first }
+            allDownloadableApps.sortBy { it.first }
 
-        val baseDepot = downloadableDepots.values.firstOrNull { it.dlcAppId == INVALID_APP_ID } ?: return@LaunchedEffect
-        allDownloadableApps.add(0, Pair(gameId, baseDepot))
-        selectedAppIds[gameId] = true
-        enabledAppIds[gameId] = false
+            val baseDepot = downloadableDepots.values.firstOrNull { it.dlcAppId == INVALID_APP_ID } ?: return@withContext
+            allDownloadableApps.add(0, Pair(gameId, baseDepot))
+            selectedAppIds[gameId] = true
+            enabledAppIds[gameId] = false
+        }
     }
 
     fun getDepotAppName(depotInfo: DepotInfo): String {
