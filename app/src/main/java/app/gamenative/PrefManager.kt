@@ -1170,6 +1170,13 @@ object PrefManager {
             setPref(IMPORT_CUSTOM_GAME_AS_STEAM_GAME, value)
         }
 
+    private val AUTO_DETECT_STEAM_COMMON_GAMES = booleanPreferencesKey("auto_detect_steam_common_games")
+    var autoDetectSteamCommonGames: Boolean
+        get() = getPref(AUTO_DETECT_STEAM_COMMON_GAMES, true)
+        set(value) {
+            setPref(AUTO_DETECT_STEAM_COMMON_GAMES, value)
+        }
+
     // Whether to download games only over Wi-Fi.
     private val DOWNLOAD_ON_WIFI_ONLY = booleanPreferencesKey("download_on_wifi_only")
     var downloadOnWifiOnly: Boolean

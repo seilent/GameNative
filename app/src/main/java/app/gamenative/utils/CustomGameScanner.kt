@@ -513,12 +513,15 @@ object CustomGameScanner {
         val items = mutableListOf<LibraryItem>()
         var indexCounter = indexOffsetStart
         val q = query.trim()
+        val existingAppIds = mutableSetOf<String>()
+
+        if (PrefManager.autoDetectSteamCommonGames && SteamService.instance != null) {
+            registerSteamCommonOrphans()
+        }
 
         val manualFolders = PrefManager.customGameManualFolders
         if (manualFolders.isNotEmpty()) {
-            val existingAppIds = mutableSetOf<String>()
             for (manualPath in manualFolders) {
-                // Filter by query if provided
                 if (q.isNotEmpty()) {
                     val folderName = File(manualPath).name
                     if (!folderName.contains(q, ignoreCase = true)) continue
@@ -532,6 +535,72 @@ object CustomGameScanner {
         }
 
         return items
+    }
+
+    @Volatile
+    private var orphanScanTime: Long = 0L
+
+    private const val ORPHAN_SCAN_TTL_MS = 5_000L
+
+    private val imageFetchChecked = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    fun invalidateOrphanCache() {
+        orphanScanTime = 0L
+    }
+
+    @Synchronized
+    private fun registerSteamCommonOrphans() {
+        val now = System.currentTimeMillis()
+        if (now - orphanScanTime < ORPHAN_SCAN_TTL_MS && orphanScanTime != 0L) return
+        orphanScanTime = now
+
+        try {
+            val existing = PrefManager.customGameManualFolders
+            val allOrphans = mutableSetOf<String>()
+            val toAdd = mutableSetOf<String>()
+            for (basePath in SteamService.allInstallPaths) {
+                val base = File(basePath)
+                if (!base.exists() || !base.isDirectory) continue
+                val subDirs = base.listFiles { f -> f.isDirectory } ?: continue
+                for (dir in subDirs) {
+                    val path = dir.absolutePath
+                    val matches = SteamService.findSteamAppWithInstallDir(dir.name)
+                    val ownedMatch = matches?.any { SteamService.isAppLicensed(it.packageId) } == true
+                    if (ownedMatch) continue
+                    allOrphans.add(path)
+                    if (!existing.contains(path)) toAdd.add(path)
+                }
+            }
+            if (toAdd.isNotEmpty()) {
+                PrefManager.customGameManualFolders = existing + toAdd
+                invalidateCache()
+                Timber.tag("CustomGameScanner").d("Auto-registered ${toAdd.size} steamapps/common game(s) as custom games")
+            }
+            val toFetch = allOrphans.filterNot { imageFetchChecked.contains(it) }.toSet()
+            if (toFetch.isNotEmpty()) autoFetchImagesFor(toFetch)
+        } catch (e: Exception) {
+            Timber.tag("CustomGameScanner").e(e, "Error registering steamapps/common orphans")
+        }
+    }
+
+    private fun autoFetchImagesFor(folderPaths: Set<String>) {
+        if (!PrefManager.fetchSteamGridDBImages) return
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            for (path in folderPaths) {
+                try {
+                    val folder = File(path)
+                    if (!folder.exists() || !folder.isDirectory) continue
+                    SteamGridDB.fetchGameImages(folder.name, path)
+                    imageFetchChecked.add(path)
+                    val idPart = getOrGenerateGameId(folder)
+                    PluviaApp.events.emit(
+                        AndroidEvent.CustomGameImagesFetched("${GameSource.CUSTOM_GAME.name}_$idPart"),
+                    )
+                } catch (e: Exception) {
+                    Timber.tag("CustomGameScanner").d(e, "Auto image fetch failed for $path")
+                }
+            }
+        }
     }
 
     private fun handleCustomGameDetection(folder: File, appId: String, idPart: Int) {

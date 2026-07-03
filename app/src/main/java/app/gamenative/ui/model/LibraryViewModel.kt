@@ -91,6 +91,7 @@ class LibraryViewModel @Inject constructor(
     private val onInstallStatusChanged: (AndroidEvent.LibraryInstallStatusChanged) -> Unit = {
         viewModelScope.launch(Dispatchers.IO) {
             steamAppDao.syncInstalledFlags(DownloadService.getDownloadDirectoryApps() + SteamService.getImportedAppDirs())
+            CustomGameScanner.invalidateOrphanCache()
             onFilterApps(paginationCurrentPage)
         }
     }
@@ -372,7 +373,8 @@ class LibraryViewModel @Inject constructor(
     fun visibleTabItems(): List<LibraryTabItem> {
         val state = _state.value
         return if (isSteamOnly() && state.collectionTabs.isNotEmpty()) {
-            listOf(LibraryTabItem.Store(LibraryTab.ALL), LibraryTabItem.Store(LibraryTab.INSTALLED)) + state.collectionTabs
+            val base = listOf(LibraryTabItem.Store(LibraryTab.ALL), LibraryTabItem.Store(LibraryTab.INSTALLED)) + state.collectionTabs
+            if (!BuildConfig.MODERN_ANDROID) base + LibraryTabItem.Store(LibraryTab.LOCAL) else base
         } else {
             LibraryTab.visibleEntries(context).map { LibraryTabItem.Store(it) }
         }
