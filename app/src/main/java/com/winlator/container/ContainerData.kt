@@ -104,6 +104,7 @@ data class ContainerData(
     val seifgTargetFps: Int = 60,
     val seifgMultiplier: Int = 2,
     val seifgQuality: Int = 1,
+    val stickAntiDeadzone: Float = 0f,
 ) {
     companion object {
         val Saver = mapSaver(
@@ -176,6 +177,7 @@ data class ContainerData(
                     "seifgTargetFps" to state.seifgTargetFps,
                     "seifgMultiplier" to state.seifgMultiplier,
                     "seifgQuality" to state.seifgQuality,
+                    "stickAntiDeadzone" to state.stickAntiDeadzone,
                 )
             },
             restore = { savedMap ->
@@ -247,6 +249,7 @@ data class ContainerData(
                     seifgTargetFps = (savedMap["seifgTargetFps"] as? Int) ?: 60,
                     seifgMultiplier = (savedMap["seifgMultiplier"] as? Int) ?: 2,
                     seifgQuality = (savedMap["seifgQuality"] as? Int) ?: 1,
+                    stickAntiDeadzone = (savedMap["stickAntiDeadzone"] as? Float) ?: 0f,
                 )
             },
         )

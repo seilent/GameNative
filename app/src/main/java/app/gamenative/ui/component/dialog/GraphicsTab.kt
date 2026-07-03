@@ -499,7 +499,7 @@ private fun DxWrapperSection(state: ContainerConfigState) {
 }
 
 @Composable
-private fun SettingsAdjustmentRow(
+internal fun SettingsAdjustmentRow(
     title: String,
     valueText: String,
     value: Float,
@@ -509,6 +509,7 @@ private fun SettingsAdjustmentRow(
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
 ) {
     val accent = LocalGameAccent.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -570,6 +571,14 @@ private fun SettingsAdjustmentRow(
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (isFocused) accent else Color.White.copy(alpha = 0.8f),
+                )
+            }
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(top = 2.dp),
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))

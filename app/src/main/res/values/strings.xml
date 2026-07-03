@@ -784,6 +784,8 @@
     <string name="touchscreen_mode">Touchscreen Mode</string>
     <string name="shooter_mode_toggle">Shooter Mode</string>
     <string name="shooter_mode_toggle_description">Auto-replace stick elements with dynamic joysticks</string>
+    <string name="stick_deadzone_compensation">Stick deadzone compensation</string>
+    <string name="stick_deadzone_compensation_description">Higher = less deadzone</string>
     <string name="shooter_mode_on">Enable Mouse</string>
     <string name="shooter_mode_off">Enable Sticks</string>
     <!-- Gesture Settings Dialog -->

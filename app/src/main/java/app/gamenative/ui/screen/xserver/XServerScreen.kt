@@ -3252,6 +3252,16 @@ private fun setupXEnvironment(
         }
     }
 
+    val antiDeadzone = container?.getExtra("stickAntiDeadzone", "0.0")?.toFloatOrNull() ?: 0f
+    val evshimConf = File(context.filesDir, "evshim_stick.conf")
+    if (antiDeadzone > 0f) {
+        val antiStr = "%.2f".format(antiDeadzone)
+        val gainStr = "%.2f".format(1.0f - antiDeadzone)
+        evshimConf.writeText("inner=0.0\ngain=$gainStr\nanti=$antiStr\n")
+    } else {
+        evshimConf.writeText("inner=0.0\ngain=1.0\nanti=0.0\n")
+    }
+
     val environment = XEnvironment(context, imageFs)
     environment.addComponent(
         SysVSharedMemoryComponent(

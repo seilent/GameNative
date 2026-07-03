@@ -17,6 +17,7 @@ import app.gamenative.ui.theme.settingsTileColorsAlt
 import com.alorma.compose.settings.ui.SettingsGroup
 import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import com.winlator.container.Container
+import kotlin.math.roundToInt
 
 @Composable
 fun ControllerTabContent(state: ContainerConfigState, default: Boolean) {
@@ -66,6 +67,28 @@ fun ControllerTabContent(state: ContainerConfigState, default: Boolean) {
             subtitle = { Text(text = stringResource(R.string.shooter_mode_toggle_description)) },
             state = config.shooterMode,
             onCheckedChange = { state.config.value = config.copy(shooterMode = it) },
+        )
+        SettingsAdjustmentRow(
+            title = stringResource(R.string.stick_deadzone_compensation),
+            valueText = "${(config.stickAntiDeadzone * 100).roundToInt()}%",
+            value = config.stickAntiDeadzone,
+            valueRange = 0f..0.95f,
+            steps = 18,
+            onValueChange = {
+                val snapped = (it * 20).roundToInt().coerceIn(0, 19) * 0.05f
+                state.config.value = config.copy(stickAntiDeadzone = snapped)
+            },
+            onDecrease = {
+                val current = (config.stickAntiDeadzone * 20).roundToInt()
+                val next = (current - 1).coerceIn(0, 19) * 0.05f
+                state.config.value = config.copy(stickAntiDeadzone = next)
+            },
+            onIncrease = {
+                val current = (config.stickAntiDeadzone * 20).roundToInt()
+                val next = (current + 1).coerceIn(0, 19) * 0.05f
+                state.config.value = config.copy(stickAntiDeadzone = next)
+            },
+            subtitle = stringResource(R.string.stick_deadzone_compensation_description),
         )
         SettingsListDropdown(
             colors = settingsTileColors(),

@@ -13,10 +13,12 @@ target_include_directories(evshim PRIVATE
 
 find_library(log-lib  log)
 find_library(dl-lib   dl)
+find_library(m-lib    m)
 
 target_link_libraries(evshim
         ${log-lib}
         ${dl-lib}
+        ${m-lib}
 )
 
 target_link_options(evshim PRIVATE

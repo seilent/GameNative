@@ -19,6 +19,7 @@
 #include <android/log.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <math.h>
 
 static int g_debug_enabled = 0;
 #define LOGI(...) dprintf(STDOUT_FILENO, __VA_ARGS__)
@@ -224,6 +225,83 @@ static bool try_read_state(struct gamepad_io *s, uint32_t *last_seq, struct game
     return true;
 }
 
+static pthread_mutex_t g_stick_lock = PTHREAD_MUTEX_INITIALIZER;
+static float g_stick_inner = 0.0f;
+static float g_stick_gain  = 1.0f;
+static float g_stick_anti  = 0.0f;
+static time_t g_stick_mtime = -1;
+static char  g_stick_path[PATH_MAX];
+
+static void stick_init_path(void)
+{
+    const char *base = getenv("EVSHIM_BASE_PATH");
+    if (!base || !*base) base = "/data/data/app.gamenative/files";
+    snprintf(g_stick_path, sizeof g_stick_path, "%s/evshim_stick.conf", base);
+}
+
+static void stick_reload(void)
+{
+    struct stat st;
+    if (stat(g_stick_path, &st) != 0) {
+        if (g_stick_mtime != 0) {
+            pthread_mutex_lock(&g_stick_lock);
+            g_stick_inner = 0.0f; g_stick_gain = 1.0f; g_stick_anti = 0.0f;
+            g_stick_mtime = 0;
+            pthread_mutex_unlock(&g_stick_lock);
+        }
+        return;
+    }
+    if (st.st_mtime == g_stick_mtime) return;
+
+    float inner = 0.0f, gain = 1.0f, anti = 0.0f;
+    FILE *f = fopen(g_stick_path, "r");
+    if (f) {
+        char line[128];
+        while (fgets(line, sizeof line, f)) {
+            float v;
+            if (sscanf(line, "inner=%f", &v) == 1) inner = v;
+            else if (sscanf(line, "gain=%f", &v) == 1) gain = v;
+            else if (sscanf(line, "anti=%f", &v) == 1) anti = v;
+        }
+        fclose(f);
+    }
+    pthread_mutex_lock(&g_stick_lock);
+    g_stick_inner = inner; g_stick_gain = gain; g_stick_anti = anti;
+    g_stick_mtime = st.st_mtime;
+    pthread_mutex_unlock(&g_stick_lock);
+    ALOGI("evshim: stick transform inner=%.3f gain=%.3f anti=%.3f", inner, gain, anti);
+}
+
+static void stick_apply(int16_t *px, int16_t *py)
+{
+    float inner, gain, anti;
+    pthread_mutex_lock(&g_stick_lock);
+    inner = g_stick_inner; gain = g_stick_gain; anti = g_stick_anti;
+    pthread_mutex_unlock(&g_stick_lock);
+
+    if (inner <= 0.0f && anti <= 0.0f && gain == 1.0f) return;
+
+    float x = *px / 32767.0f;
+    float y = *py / 32767.0f;
+    float mag = sqrtf(x * x + y * y);
+    if (mag <= 1e-4f) return;
+    if (mag < inner) { *px = 0; *py = 0; return; }
+
+    float out = anti + gain * mag;
+    if (out > 1.0f) out = 1.0f;
+    if (out < 0.0f) out = 0.0f;
+
+    float k = out / mag;
+    float nx = x * k;
+    float ny = y * k;
+    if (nx >  1.0f) nx =  1.0f;
+    if (nx < -1.0f) nx = -1.0f;
+    if (ny >  1.0f) ny =  1.0f;
+    if (ny < -1.0f) ny = -1.0f;
+    *px = (int16_t)(nx * 32767.0f);
+    *py = (int16_t)(ny * 32767.0f);
+}
+
 static void *vjoy_updater(void *arg)
 {
     int idx = (int)(intptr_t)arg;
@@ -251,14 +329,25 @@ static void *vjoy_updater(void *arg)
         }
     }
 
+    stick_reload();
+    time_t last_reload = time(NULL);
+
     for (;;) {
         struct gamepad_io snap;
 
         if (try_read_state(s, &last_seq, &snap)) {
-            p_SDL_JoystickSetVirtualAxis(js, 0, snap.state.lx);
-            p_SDL_JoystickSetVirtualAxis(js, 1, snap.state.ly);
-            p_SDL_JoystickSetVirtualAxis(js, 2, snap.state.rx);
-            p_SDL_JoystickSetVirtualAxis(js, 3, snap.state.ry);
+            time_t now = time(NULL);
+            if (now != last_reload) { stick_reload(); last_reload = now; }
+
+            int16_t lx = snap.state.lx, ly = snap.state.ly;
+            int16_t rx = snap.state.rx, ry = snap.state.ry;
+            stick_apply(&lx, &ly);
+            stick_apply(&rx, &ry);
+
+            p_SDL_JoystickSetVirtualAxis(js, 0, lx);
+            p_SDL_JoystickSetVirtualAxis(js, 1, ly);
+            p_SDL_JoystickSetVirtualAxis(js, 2, rx);
+            p_SDL_JoystickSetVirtualAxis(js, 3, ry);
             p_SDL_JoystickSetVirtualAxis(js, 4, snap.state.lt);
             p_SDL_JoystickSetVirtualAxis(js, 5, snap.state.rt);
             for (int i = 0; i < 15; i++) {
@@ -295,6 +384,8 @@ static void initialize_wine(int players)
     }
 
     p_SDL_Init(SDL_INIT_JOYSTICK);
+
+    stick_init_path();
 
     SDL_version v;
     p_SDL_GetVersion(&v);
