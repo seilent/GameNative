@@ -686,27 +686,6 @@ private fun SeifgSection(state: ContainerConfigState, panelRefreshHz: Int = 120)
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.6f),
             )
-            run {
-                val qualityNames = listOf("Performance", "Balanced", "Quality")
-                SettingsAdjustmentRow(
-                    title = stringResource(R.string.seifg_quality),
-                    valueText = qualityNames[config.seifgQuality.coerceIn(0, 2)],
-                    value = config.seifgQuality.toFloat(),
-                    valueRange = 0f..2f,
-                    steps = 1,
-                    onValueChange = { newVal ->
-                        state.config.value = state.config.value.copy(seifgQuality = newVal.toInt().coerceIn(0, 2))
-                    },
-                    onDecrease = {
-                        val clamped = (config.seifgQuality - 1).coerceIn(0, 2)
-                        state.config.value = state.config.value.copy(seifgQuality = clamped)
-                    },
-                    onIncrease = {
-                        val clamped = (config.seifgQuality + 1).coerceIn(0, 2)
-                        state.config.value = state.config.value.copy(seifgQuality = clamped)
-                    },
-                )
-            }
         }
     }
 }
