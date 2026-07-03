@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -598,6 +599,13 @@ private fun SeifgSection(state: ContainerConfigState, panelRefreshHz: Int = 120)
 
     val isSurfaceFlinger = config.displayRenderer.equals(Container.DEFAULT_DISPLAY_RENDERER, ignoreCase = true)
 
+    val multiplierSelectable = panelRefreshHz > 60
+    LaunchedEffect(multiplierSelectable) {
+        if (!multiplierSelectable && state.config.value.seifgMultiplier != 2) {
+            state.config.value = state.config.value.copy(seifgMultiplier = 2)
+        }
+    }
+
     SettingsGroup {
         SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
@@ -618,25 +626,27 @@ private fun SeifgSection(state: ContainerConfigState, panelRefreshHz: Int = 120)
             )
         }
         if (config.seifgEnabled && isSurfaceFlinger) {
-            SettingsAdjustmentRow(
-                title = stringResource(R.string.seifg_multiplier),
-                valueText = "${config.seifgMultiplier}x",
-                value = config.seifgMultiplier.toFloat(),
-                valueRange = 2f..3f,
-                steps = 0,
-                onValueChange = { newValue ->
-                    val clamped = newValue.roundToInt().coerceIn(2, 3)
-                    state.config.value = state.config.value.copy(seifgMultiplier = clamped)
-                },
-                onDecrease = {
-                    val clamped = (config.seifgMultiplier - 1).coerceIn(2, 3)
-                    state.config.value = state.config.value.copy(seifgMultiplier = clamped)
-                },
-                onIncrease = {
-                    val clamped = (config.seifgMultiplier + 1).coerceIn(2, 3)
-                    state.config.value = state.config.value.copy(seifgMultiplier = clamped)
-                },
-            )
+            if (multiplierSelectable) {
+                SettingsAdjustmentRow(
+                    title = stringResource(R.string.seifg_multiplier),
+                    valueText = "${config.seifgMultiplier}x",
+                    value = config.seifgMultiplier.toFloat(),
+                    valueRange = 2f..3f,
+                    steps = 0,
+                    onValueChange = { newValue ->
+                        val clamped = newValue.roundToInt().coerceIn(2, 3)
+                        state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                    },
+                    onDecrease = {
+                        val clamped = (config.seifgMultiplier - 1).coerceIn(2, 3)
+                        state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                    },
+                    onIncrease = {
+                        val clamped = (config.seifgMultiplier + 1).coerceIn(2, 3)
+                        state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                    },
+                )
+            }
             val maxFps = (panelRefreshHz.coerceAtLeast(35) / 5) * 5
             val displayTarget = config.seifgTargetFps.coerceIn(30, maxFps)
             SettingsAdjustmentRow(
