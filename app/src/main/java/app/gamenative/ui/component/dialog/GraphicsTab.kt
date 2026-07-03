@@ -622,18 +622,18 @@ private fun SeifgSection(state: ContainerConfigState, panelRefreshHz: Int = 120)
                 title = stringResource(R.string.seifg_multiplier),
                 valueText = "${config.seifgMultiplier}x",
                 value = config.seifgMultiplier.toFloat(),
-                valueRange = 2f..4f,
-                steps = 1,
+                valueRange = 2f..3f,
+                steps = 0,
                 onValueChange = { newValue ->
-                    val clamped = newValue.roundToInt().coerceIn(2, 4)
+                    val clamped = newValue.roundToInt().coerceIn(2, 3)
                     state.config.value = state.config.value.copy(seifgMultiplier = clamped)
                 },
                 onDecrease = {
-                    val clamped = (config.seifgMultiplier - 1).coerceIn(2, 4)
+                    val clamped = (config.seifgMultiplier - 1).coerceIn(2, 3)
                     state.config.value = state.config.value.copy(seifgMultiplier = clamped)
                 },
                 onIncrease = {
-                    val clamped = (config.seifgMultiplier + 1).coerceIn(2, 4)
+                    val clamped = (config.seifgMultiplier + 1).coerceIn(2, 3)
                     state.config.value = state.config.value.copy(seifgMultiplier = clamped)
                 },
             )
