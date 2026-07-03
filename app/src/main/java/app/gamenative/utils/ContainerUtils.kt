@@ -347,7 +347,7 @@ object ContainerUtils {
             seifgEnabled = container.getExtra(SeifgManager.EXTRA_ARMED, "false").toBoolean(),
             seifgTargetFps = container.getExtra(SeifgManager.EXTRA_TARGET_FPS, "60").toIntOrNull() ?: 60,
             seifgMultiplier = container.getExtra(SeifgManager.EXTRA_MULTIPLIER, "2").toIntOrNull() ?: 2,
-            seifgQuality = container.getExtra(SeifgManager.EXTRA_QUALITY, "2").toIntOrNull() ?: 2,
+            seifgQuality = container.getExtra(SeifgManager.EXTRA_QUALITY, "1").toIntOrNull() ?: 1,
         )
     }
 

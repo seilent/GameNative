@@ -46,8 +46,16 @@ object SeifgManager {
         return if (raw == 0) 0 else raw.coerceIn(2, 4)
     }
 
-    fun quality(container: Container): Int =
-        container.getExtra(EXTRA_QUALITY, "2").toIntOrNull()?.coerceIn(0, 4) ?: 2
+    fun quality(container: Container): Int {
+        val raw = container.getExtra(EXTRA_QUALITY, "1").toIntOrNull() ?: 1
+        val remapped = when (raw) {
+            0, 1 -> 0
+            2 -> 1
+            3, 4 -> 2
+            else -> 1
+        }
+        return remapped.coerceIn(0, 2)
+    }
 
     fun targetFps(container: Container): Int =
         container.getExtra(EXTRA_TARGET_FPS, SEIFG_TARGET_FPS.toString())

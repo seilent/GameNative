@@ -103,7 +103,7 @@ data class ContainerData(
     val seifgEnabled: Boolean = false,
     val seifgTargetFps: Int = 60,
     val seifgMultiplier: Int = 2,
-    val seifgQuality: Int = 2,
+    val seifgQuality: Int = 1,
 ) {
     companion object {
         val Saver = mapSaver(
@@ -246,7 +246,7 @@ data class ContainerData(
                     seifgEnabled = (savedMap["seifgEnabled"] as? Boolean) ?: false,
                     seifgTargetFps = (savedMap["seifgTargetFps"] as? Int) ?: 60,
                     seifgMultiplier = (savedMap["seifgMultiplier"] as? Int) ?: 2,
-                    seifgQuality = (savedMap["seifgQuality"] as? Int) ?: 2,
+                    seifgQuality = (savedMap["seifgQuality"] as? Int) ?: 1,
                 )
             },
         )
