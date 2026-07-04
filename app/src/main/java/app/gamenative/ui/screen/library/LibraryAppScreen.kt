@@ -99,6 +99,9 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
+import app.gamenative.ui.controller.ControllerFocusRecovery
+import app.gamenative.ui.controller.acquireControllerFocus
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -613,6 +616,9 @@ internal fun AppScreenContent(
 
     // Focus requesters for gamepad navigation
     val playButtonFocusRequester = remember { FocusRequester() }
+    val inputModeManager = LocalInputModeManager.current
+    val focusScope = rememberCoroutineScope()
+    var detailHasFocus by remember { mutableStateOf(false) }
 
     // Calculate parallax offset based on scroll
     val parallaxOffset = scrollState.value * 0.5f
@@ -625,15 +631,24 @@ internal fun AppScreenContent(
     }
 
     LaunchedEffect(Unit) {
-        playButtonFocusRequester.requestFocus()
+        acquireControllerFocus(inputModeManager, playButtonFocusRequester)
     }
 
     LaunchedEffect(optionsMenuVisible) {
         if (!optionsMenuVisible) {
-            kotlinx.coroutines.delay(50)
-            runCatching { playButtonFocusRequester.requestFocus() }
+            acquireControllerFocus(inputModeManager, playButtonFocusRequester)
         }
     }
+
+    ControllerFocusRecovery(
+        enabled = !optionsMenuVisible,
+        hasFocus = { detailHasFocus },
+        onRecover = {
+            focusScope.launch {
+                acquireControllerFocus(inputModeManager, playButtonFocusRequester)
+            }
+        },
+    )
 
     // Button state calculations (needed by key event handler)
     val isResume = !isDownloading && hasPartialDownload
@@ -749,7 +764,8 @@ internal fun AppScreenContent(
                     ambientInteractionCounter++
                 }
                 handleKeyEvent(it.nativeKeyEvent)
-            },
+            }
+            .onFocusChanged { detailHasFocus = it.hasFocus },
     ) {
         Column(
             modifier = Modifier

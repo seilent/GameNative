@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -63,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -78,6 +80,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.BuildConfig
 import app.gamenative.R
 import app.gamenative.ui.component.BlurredBackdrop
+import app.gamenative.ui.controller.acquireControllerFocus
+import app.gamenative.ui.controller.requestFocusWhenReady
 import app.gamenative.ui.theme.LocalGameBackdrop
 import app.gamenative.ui.util.SnackbarManager
 import androidx.compose.foundation.layout.Box
@@ -85,6 +89,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -294,6 +301,8 @@ fun ContainerConfigDialog(
     if (visible) {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
+        val inputModeManager = LocalInputModeManager.current
+        val dialogFocusRequester = remember { FocusRequester() }
         val installScope = remember {
             CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
         }
@@ -1337,6 +1346,21 @@ fun ContainerConfigDialog(
                                 )
                             }
                         }
+                        LaunchedEffect(Unit) {
+                            acquireControllerFocus(inputModeManager, dialogFocusRequester)
+                        }
+                        LaunchedEffect(selectedTab) {
+                            scrollState.scrollTo(0)
+                            if (inputModeManager.inputMode == InputMode.Keyboard) {
+                                dialogFocusRequester.requestFocusWhenReady()
+                            }
+                        }
+                        Spacer(
+                            modifier = Modifier
+                                .size(1.dp)
+                                .focusRequester(dialogFocusRequester)
+                                .focusable(),
+                        )
                         Column(
                             modifier = Modifier
                                 .verticalScroll(scrollState)
