@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.gamenative.R
 import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.controller.requestFocusWhenReady
 import app.gamenative.ui.data.LibraryState
 import app.gamenative.ui.data.LibraryDecorations
 import app.gamenative.ui.data.statsFor
@@ -268,16 +269,8 @@ internal fun LibraryCarouselPane(
 
         scope.launch {
             onFocusedIndexChanged(targetIndex)
-            val scrollJob = launch { listState.animateScrollToItem(targetIndex) }
-            kotlinx.coroutines.delay(16)
-            if (listState.layoutInfo.visibleItemsInfo.none { it.index == targetIndex }) {
-                scrollJob.join()
-                kotlinx.coroutines.delay(16)
-            }
-            try {
-                firstCarouselItemFocusRequester?.requestFocus()
-            } catch (_: IllegalStateException) {
-            }
+            launch { listState.animateScrollToItem(targetIndex) }
+            firstCarouselItemFocusRequester?.requestFocusWhenReady()
         }
     }
 

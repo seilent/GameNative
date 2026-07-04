@@ -41,6 +41,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -113,6 +114,7 @@ import app.gamenative.ui.util.PlatformLogoutCallbacks
 import app.gamenative.service.amazon.AmazonService
 import app.gamenative.service.epic.EpicService
 import app.gamenative.service.gog.GOGService
+import app.gamenative.ui.controller.requestFocusWhenReady
 import app.gamenative.utils.CustomGameScanner
 import app.gamenative.utils.PlatformOAuthHandlers
 import app.gamenative.utils.SteamUtils
@@ -202,6 +204,8 @@ private fun LibraryScreenContent(
 ) {
     val context = LocalContext.current
     val lifecycleScope = LocalLifecycleOwner.current.lifecycleScope
+    val scope = rememberCoroutineScope()
+    val inputModeManager = LocalInputModeManager.current
 
     val gogOAuthLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
@@ -327,8 +331,6 @@ private fun LibraryScreenContent(
     var gridFocusTargetListIndex by remember { mutableIntStateOf(0) }
     var carouselFocusTargetListIndex by remember { mutableIntStateOf(0) }
     var lastTouchOffset by remember { mutableStateOf<Offset?>(null) }
-    var pendingGridFocusRequest by remember { mutableStateOf(false) }
-    var pendingCarouselFocusRequest by remember { mutableStateOf(false) }
 
     var isSystemMenuOpen by remember { mutableStateOf(false) }
     // Track previous overlay states to detect when they close
@@ -411,24 +413,26 @@ private fun LibraryScreenContent(
 
     fun requestGridFocusOrDefer() {
         if (state.appInfoList.isEmpty()) return
-        try {
-            gridFirstItemFocusRequester.requestFocus()
-            pendingGridFocusRequest = false
-            lastBootstrapAtMs = SystemClock.uptimeMillis()
-        } catch (_: IllegalStateException) {
-            pendingGridFocusRequest = true
+        scope.launch {
+            inputModeManager.requestInputMode(InputMode.Keyboard)
+            if (gridFirstItemFocusRequester.requestFocusWhenReady()) {
+                lastBootstrapAtMs = SystemClock.uptimeMillis()
+            }
         }
     }
 
     fun requestCarouselFocusOrDefer(targetListIndex: Int = currentCarouselFocusTargetIndex()) {
         if (state.appInfoList.isEmpty()) return
         carouselFocusTargetListIndex = targetListIndex.coerceIn(0, state.appInfoList.lastIndex)
-        try {
-            carouselFocusRequester.requestFocus()
-            pendingCarouselFocusRequest = false
-            lastBootstrapAtMs = SystemClock.uptimeMillis()
-        } catch (_: IllegalStateException) {
-            pendingCarouselFocusRequest = true
+        scope.launch {
+            inputModeManager.requestInputMode(InputMode.Keyboard)
+            val targetIndex = carouselFocusTargetListIndex.coerceIn(0, state.appInfoList.lastIndex)
+            if (carouselListState.layoutInfo.visibleItemsInfo.none { it.index == targetIndex }) {
+                carouselListState.scrollToItem(targetIndex)
+            }
+            if (carouselFocusRequester.requestFocusWhenReady()) {
+                lastBootstrapAtMs = SystemClock.uptimeMillis()
+            }
         }
     }
 
@@ -558,61 +562,6 @@ private fun LibraryScreenContent(
         }
     }
 
-    LaunchedEffect(
-        pendingGridFocusRequest,
-        gridFocusTargetListIndex,
-        state.appInfoList.size,
-        selectedAppId,
-        isSystemMenuOpen,
-        state.isOptionsPanelOpen,
-        state.isSearching,
-    ) {
-        if (pendingGridFocusRequest && state.appInfoList.isNotEmpty()) {
-            if (selectedAppId == null && !isSystemMenuOpen && !state.isOptionsPanelOpen && !state.isSearching) {
-                var retries = 0
-                while (pendingGridFocusRequest && retries < 8) {
-                    try {
-                        gridFirstItemFocusRequester.requestFocus()
-                        pendingGridFocusRequest = false
-                    } catch (_: IllegalStateException) {
-                        retries++
-                        // FocusRequester can be temporarily detached during recomposition.
-                        kotlinx.coroutines.delay(32)
-                    }
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(
-        pendingCarouselFocusRequest,
-        carouselFocusTargetListIndex,
-        state.appInfoList.size,
-        selectedAppId,
-        isSystemMenuOpen,
-        state.isOptionsPanelOpen,
-        state.isSearching,
-    ) {
-        if (pendingCarouselFocusRequest && state.appInfoList.isNotEmpty()) {
-            if (selectedAppId == null && !isSystemMenuOpen && !state.isOptionsPanelOpen && !state.isSearching) {
-                val targetIndex = currentCarouselFocusTargetIndex()
-                if (carouselListState.layoutInfo.visibleItemsInfo.none { it.index == targetIndex }) {
-                    carouselListState.scrollToItem(targetIndex)
-                }
-                var retries = 0
-                while (pendingCarouselFocusRequest && retries < 8) {
-                    try {
-                        carouselFocusRequester.requestFocus()
-                        pendingCarouselFocusRequest = false
-                    } catch (_: IllegalStateException) {
-                        retries++
-                        kotlinx.coroutines.delay(32)
-                    }
-                }
-            }
-        }
-    }
-
     // If the app list starts empty and populates later, bootstrap controller focus once content is ready.
     LaunchedEffect(
         state.appInfoList.size,
@@ -658,7 +607,6 @@ private fun LibraryScreenContent(
         wasOptionsPanelOpen = state.isOptionsPanelOpen
     }
 
-    val inputModeManager = LocalInputModeManager.current
     // Global key/motion bootstrap path for cases where Compose focus was lost by touch mode.
     // This runs at the app event bus layer, independent of current Compose focus target.
     // Helper functions defined in composable scope to capture latest state on each recomposition.
