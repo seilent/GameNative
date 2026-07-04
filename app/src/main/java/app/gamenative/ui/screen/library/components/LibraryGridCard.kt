@@ -39,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.scale
@@ -72,12 +71,9 @@ import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ListItemImage
 import app.gamenative.utils.CustomGameScanner
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.coil.CoilImage
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 private val gridImageUrlCache = ConcurrentHashMap<String, GridImageUrls>()
@@ -113,7 +109,6 @@ internal fun GridViewCard(
     val overlayAlphaAnim = remember { Animatable(0f) }
     LaunchedEffect(isFocused) {
         if (isFocused) {
-            delay(600L)
             overlayAlphaAnim.animateTo(1f, Motion.Fade)
         } else {
             overlayAlphaAnim.animateTo(0f, tween(150))
@@ -206,13 +201,6 @@ internal fun GridViewCard(
                     imageRefreshCounter,
                 ) {
                     mutableStateOf(imageUrls.primary)
-                }
-
-                if (isCapsule && currentImageUrl.isNotEmpty()) {
-                    CapsuleFallbackBackdrop(
-                        imageUrl = currentImageUrl,
-                        modifier = Modifier.fillMaxSize(),
-                    )
                 }
 
                 val gridHeroZoom = if (!isCapsule && appInfo.gridHeroImageScale != 1f) {
@@ -344,37 +332,6 @@ internal fun GridViewCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun CapsuleFallbackBackdrop(
-    imageUrl: String,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = modifier) {
-        CoilImage(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    scaleX = 1.08f
-                    scaleY = 1.08f
-                }
-                .blur(14.dp),
-            imageModel = { imageUrl },
-            imageOptions = ImageOptions(
-                contentScale = ContentScale.Crop,
-                contentDescription = null,
-            ),
-            loading = {},
-            failure = {},
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.34f)),
-        )
     }
 }
 
