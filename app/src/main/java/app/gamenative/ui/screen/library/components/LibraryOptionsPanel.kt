@@ -58,12 +58,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,6 +79,7 @@ import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.OptionListItem
 import app.gamenative.ui.component.OptionRadioItem
 import app.gamenative.ui.component.OptionSectionHeader
+import app.gamenative.ui.controller.acquireControllerFocus
 import app.gamenative.ui.enums.AppFilter
 import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.enums.SortOption
@@ -87,6 +91,7 @@ import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.adaptivePanelWidth
 import java.util.EnumSet
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun LibraryOptionsPanel(
     isOpen: Boolean,
@@ -102,6 +107,7 @@ fun LibraryOptionsPanel(
     modifier: Modifier = Modifier,
 ) {
     val firstItemFocusRequester = remember { FocusRequester() }
+    val inputModeManager = LocalInputModeManager.current
 
     BackHandler(enabled = isOpen) {
         onDismiss()
@@ -141,7 +147,9 @@ fun LibraryOptionsPanel(
                 modifier = Modifier
                     .width(adaptivePanelWidth(300.dp))
                     .fillMaxHeight()
-                    .clip(panelShape),
+                    .clip(panelShape)
+                    .focusProperties { exit = { FocusRequester.Cancel } }
+                    .focusGroup(),
             ) {
                 val backdrop = LocalGameBackdrop.current
                 if (backdrop.isNotBlank()) {
@@ -366,11 +374,7 @@ fun LibraryOptionsPanel(
 
     LaunchedEffect(isOpen) {
         if (isOpen) {
-            try {
-                firstItemFocusRequester.requestFocus()
-            } catch (_: Exception) {
-                // Focus request may fail if composition is not ready
-            }
+            acquireControllerFocus(inputModeManager, firstItemFocusRequester)
         }
     }
 }

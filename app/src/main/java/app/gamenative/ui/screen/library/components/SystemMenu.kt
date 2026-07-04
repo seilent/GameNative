@@ -60,15 +60,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -83,6 +86,7 @@ import app.gamenative.service.SteamService
 import app.gamenative.ui.component.BlurredBackdrop
 import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.component.dialog.SupportersDialog
+import app.gamenative.ui.controller.acquireControllerFocus
 import app.gamenative.ui.screen.PluviaScreen
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.GlassFillStrong
@@ -93,7 +97,6 @@ import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.SteamIconImage
 import app.gamenative.ui.util.adaptivePanelWidth
-import app.gamenative.ui.util.shouldShowGamepadUI
 import app.gamenative.utils.getAvatarURL
 import `in`.dragonbra.javasteam.enums.EPersonaState
 import kotlinx.coroutines.launch
@@ -239,6 +242,7 @@ private fun StatusOption(
  * Full-screen System Menu
  * Opens with START button, shows profile and system settings
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SystemMenu(
     isOpen: Boolean,
@@ -263,6 +267,7 @@ fun SystemMenu(
     val uriHandler = LocalUriHandler.current
     val firstItemFocusRequester = remember { FocusRequester() }
     val profileFocusRequester = remember { FocusRequester() }
+    val inputModeManager = LocalInputModeManager.current
 
     var persona by remember { mutableStateOf<SteamFriend?>(null) }
     var selectedStatus by remember(persona) { mutableStateOf(persona?.state ?: EPersonaState.Online) }
@@ -356,7 +361,9 @@ fun SystemMenu(
                 modifier = Modifier
                     .width(adaptivePanelWidth(380.dp))
                     .fillMaxHeight()
-                    .clip(panelShape),
+                    .clip(panelShape)
+                    .focusProperties { exit = { FocusRequester.Cancel } }
+                    .focusGroup(),
             ) {
                 val backdrop = LocalGameBackdrop.current
                 if (backdrop.isNotBlank()) {
@@ -730,22 +737,6 @@ fun SystemMenu(
                             isDestructive = amazonLoggedIn,
                         )
                     }
-
-                    // Gamepad hint at bottom (only on expanded screens)
-                    if (shouldShowGamepadUI()) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.press_b_to_close),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = PluviaTheme.colors.textMuted.copy(alpha = 0.6f),
-                            )
-                        }
-                    }
                 }
             }
             }
@@ -755,11 +746,7 @@ fun SystemMenu(
     // Request focus on first item when menu opens
     LaunchedEffect(isOpen) {
         if (isOpen) {
-            try {
-                firstItemFocusRequester.requestFocus()
-            } catch (_: Exception) {
-                // TODO: Focus request may fail if composition is not ready
-            }
+            acquireControllerFocus(inputModeManager, firstItemFocusRequester)
         }
     }
 }

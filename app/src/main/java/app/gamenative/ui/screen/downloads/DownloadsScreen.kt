@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -96,8 +97,8 @@ import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import app.gamenative.ui.controller.acquireControllerFocus
 
 private enum class DownloadsSection(
     val titleResId: Int,
@@ -328,6 +329,7 @@ private fun DownloadsSidebar(
     val focusRequesters = remember {
         sections.associateWith { FocusRequester() }
     }
+    val inputModeManager = LocalInputModeManager.current
     var requestedInitialFocus by remember { mutableStateOf(false) }
 
     GlassSurface(
@@ -356,15 +358,8 @@ private fun DownloadsSidebar(
 
     LaunchedEffect(selectedSection, requestedInitialFocus) {
         if (requestedInitialFocus) return@LaunchedEffect
-        val focusRequester = focusRequesters.getValue(selectedSection)
-        repeat(3) {
-            try {
-                focusRequester.requestFocus()
-                requestedInitialFocus = true
-                return@LaunchedEffect
-            } catch (_: Exception) {
-                delay(80)
-            }
+        if (acquireControllerFocus(inputModeManager, focusRequesters.getValue(selectedSection))) {
+            requestedInitialFocus = true
         }
     }
 }
