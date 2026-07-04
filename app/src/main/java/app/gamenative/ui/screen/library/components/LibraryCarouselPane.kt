@@ -2,21 +2,30 @@ package app.gamenative.ui.screen.library.components
 
 import android.view.KeyEvent
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -27,163 +36,117 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.gamenative.R
+import app.gamenative.data.GameCompatibilityStatus
+import app.gamenative.data.LibraryItem
+import app.gamenative.ui.component.CompatibilityBadge
+import app.gamenative.ui.component.GameStatsRow
 import app.gamenative.ui.component.GlassSurface
-import app.gamenative.ui.controller.requestFocusWhenReady
-import app.gamenative.ui.data.LibraryState
+import app.gamenative.ui.data.GameCardStats
 import app.gamenative.ui.data.LibraryDecorations
+import app.gamenative.ui.data.LibraryState
 import app.gamenative.ui.data.statsFor
 import app.gamenative.ui.enums.PaneType
+import app.gamenative.ui.theme.GlassBorder
+import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
-import app.gamenative.ui.util.AdaptivePadding
-import app.gamenative.ui.util.shouldShowGamepadUI
+import app.gamenative.ui.util.ListItemImage
+import app.gamenative.utils.StorageUtils
 import kotlin.math.abs
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-private const val CAROUSEL_TILT_ANGLE = 30.061367f
-private const val CAROUSEL_SPACING_RATIO = -0.11f
-private const val CAROUSEL_CAMERA_DISTANCE_DP = 6f
-private const val CAROUSEL_SIDE_OFFSET_RATIO = 0.028464798f
-private const val CAROUSEL_STEP_OFFSET_RATIO = 0.08f
-private const val CAROUSEL_ITEM_OVERSCAN_RATIO = 0.4f
-private const val CAROUSEL_CARD_ASPECT_RATIO = 2f / 3f
-private const val CAROUSEL_CARD_SIZE_MULTIPLIER = 1.22f
-private const val CAROUSEL_CARD_VERTICAL_OVERFLOW = 32f
-private const val CAROUSEL_BADGE_RESERVED_HEIGHT = 0f
-private const val CAROUSEL_MOUSE_WHEEL_SCROLL_MULTIPLIER = 72f
-private const val CAROUSEL_MOUSE_DRAG_SLOP_PX = 8f
+private const val CARD_ASPECT = 2f / 3f
+private const val CARD_HEIGHT_FRACTION = 0.66f
+private const val MAX_CARD_WIDTH_FRACTION = 0.34f
+private const val MAX_ROTATION_Y = 20f
+private const val MIN_SCALE = 0.82f
+private const val MIN_ALPHA = 0.55f
+private const val CAMERA_DISTANCE_FACTOR = 12f
+private const val MOUSE_WHEEL_MULTIPLIER = 80f
+private const val MOUSE_DRAG_SLOP = 8f
 
-
-private fun Modifier.carouselMouseInput(listState: LazyListState): Modifier =
+private fun Modifier.carouselMouseScroll(listState: LazyListState): Modifier =
     pointerInput(listState) {
         coroutineScope {
             awaitPointerEventScope {
                 var isDragging = false
                 var lastDragX = 0f
-                var pressedStartX: Float? = null
+                var pressStartX: Float? = null
                 while (true) {
                     val event = awaitPointerEvent()
-                    val mouseChange = event.changes.firstOrNull { it.type == PointerType.Mouse }
+                    val mouse = event.changes.firstOrNull { it.type == PointerType.Mouse }
                     when (event.type) {
                         PointerEventType.Scroll -> {
-                            val scrollDelta = mouseChange?.scrollDelta
-                            if (scrollDelta != null) {
-                                val dominantDelta =
-                                    if (abs(scrollDelta.x) > abs(scrollDelta.y)) scrollDelta.x else scrollDelta.y
-                                if (dominantDelta != 0f) {
-                                    launch {
-                                        listState.scrollBy(
-                                            dominantDelta * CAROUSEL_MOUSE_WHEEL_SCROLL_MULTIPLIER,
-                                        )
-                                    }
-                                }
+                            val delta = mouse?.scrollDelta ?: continue
+                            val dominant = if (abs(delta.x) > abs(delta.y)) delta.x else delta.y
+                            if (dominant != 0f) {
+                                launch { listState.scrollBy(dominant * MOUSE_WHEEL_MULTIPLIER) }
                             }
                         }
-
                         PointerEventType.Press -> {
-                            if (mouseChange?.pressed == true) {
-                                pressedStartX = mouseChange.position.x
+                            if (mouse?.pressed == true) {
+                                pressStartX = mouse.position.x
                                 isDragging = false
                             }
                         }
-
                         PointerEventType.Move -> {
-                            if (mouseChange != null) {
-                                val currentX = mouseChange.position.x
+                            if (mouse != null) {
+                                val x = mouse.position.x
                                 if (isDragging) {
-                                    val delta = currentX - lastDragX
-                                    lastDragX = currentX
-                                    if (delta != 0f) {
-                                        listState.dispatchRawDelta(-delta)
-                                    }
+                                    val d = x - lastDragX
+                                    lastDragX = x
+                                    if (d != 0f) listState.dispatchRawDelta(-d)
                                 } else {
-                                    val startX = pressedStartX
-                                    if (startX != null && abs(currentX - startX) > CAROUSEL_MOUSE_DRAG_SLOP_PX) {
+                                    val start = pressStartX
+                                    if (start != null && abs(x - start) > MOUSE_DRAG_SLOP) {
                                         isDragging = true
-                                        lastDragX = currentX
+                                        lastDragX = x
                                     }
                                 }
                             }
                         }
-
                         PointerEventType.Release, PointerEventType.Exit -> {
                             isDragging = false
-                            pressedStartX = null
+                            pressStartX = null
                         }
-
                         else -> Unit
                     }
                 }
             }
         }
     }
-
-private fun interpolateByDistance(
-    distanceInSteps: Float,
-    centerValue: Float,
-    firstStepValue: Float,
-    secondStepValue: Float,
-    farValue: Float,
-): Float {
-    val clampedDistance = distanceInSteps.coerceAtLeast(0f)
-    return when {
-        clampedDistance <= 1f -> {
-            centerValue + (firstStepValue - centerValue) * clampedDistance
-        }
-
-        clampedDistance <= 2f -> {
-            firstStepValue + (secondStepValue - firstStepValue) * (clampedDistance - 1f)
-        }
-
-        else -> {
-            val farProgress = (clampedDistance - 2f).coerceIn(0f, 1f)
-            secondStepValue + (farValue - secondStepValue) * farProgress
-        }
-    }
-}
-
-@Composable
-private fun CarouselEmptyState(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        GlassSurface(
-            modifier = Modifier.padding(horizontal = 24.dp),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Text(
-                modifier = Modifier.padding(24.dp),
-                text = stringResource(R.string.library_no_items),
-                color = PluviaTheme.colors.textMuted,
-            )
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -201,76 +164,68 @@ internal fun LibraryCarouselPane(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val pullToRefreshState = rememberPullToRefreshState()
-    val scope = rememberCoroutineScope()
     val density = LocalDensity.current
 
-    val configuration = LocalConfiguration.current
-    val horizontalPadding = AdaptivePadding.horizontal()
-    val showGamepadHints = shouldShowGamepadUI()
-    val topOverlayClearance = if (state.isSearching) 116.dp else 104.dp
-    val bottomOverlayClearance = if (showGamepadHints) 156.dp else 32.dp
-    val baseCardWidth = when (configuration.screenWidthDp) {
-        in 0..700 -> 200.dp
-        in 701..1100 -> 240.dp
-        else -> 270.dp
-    }
-    val baseCardHeight = baseCardWidth / CAROUSEL_CARD_ASPECT_RATIO
-    val cardVerticalOverflow = CAROUSEL_CARD_VERTICAL_OVERFLOW.dp
-    val badgeReservedHeight = CAROUSEL_BADGE_RESERVED_HEIGHT.dp
-    val cardTopOverflow = cardVerticalOverflow
-    val cardBottomOverflow = cardVerticalOverflow + badgeReservedHeight
-    val availableCarouselHeight =
-        (configuration.screenHeightDp.dp - topOverlayClearance - bottomOverlayClearance)
-            .coerceAtLeast(220.dp)
-    val maxCardHeight =
-        (availableCarouselHeight - cardTopOverflow - cardBottomOverflow)
-            .coerceAtLeast(180.dp)
-    val cardHeight = minOf(baseCardHeight, maxCardHeight * CAROUSEL_CARD_SIZE_MULTIPLIER)
-    val cardWidth = cardHeight * CAROUSEL_CARD_ASPECT_RATIO
-    val itemContainerHeight = cardHeight + cardTopOverflow + cardBottomOverflow
-    val cardWidthPx = with(density) { cardWidth.toPx() }
-    // Keep lazy items composed slightly beyond the viewport because rotation/translation can leave
-    // transformed pixels visible after the raw item slot has technically moved offscreen.
-    val cardHorizontalOverscan = cardWidth * CAROUSEL_ITEM_OVERSCAN_RATIO
-    val carouselItemSlotWidth = cardWidth + (cardHorizontalOverscan * 2)
-    val centeredHorizontalPadding = ((configuration.screenWidthDp.dp - cardWidth) / 2).coerceAtLeast(horizontalPadding)
-    val centeredSlotHorizontalPadding =
-        ((configuration.screenWidthDp.dp - carouselItemSlotWidth) / 2)
-            .coerceAtLeast((horizontalPadding - cardHorizontalOverscan).coerceAtLeast(0.dp))
-    val overlapSpacing = cardWidth * CAROUSEL_SPACING_RATIO
-    val carouselItemSpacing = overlapSpacing - (cardHorizontalOverscan * 2)
-    val carouselItemSlotWidthPx = with(density) { carouselItemSlotWidth.toPx() }
-    val carouselItemSpacingPx = with(density) { carouselItemSpacing.toPx() }
-    val firstTileOffsetPx = cardWidthPx * 0.08f
-    val cameraDistancePx = with(density) { CAROUSEL_CAMERA_DISTANCE_DP.dp.toPx() }
+    var navTarget by remember { mutableIntStateOf(focusTargetListIndex ?: 0) }
+    var syncingFromScroll by remember { mutableStateOf(false) }
+    var didInitialScroll by remember { mutableStateOf(false) }
 
     val centeredIndex by remember {
         derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2f
-            layoutInfo.visibleItemsInfo.minByOrNull { itemInfo ->
-                abs(itemInfo.offset + itemInfo.size / 2f - viewportCenter)
-            }?.index ?: -1
+            val info = listState.layoutInfo
+            if (info.visibleItemsInfo.isEmpty()) {
+                navTarget
+            } else {
+                val center = (info.viewportStartOffset + info.viewportEndOffset) / 2f
+                info.visibleItemsInfo.minByOrNull { abs(it.offset + it.size / 2f - center) }?.index ?: navTarget
+            }
         }
     }
 
-    fun currentTargetIndex(): Int {
-        val lastIndex = state.appInfoList.lastIndex
-        if (lastIndex < 0) return 0
-        val preferredIndex = focusTargetListIndex ?: centeredIndex.takeIf { it >= 0 } ?: listState.firstVisibleItemIndex
-        return preferredIndex.coerceIn(0, lastIndex)
+    LaunchedEffect(focusTargetListIndex) {
+        if (focusTargetListIndex != null && focusTargetListIndex in state.appInfoList.indices && focusTargetListIndex != navTarget) {
+            syncingFromScroll = false
+            navTarget = focusTargetListIndex
+        }
     }
 
-    fun navigateCarousel(delta: Int) {
-        if (state.appInfoList.isEmpty()) return
+    LaunchedEffect(navTarget) {
+        if (syncingFromScroll) { syncingFromScroll = false; return@LaunchedEffect }
+        if (state.appInfoList.isNotEmpty() && navTarget in state.appInfoList.indices) {
+            if (didInitialScroll) {
+                listState.animateScrollToItem(navTarget)
+            } else {
+                didInitialScroll = true
+                listState.scrollToItem(navTarget)
+            }
+        }
+    }
 
-        val targetIndex = (currentTargetIndex() + delta).coerceIn(0, state.appInfoList.lastIndex)
-        if (targetIndex == currentTargetIndex()) return
+    LaunchedEffect(listState) {
+        var wasScrolling = false
+        snapshotFlow { listState.isScrollInProgress }.distinctUntilChanged().collect { scrolling ->
+            if (scrolling) {
+                wasScrolling = true
+            } else if (wasScrolling) {
+                wasScrolling = false
+                if (centeredIndex != navTarget) {
+                    syncingFromScroll = true
+                    navTarget = centeredIndex
+                }
+            }
+        }
+    }
 
-        scope.launch {
-            onFocusedIndexChanged(targetIndex)
-            launch { listState.animateScrollToItem(targetIndex) }
-            firstCarouselItemFocusRequester?.requestFocusWhenReady()
+    LaunchedEffect(centeredIndex, didInitialScroll) {
+        if (didInitialScroll && listState.layoutInfo.visibleItemsInfo.isNotEmpty()) {
+            onFocusedIndexChanged(centeredIndex)
+        }
+    }
+
+    LaunchedEffect(state.appInfoList.isNotEmpty(), firstCarouselItemFocusRequester) {
+        if (firstCarouselItemFocusRequester != null && state.appInfoList.isNotEmpty()) {
+            kotlinx.coroutines.delay(120)
+            runCatching { firstCarouselItemFocusRequester.requestFocus() }
         }
     }
 
@@ -278,8 +233,8 @@ internal fun LibraryCarouselPane(
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
             .filterNotNull()
             .distinctUntilChanged()
-            .collect { lastVisibleIndex ->
-                if (lastVisibleIndex >= state.appInfoList.lastIndex &&
+            .collect { lastVisible ->
+                if (lastVisible >= state.appInfoList.lastIndex &&
                     state.appInfoList.size < state.totalAppsInFilter
                 ) {
                     onPageChange(1)
@@ -289,7 +244,7 @@ internal fun LibraryCarouselPane(
 
     Scaffold(
         modifier = modifier,
-        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
         PullToRefreshBox(
@@ -300,180 +255,86 @@ internal fun LibraryCarouselPane(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .onPreviewKeyEvent { keyEvent ->
-                    if (keyEvent.nativeKeyEvent.action != KeyEvent.ACTION_DOWN) {
-                        false
-                    } else {
-                        when (keyEvent.nativeKeyEvent.keyCode) {
-                            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                                navigateCarousel(-1)
-                                true
-                            }
-
-                            KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                                navigateCarousel(1)
-                                true
-                            }
-
-                            else -> false
+                    if (keyEvent.nativeKeyEvent.action != KeyEvent.ACTION_DOWN) return@onPreviewKeyEvent false
+                    when (keyEvent.nativeKeyEvent.keyCode) {
+                        KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_SYSTEM_NAVIGATION_LEFT -> {
+                            syncingFromScroll = false
+                            navTarget = (navTarget - 1).coerceAtLeast(0)
+                            true
                         }
+                        KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_SYSTEM_NAVIGATION_RIGHT -> {
+                            syncingFromScroll = false
+                            navTarget = (navTarget + 1).coerceAtMost(state.appInfoList.lastIndex.coerceAtLeast(0))
+                            true
+                        }
+                        KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
+                            if (centeredIndex in state.appInfoList.indices) {
+                                onNavigate(state.appInfoList[centeredIndex].appId)
+                            }
+                            true
+                        }
+                        else -> false
                     }
-                },
+                }
+                .then(
+                    if (firstCarouselItemFocusRequester != null)
+                        Modifier.focusRequester(firstCarouselItemFocusRequester).focusable()
+                    else Modifier
+                ),
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (state.appInfoList.isNotEmpty()) {
+            if (state.appInfoList.isEmpty()) {
+                CarouselEmpty(isLoading = state.isLoading)
+            } else {
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val viewportWidth = maxWidth
+                    val cardWidth = ((maxHeight * CARD_HEIGHT_FRACTION) * CARD_ASPECT)
+                        .coerceAtMost(viewportWidth * MAX_CARD_WIDTH_FRACTION)
+                    val cardHeight = cardWidth / CARD_ASPECT
+                    val sidePadding = (viewportWidth - cardWidth) / 2
+                    val cameraDistPx = with(density) { CAMERA_DISTANCE_FACTOR.dp.toPx() }
+
                     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
                     LazyRow(
                         state = listState,
                         modifier = Modifier
                             .fillMaxSize()
-                            .carouselMouseInput(listState),
+                            .carouselMouseScroll(listState),
                         flingBehavior = flingBehavior,
-                        horizontalArrangement = Arrangement.spacedBy(carouselItemSpacing),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        contentPadding = PaddingValues(
-                            start = centeredSlotHorizontalPadding,
-                            end = centeredSlotHorizontalPadding,
-                            top = topOverlayClearance,
-                            bottom = bottomOverlayClearance,
-                        ),
+                        contentPadding = PaddingValues(horizontal = sidePadding),
                     ) {
                         items(
                             count = state.appInfoList.size,
-                            key = { listIndex -> state.appInfoList[listIndex].appId },
-                        ) { listIndex ->
-                            val item = state.appInfoList[listIndex]
+                            key = { state.appInfoList[it].appId },
+                        ) { index ->
+                            val item = state.appInfoList[index]
 
-                            val relativeToCenter = if (centeredIndex >= 0) listIndex - centeredIndex else 0
-                            val stepsFromCenter = abs(relativeToCenter)
-                            val zOrder = if (stepsFromCenter == 0) 20f else (10f - stepsFromCenter).coerceAtLeast(0f)
-
-                            var isVisible by remember(item.appId) { mutableStateOf(false) }
-
-                            LaunchedEffect(item.appId) {
-                                isVisible = true
-                            }
-
-                            val appItemAlpha = if (isVisible) 1f else 0f
-                            val appItemModifier = Modifier
-                                .fillMaxSize()
-                                .then(
-                                    if (firstCarouselItemFocusRequester != null &&
-                                        focusTargetListIndex != null &&
-                                        listIndex == focusTargetListIndex
-                                    ) {
-                                        Modifier.focusRequester(firstCarouselItemFocusRequester)
-                                    } else {
-                                        Modifier
-                                    }
-                                )
-
-                            Box(
-                                modifier = Modifier
-                                    .zIndex(zOrder)
-                                    .width(carouselItemSlotWidth)
-                                    .height(itemContainerHeight),
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.TopCenter)
-                                        .padding(top = cardTopOverflow)
-                                        .width(cardWidth)
-                                        .height(cardHeight + badgeReservedHeight)
-                                        .graphicsLayer {
-                                            val layoutInfo = listState.layoutInfo
-                                            val vc = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2f
-                                            val span = (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset)
-                                                .toFloat().coerceAtLeast(1f)
-                                            val vi = layoutInfo.visibleItemsInfo.firstOrNull { it.index == listIndex }
-                                            val ic = if (vi != null) vi.offset + vi.size / 2f else vc
-
-                                            val distanceFromCenter = ic - vc
-                                            val normalizedDistance = (distanceFromCenter / span).coerceIn(-1f, 1f)
-                                            val itemStepDistancePx = (carouselItemSlotWidthPx + carouselItemSpacingPx).coerceAtLeast(1f)
-                                            val distanceInSteps = abs(distanceFromCenter) / itemStepDistancePx
-
-                                            val direction = when {
-                                                relativeToCenter < 0 -> 1f
-                                                relativeToCenter > 0 -> -1f
-                                                normalizedDistance < -0.03f -> 1f
-                                                normalizedDistance > 0.03f -> -1f
-                                                else -> 0f
-                                            }
-
-                                            val tiltMultiplier = when {
-                                                distanceInSteps <= 1f -> distanceInSteps
-                                                distanceInSteps <= 2f -> 1f + (distanceInSteps - 1f) * 0.2f
-                                                else -> 1.2f + (distanceInSteps - 2f) * 0.15f
-                                            }.coerceAtMost(79f)
-                                            val tiltAngle = (CAROUSEL_TILT_ANGLE * tiltMultiplier).coerceAtMost(79f)
-
-                                            val scale = interpolateByDistance(
-                                                distanceInSteps = distanceInSteps,
-                                                centerValue = 1.04f,
-                                                firstStepValue = 0.91f,
-                                                secondStepValue = 0.86f,
-                                                farValue = 0.8f,
-                                            )
-
-                                            val computedRotationY = direction * tiltAngle
-                                            val computedTranslationX = if (direction == 0f) {
-                                                0f
-                                            } else {
-                                                val tiltInfluence = if (CAROUSEL_TILT_ANGLE > 0.1f) tiltAngle / CAROUSEL_TILT_ANGLE else 1f
-                                                val baseOffsetRatio = CAROUSEL_SIDE_OFFSET_RATIO + (distanceInSteps * CAROUSEL_STEP_OFFSET_RATIO)
-                                                val baseShift = direction * cardWidthPx * baseOffsetRatio * tiltInfluence
-                                                val edgeOffset = if (listIndex == 0 && layoutInfo.visibleItemsInfo.firstOrNull()?.index == 0) {
-                                                    firstTileOffsetPx
-                                                } else {
-                                                    0f
-                                                }
-                                                baseShift + edgeOffset
-                                            }
-
-                                            scaleX = scale
-                                            scaleY = scale
-                                            this.alpha = appItemAlpha
-                                            this.rotationY = computedRotationY
-                                            this.translationX = computedTranslationX
-                                            cameraDistance = cameraDistancePx
-                                            clip = false
-                                        },
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.TopCenter)
-                                            .width(cardWidth)
-                                            .height(cardHeight),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        AppItem(
-                                            modifier = appItemModifier,
-                                            appInfo = item,
-                                            onClick = {
-                                                onFocusedIndexChanged(listIndex)
-                                                onNavigate(item.appId)
-                                            },
-                                            onFocus = {
-                                                onFocusedIndexChanged(listIndex)
-                                            },
-                                            paneType = PaneType.GRID_CAPSULE,
-                                            imageRefreshCounter = state.imageRefreshCounter,
-                                            compatibilityStatus = decorations.compatibilityMap[item.name],
-                                            gameStats = decorations.statsFor(item),
-                                            showFocusGlow = false,
-                                            enableFocusScale = false,
-                                        )
-                                    }
-                                }
-                            }
+                            CarouselCard(
+                                item = item,
+                                index = index,
+                                listState = listState,
+                                cardWidth = cardWidth,
+                                cardHeight = cardHeight,
+                                cameraDistPx = cameraDistPx,
+                                isSelected = index == centeredIndex,
+                                imageRefreshCounter = state.imageRefreshCounter,
+                                decorations = decorations,
+                                onClick = {
+                                    syncingFromScroll = false
+                                    navTarget = index
+                                    onNavigate(item.appId)
+                                },
+                            )
                         }
 
                         if (state.appInfoList.size < state.totalAppsInFilter) {
                             item {
                                 Box(
                                     modifier = Modifier
-                                        .width(carouselItemSlotWidth)
+                                        .width(cardWidth)
+                                        .height(cardHeight)
                                         .padding(16.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
@@ -482,10 +343,193 @@ internal fun LibraryCarouselPane(
                             }
                         }
                     }
-                } else if (state.isLoading) {
-                } else {
-                    CarouselEmptyState()
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CarouselCard(
+    item: LibraryItem,
+    index: Int,
+    listState: LazyListState,
+    cardWidth: Dp,
+    cardHeight: Dp,
+    cameraDistPx: Float,
+    isSelected: Boolean,
+    imageRefreshCounter: Long,
+    decorations: LibraryDecorations,
+    onClick: () -> Unit,
+) {
+    val context = LocalContext.current
+    val accent = LocalGameAccent.current
+    val shape = RoundedCornerShape(14.dp)
+
+    Box(
+        modifier = Modifier
+            .width(cardWidth)
+            .height(cardHeight)
+            .zIndex(if (isSelected) 10f else 0f)
+            .graphicsLayer {
+                val info = listState.layoutInfo
+                val viewportCenter = (info.viewportStartOffset + info.viewportEndOffset) / 2f
+                val itemInfo = info.visibleItemsInfo.firstOrNull { it.index == index }
+                val itemCenter = if (itemInfo != null) {
+                    itemInfo.offset + itemInfo.size / 2f
+                } else {
+                    viewportCenter
+                }
+                val distFromCenter = itemCenter - viewportCenter
+                val halfViewport = ((info.viewportEndOffset - info.viewportStartOffset) / 2f).coerceAtLeast(1f)
+                val normalized = (distFromCenter / halfViewport).coerceIn(-1.5f, 1.5f)
+                val absNorm = abs(normalized)
+
+                val s = 1f - (1f - MIN_SCALE) * absNorm.coerceAtMost(1f)
+                scaleX = s
+                scaleY = s
+                alpha = 1f - (1f - MIN_ALPHA) * absNorm.coerceAtMost(1f)
+                rotationY = -normalized * MAX_ROTATION_Y
+                cameraDistance = cameraDistPx
+            }
+            .clip(shape)
+            .border(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = if (isSelected) accent.copy(alpha = 0.7f) else GlassBorder,
+                shape = shape,
+            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick,
+            ),
+    ) {
+        val cacheKey = remember(item.appId, imageRefreshCounter) {
+            "${item.appId}:${PaneType.GRID_CAPSULE}:${imageRefreshCounter}"
+        }
+        var imageUrl by remember(cacheKey) { mutableStateOf("") }
+        var imageFailed by remember(cacheKey) { mutableStateOf(false) }
+
+        LaunchedEffect(cacheKey) {
+            val urls = withContext(Dispatchers.IO) {
+                getGridImageUrl(context, item, PaneType.GRID_CAPSULE)
+            }
+            imageUrl = urls.primary
+        }
+
+        if (imageUrl.isNotEmpty() && !imageFailed) {
+            ListItemImage(
+                modifier = Modifier.fillMaxSize(),
+                imageModifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                size = null,
+                image = { imageUrl },
+                onFailure = { imageFailed = true },
+                loading = {},
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(GlassFill),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (imageFailed) {
+                    Text(
+                        text = item.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = PluviaTheme.colors.textMuted,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
+            }
+        }
+
+        if (isSelected) {
+            val compat = decorations.compatibilityMap[item.name]
+            val stats = decorations.statsFor(item)
+            CarouselInfoStrip(
+                item = item,
+                compatibilityStatus = compat,
+                stats = stats,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun CarouselInfoStrip(
+    item: LibraryItem,
+    compatibilityStatus: GameCompatibilityStatus?,
+    stats: GameCardStats?,
+    modifier: Modifier = Modifier,
+) {
+    val accent = LocalGameAccent.current
+    GlassSurface(
+        modifier = modifier,
+        shape = RoundedCornerShape(bottomStart = 14.dp, bottomEnd = 14.dp),
+        sheen = false,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = item.name,
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                GameSourceIcon(gameSource = item.gameSource, iconSize = 12, alignmentBoxSize = 16)
+                if (compatibilityStatus != null) {
+                    CompatibilityBadge(status = compatibilityStatus, size = 16.dp)
+                }
+                if (item.isInstalled && item.sizeBytes > 0) {
+                    Text(
+                        text = StorageUtils.formatBinarySize(item.sizeBytes),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = PluviaTheme.colors.textMuted,
+                        maxLines = 1,
+                    )
+                }
+            }
+            if (stats != null) {
+                GameStatsRow(stats = stats, tint = accent, onDark = true)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CarouselEmpty(isLoading: Boolean) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(color = LocalGameAccent.current)
+        } else {
+            GlassSurface(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                Text(
+                    modifier = Modifier.padding(24.dp),
+                    text = stringResource(R.string.library_no_items),
+                    color = PluviaTheme.colors.textMuted,
+                )
             }
         }
     }

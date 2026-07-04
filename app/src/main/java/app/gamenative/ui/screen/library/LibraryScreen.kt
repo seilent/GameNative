@@ -329,7 +329,7 @@ private fun LibraryScreenContent(
     val gridFirstItemFocusRequester = remember { FocusRequester() }
     val carouselFocusRequester = remember { FocusRequester() }
     var gridFocusTargetListIndex by remember { mutableIntStateOf(0) }
-    var carouselFocusTargetListIndex by remember { mutableIntStateOf(0) }
+    var carouselFocusTargetListIndex by remember { mutableIntStateOf(1) }
     var lastTouchOffset by remember { mutableStateOf<Offset?>(null) }
 
     var isSystemMenuOpen by remember { mutableStateOf(false) }
@@ -556,7 +556,8 @@ private fun LibraryScreenContent(
             requestRootFocusSafe()
         } else {
             // Tab has content - focus the first content item/container
-            requestContentFocusOrDefer(targetListIndex = 0)
+            val defaultContentIndex = if (currentPaneType == PaneType.CAROUSEL && state.appInfoList.size >= 2) 1 else 0
+            requestContentFocusOrDefer(targetListIndex = defaultContentIndex)
         }
     }
 
