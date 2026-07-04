@@ -63,6 +63,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -75,6 +76,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -83,6 +85,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.gamenative.PrefManager
 import app.gamenative.R
+import app.gamenative.ui.controller.ControllerButton
+import app.gamenative.ui.controller.acquireControllerFocus
+import app.gamenative.ui.controller.onControllerButton
+import app.gamenative.ui.controller.requestFocusWhenReady
 import app.gamenative.ui.data.PerformanceHudConfig
 import app.gamenative.ui.data.PerformanceHudSize
 import app.gamenative.ui.theme.GlassBorder
@@ -96,8 +102,8 @@ import com.winlator.renderer.ASurfaceRenderer
 import com.winlator.renderer.GLRenderer
 import com.winlator.renderer.VulkanRenderer
 import com.winlator.winhandler.ProcessInfo
-import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 object QuickMenuAction {
     const val KEYBOARD = 1
@@ -342,6 +348,21 @@ fun QuickMenu(
     val effectsItemFocusRequester = remember { FocusRequester() }
     val controllerItemFocusRequester = remember { FocusRequester() }
     val toolsItemFocusRequester = remember { FocusRequester() }
+    val inputModeManager = LocalInputModeManager.current
+    val scope = rememberCoroutineScope()
+    val effectsAvailable = renderer != null || glRenderer != null || asurfaceRenderer != null
+    val quickMenuTabOrder = buildList {
+        add(QuickMenuTab.HUD to hudTabFocusRequester)
+        if (effectsAvailable) add(QuickMenuTab.EFFECTS to effectsTabFocusRequester)
+        add(QuickMenuTab.CONTROLLER to controllerTabFocusRequester)
+        add(QuickMenuTab.TOOLS to toolsTabFocusRequester)
+    }
+    fun switchQuickMenuTab(delta: Int) {
+        if (quickMenuTabOrder.isEmpty()) return
+        val currentIdx = quickMenuTabOrder.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
+        val nextIdx = (currentIdx + delta + quickMenuTabOrder.size) % quickMenuTabOrder.size
+        scope.launch { quickMenuTabOrder[nextIdx].second.requestFocusWhenReady() }
+    }
 
     val visibleState = remember { MutableTransitionState(false) }
     visibleState.targetState = isVisible
@@ -356,7 +377,23 @@ fun QuickMenu(
         onDismiss()
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .onControllerButton(enabled = isVisible) { button ->
+                when (button) {
+                    ControllerButton.PrevTab -> {
+                        switchQuickMenuTab(-1)
+                        true
+                    }
+                    ControllerButton.NextTab -> {
+                        switchQuickMenuTab(1)
+                        true
+                    }
+                    else -> false
+                }
+            },
+    ) {
         AnimatedVisibility(
             visible = isVisible,
             enter = fadeIn(animationSpec = Motion.Fade),
@@ -648,19 +685,13 @@ fun QuickMenu(
 
     LaunchedEffect(isVisible) {
         if (isVisible) {
-            repeat(3) {
-                try {
-                    when (selectedTab) {
-                        QuickMenuTab.HUD -> hudItemFocusRequester.requestFocus()
-                        QuickMenuTab.EFFECTS -> effectsItemFocusRequester.requestFocus()
-                        QuickMenuTab.TOOLS -> toolsItemFocusRequester.requestFocus()
-                        else -> controllerItemFocusRequester.requestFocus()
-                    }
-                    return@LaunchedEffect
-                } catch (_: Exception) {
-                    delay(80)
-                }
+            val requester = when (selectedTab) {
+                QuickMenuTab.HUD -> hudItemFocusRequester
+                QuickMenuTab.EFFECTS -> effectsItemFocusRequester
+                QuickMenuTab.TOOLS -> toolsItemFocusRequester
+                else -> controllerItemFocusRequester
             }
+            acquireControllerFocus(inputModeManager, requester)
         }
     }
 }
