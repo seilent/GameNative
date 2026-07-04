@@ -61,7 +61,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -114,7 +113,8 @@ import app.gamenative.ui.util.PlatformLogoutCallbacks
 import app.gamenative.service.amazon.AmazonService
 import app.gamenative.service.epic.EpicService
 import app.gamenative.service.gog.GOGService
-import app.gamenative.ui.controller.requestFocusWhenReady
+import app.gamenative.ui.controller.ControllerFocusRecovery
+import app.gamenative.ui.controller.acquireControllerFocus
 import app.gamenative.utils.CustomGameScanner
 import app.gamenative.utils.PlatformOAuthHandlers
 import app.gamenative.utils.SteamUtils
@@ -414,8 +414,7 @@ private fun LibraryScreenContent(
     fun requestGridFocusOrDefer() {
         if (state.appInfoList.isEmpty()) return
         scope.launch {
-            inputModeManager.requestInputMode(InputMode.Keyboard)
-            if (gridFirstItemFocusRequester.requestFocusWhenReady()) {
+            if (acquireControllerFocus(inputModeManager, gridFirstItemFocusRequester)) {
                 lastBootstrapAtMs = SystemClock.uptimeMillis()
             }
         }
@@ -425,12 +424,11 @@ private fun LibraryScreenContent(
         if (state.appInfoList.isEmpty()) return
         carouselFocusTargetListIndex = targetListIndex.coerceIn(0, state.appInfoList.lastIndex)
         scope.launch {
-            inputModeManager.requestInputMode(InputMode.Keyboard)
             val targetIndex = carouselFocusTargetListIndex.coerceIn(0, state.appInfoList.lastIndex)
             if (carouselListState.layoutInfo.visibleItemsInfo.none { it.index == targetIndex }) {
                 carouselListState.scrollToItem(targetIndex)
             }
-            if (carouselFocusRequester.requestFocusWhenReady()) {
+            if (acquireControllerFocus(inputModeManager, carouselFocusRequester)) {
                 lastBootstrapAtMs = SystemClock.uptimeMillis()
             }
         }
@@ -734,6 +732,16 @@ private fun LibraryScreenContent(
             PluviaApp.events.off<AndroidEvent.MotionEvent, Boolean>(onGlobalMotionEvent)
         }
     }
+
+    ControllerFocusRecovery(
+        enabled = selectedAppId == null &&
+            !isSystemMenuOpen &&
+            !state.isOptionsPanelOpen &&
+            !state.isSearching &&
+            state.appInfoList.isNotEmpty(),
+        hasFocus = { rootHasFocus },
+        onRecover = { requestContentFocusOrDefer() },
+    )
 
     val focusedItem by remember(
         state.appInfoList,

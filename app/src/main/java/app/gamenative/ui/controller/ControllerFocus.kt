@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
 
 @Stable
 class ControllerFocusState(
@@ -30,6 +32,14 @@ suspend fun FocusRequester.requestFocusWhenReady(maxFrames: Int = 30): Boolean {
         if (runCatching { requestFocus() }.isSuccess) return true
     }
     return false
+}
+
+suspend fun acquireControllerFocus(
+    inputModeManager: InputModeManager,
+    requester: FocusRequester,
+): Boolean {
+    inputModeManager.requestInputMode(InputMode.Keyboard)
+    return requester.requestFocusWhenReady()
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
