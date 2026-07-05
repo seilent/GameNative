@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
@@ -44,6 +45,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -59,7 +61,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.Verified
-import androidx.compose.material3.AlertDialog
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -81,6 +83,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
@@ -97,6 +100,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
@@ -375,15 +379,18 @@ private fun InfoCard(
     focusableForNavigation: Boolean = false,
 ) {
     var isFocused by remember { mutableStateOf(false) }
+    var cardHeightPx by remember { mutableStateOf(0) }
+    val footerPx = with(LocalDensity.current) { 72.dp.toPx() }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
     val cardModifier = if (focusableForNavigation) {
         modifier
+            .onSizeChanged { cardHeightPx = it.height }
             .bringIntoViewRequester(bringIntoViewRequester)
             .onFocusChanged { state ->
                 isFocused = state.isFocused
                 if (state.isFocused) {
-                    scope.launch { bringIntoViewRequester.bringIntoView() }
+                    scope.launch { bringIntoViewRequester.bringIntoView(Rect(0f, 0f, 1f, cardHeightPx + footerPx)) }
                 }
             }
             .focusable()
@@ -776,6 +783,7 @@ internal fun AppScreenContent(
                 displayInfo = displayInfo,
                 parallaxOffset = parallaxOffset,
                 heroBlur = heroBlur,
+                scrollState = scrollState,
                 onBack = onBack,
                 isDownloading = isDownloading,
                 hasPartialDownload = hasPartialDownload,
@@ -803,6 +811,8 @@ internal fun AppScreenContent(
                 isUpdatePending = isUpdatePending,
                 onUpdateClick = onUpdateClick,
             )
+
+            Spacer(modifier = Modifier.height(72.dp).navigationBarsPadding())
         }
 
         OverlayLayer(
@@ -829,6 +839,7 @@ private fun HeroSection(
     displayInfo: GameDisplayInfo,
     parallaxOffset: Float,
     heroBlur: Dp,
+    scrollState: ScrollState,
     onBack: () -> Unit,
     isDownloading: Boolean,
     hasPartialDownload: Boolean,
@@ -848,6 +859,11 @@ private fun HeroSection(
     onOptionsClick: () -> Unit,
     onProgressBarPositioned: (Rect) -> Unit,
 ) {
+    val backButtonFocusRequester = remember { FocusRequester() }
+    val heroScope = rememberCoroutineScope()
+    val backBivReq = remember { BringIntoViewRequester() }
+    var backHeightPx by remember { mutableStateOf(0) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth(),
@@ -904,6 +920,10 @@ private fun HeroSection(
             contentDescription = stringResource(R.string.back),
             onClick = onBack,
             modifier = Modifier
+                .focusRequester(backButtonFocusRequester)
+                .onSizeChanged { backHeightPx = it.height }
+                .bringIntoViewRequester(backBivReq)
+                .onFocusChanged { if (it.isFocused) heroScope.launch { backBivReq.bringIntoView(Rect(0f, -scrollState.value.toFloat(), 1f, backHeightPx.toFloat())) } }
                 .windowInsetsPadding(
                     WindowInsets.statusBars
                         .union(WindowInsets.displayCutout)
@@ -926,6 +946,7 @@ private fun HeroSection(
             downloadSizeText = downloadSizeText,
             downloadTimeLeftText = downloadTimeLeftText,
             playButtonFocusRequester = playButtonFocusRequester,
+            backButtonFocusRequester = backButtonFocusRequester,
             onPauseResumeClick = onPauseResumeClick,
             onDownloadInstallClick = onDownloadInstallClick,
             onDeleteDownloadClick = onDeleteDownloadClick,
@@ -950,6 +971,7 @@ private fun ActionBarOverlay(
     downloadSizeText: String,
     downloadTimeLeftText: String,
     playButtonFocusRequester: FocusRequester,
+    backButtonFocusRequester: FocusRequester,
     onPauseResumeClick: () -> Unit,
     onDownloadInstallClick: () -> Unit,
     onDeleteDownloadClick: () -> Unit,
@@ -1013,6 +1035,7 @@ private fun ActionBarOverlay(
                             stringResource(R.string.resume_download)
                         },
                         onClick = onPauseResumeClick,
+                        modifier = Modifier.focusProperties { up = backButtonFocusRequester },
                         enabled = pauseResumeEnabled,
                         isInstalled = false,
                         isDownloading = isDownloading,
@@ -1030,6 +1053,7 @@ private fun ActionBarOverlay(
                     PrimaryActionButton(
                         text = text,
                         onClick = onDownloadInstallClick,
+                        modifier = Modifier.focusProperties { up = backButtonFocusRequester },
                         enabled = buttonEnabled,
                         isInstalled = isInstalled,
                         focusRequester = playButtonFocusRequester,
@@ -1378,10 +1402,9 @@ fun GameMigrationDialog(
     movedFiles: Int,
     totalFiles: Int,
 ) {
-    AlertDialog(
-        onDismissRequest = {
-            // We don't allow dismissal during move.
-        },
+    GlassAlertDialog(
+        visible = true,
+        onDismissRequest = {},
         icon = { Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null) },
         title = { Text(text = stringResource(R.string.moving_files)) },
         text = {

@@ -3,6 +3,7 @@ package app.gamenative.ui.component.dialog
 import android.content.Context
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,10 +16,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -48,9 +52,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,7 +64,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.data.DepotInfo
@@ -100,7 +105,7 @@ data class InstallSizeInfo(
     val availableBytes: Long,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun GameManagerDialog(
     visible: Boolean,
@@ -110,12 +115,19 @@ fun GameManagerDialog(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val focusScope = rememberCoroutineScope()
+    val backBivReq = remember { BringIntoViewRequester() }
+    var backHeightPx by remember { mutableStateOf(0) }
+    val installBivReq = remember { BringIntoViewRequester() }
+    var installHeightPx by remember { mutableStateOf(0) }
 
     val downloadableDepots = remember { mutableStateMapOf<Int, DepotInfo>() }
     val allDownloadableApps = remember { mutableStateListOf<Pair<Int, DepotInfo>>() }
     val selectedAppIds = remember { mutableStateMapOf<Int, Boolean>() }
     val enabledAppIds = remember { mutableStateMapOf<Int, Boolean>() }
     var selectedTarget by remember { mutableStateOf(StorageManager.defaultInstallTarget(context)) }
+    val targetAvailableBytes = remember(selectedTarget) { StorageManager.freeBytes(selectedTarget) }
+    val targetAvailableSpace = remember(selectedTarget) { StorageUtils.formatBinarySize(targetAvailableBytes) }
 
     val displayInfo = onGetDisplayInfo(context)
     val gameId = displayInfo.gameId
@@ -320,7 +332,7 @@ fun GameManagerDialog(
     }
 
     fun installButtonEnabled() : Boolean {
-        if (installSizeInfo.availableBytes < installSizeInfo.installBytes) {
+        if (targetAvailableBytes < installSizeInfo.installBytes) {
             return false
         }
 
@@ -333,15 +345,14 @@ fun GameManagerDialog(
         return selectedAppIds.filter { it.value }.isNotEmpty()
     }
 
-    when {
-        visible -> {
-            Dialog(
-                onDismissRequest = onDismissRequest,
-                properties = DialogProperties(
-                    usePlatformDefaultWidth = false,
-                    dismissOnClickOutside = false,
-                ),
-                content = {
+    GlassDialog(
+        visible = visible,
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnClickOutside = false,
+        ),
+    ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                     BlurredBackdrop(
                         imageModel = displayInfo.heroImageUrl,
@@ -400,6 +411,9 @@ fun GameManagerDialog(
                                         color = Color.White.copy(alpha = 0.1f),
                                         shape = RoundedCornerShape(8.dp)
                                     )
+                                    .onSizeChanged { backHeightPx = it.height }
+                                    .bringIntoViewRequester(backBivReq)
+                                    .onFocusChanged { if (it.hasFocus) focusScope.launch { backBivReq.bringIntoView(Rect(0f, -scrollState.value.toFloat(), 1f, backHeightPx.toFloat())) } }
                             ) {
                                 BackButton(onClick = onDismissRequest)
                             }
@@ -497,47 +511,104 @@ fun GameManagerDialog(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 12.dp)
+                                .navigationBarsPadding()
                         ) {
                             StorageTargetDropdown(
                                 selectedTarget = selectedTarget,
                                 onTargetSelected = { selectedTarget = it },
                                 modifier = Modifier.fillMaxWidth(),
                             )
-                            Row(
+                            Spacer(modifier = Modifier.height(12.dp))
+                            GlassSurface(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(14.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                    ) {
+                                        Text(
+                                            text = installSizeInfo.downloadSize,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = stringResource(R.string.install_stat_download),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = PluviaTheme.colors.textMuted,
+                                            maxLines = 1,
+                                        )
+                                    }
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                    ) {
+                                        Text(
+                                            text = installSizeInfo.installSize,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = stringResource(R.string.install_stat_on_disk),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = PluviaTheme.colors.textMuted,
+                                            maxLines = 1,
+                                        )
+                                    }
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                    ) {
+                                        Text(
+                                            text = targetAvailableSpace,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = stringResource(R.string.install_stat_available),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = PluviaTheme.colors.textMuted,
+                                            maxLines = 1,
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            AccentPill(
+                                text = stringResource(R.string.install),
+                                enabled = installButtonEnabled(),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    modifier = Modifier.weight(1f),
-                                    text = installSizeDisplay(),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.8f),
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                AccentPill(
-                                    text = stringResource(R.string.install),
-                                    enabled = installButtonEnabled(),
-                                    onClick = {
-                                        onInstall(
-                                            selectedAppIds
-                                                .filter { selectedId -> selectedId.key in enabledAppIds.filter { enabledId -> enabledId.value } }
-                                                .filter { selectedId -> selectedId.value }.keys.toList(),
-                                            selectedTarget,
-                                            selectedBranch,
-                                        )
-                                    },
-                                )
-                            }
+                                    .height(50.dp)
+                                    .onSizeChanged { installHeightPx = it.height }
+                                    .bringIntoViewRequester(installBivReq)
+                                    .onFocusChanged { if (it.isFocused) focusScope.launch { installBivReq.bringIntoView(Rect(0f, 0f, 1f, installHeightPx + (scrollState.maxValue - scrollState.value).toFloat())) } },
+                                onClick = {
+                                    onInstall(
+                                        selectedAppIds
+                                            .filter { selectedId -> selectedId.key in enabledAppIds.filter { enabledId -> enabledId.value } }
+                                            .filter { selectedId -> selectedId.value }.keys.toList(),
+                                        selectedTarget,
+                                        selectedBranch,
+                                    )
+                                },
+                            )
                         }
                     }
                     }
-                },
-            )
-        }
     }
 }
 

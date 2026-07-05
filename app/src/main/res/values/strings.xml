@@ -1633,5 +1633,8 @@
     <string name="game_launch_tip_22">Tip: You can enable touchscreen mode.</string>
     <string name="game_launch_tip_23">Tip: If you have a Mali GPU, please use System Drivers.</string>
     <string name="game_launch_tip_24">Tip: Getting a blank screen? Try using the \"%s\" option in the menu to check if your drivers are working correctly.</string>
+    <string name="install_stat_download">Download</string>
+    <string name="install_stat_on_disk">On disk</string>
+    <string name="install_stat_available">Available</string>
 
 </resources>
