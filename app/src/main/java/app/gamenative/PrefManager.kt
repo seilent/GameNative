@@ -1162,13 +1162,6 @@ object PrefManager {
         }
 
 
-    // Import the custom game as a Steam game
-    private val IMPORT_CUSTOM_GAME_AS_STEAM_GAME = booleanPreferencesKey("import_custom_game_as_steam_game")
-    var importCustomGameAsSteamGame: Boolean
-        get() = getPref(IMPORT_CUSTOM_GAME_AS_STEAM_GAME, false)
-        set(value) {
-            setPref(IMPORT_CUSTOM_GAME_AS_STEAM_GAME, value)
-        }
 
     private val AUTO_DETECT_STEAM_COMMON_GAMES = booleanPreferencesKey("auto_detect_steam_common_games")
     var autoDetectSteamCommonGames: Boolean
