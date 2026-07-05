@@ -348,18 +348,13 @@ fun PluviaMain(
         }
     }
 
-    // Check for updates on app start
     LaunchedEffect(Unit) {
         if (BuildConfig.MODERN_ANDROID) return@LaunchedEffect
         val checkedUpdateInfo = UpdateChecker.checkForUpdate(context)
-        if (checkedUpdateInfo != null) {
-            val appVersionCode = BuildConfig.VERSION_CODE
-            val serverVersionCode = checkedUpdateInfo.versionCode
-            Timber.i("Update check: app versionCode=$appVersionCode, server versionCode=$serverVersionCode")
-            if (appVersionCode < serverVersionCode) {
-                updateInfo = checkedUpdateInfo
-                viewModel.setUpdateInfo(checkedUpdateInfo)
-            }
+        if (checkedUpdateInfo != null && checkedUpdateInfo.updateAvailable) {
+            Timber.i("Update available: ${checkedUpdateInfo.versionName}")
+            updateInfo = checkedUpdateInfo
+            viewModel.setUpdateInfo(checkedUpdateInfo)
         }
     }
 
