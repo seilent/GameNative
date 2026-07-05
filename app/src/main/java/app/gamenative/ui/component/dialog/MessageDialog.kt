@@ -4,12 +4,10 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Gamepad
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -18,7 +16,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
-import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
@@ -37,61 +34,55 @@ fun MessageDialog(
     message: String? = null,
     useHtmlInMsg: Boolean = false,
 ) {
-    when {
-        visible -> {
-            val accent = LocalGameAccent.current
-            AlertDialog(
-                containerColor = GlassFillStrong,
-                icon = icon?.let { { Icon(imageVector = icon, contentDescription = null) } },
-                title = title?.let { { Text(it) } },
-                text = message?.let {
-                    {
-                        if (useHtmlInMsg) {
-                            Text(
-                                text = AnnotatedString.fromHtml(
-                                    htmlString = it,
-                                    linkStyles = TextLinkStyles(
-                                        style = SpanStyle(
-                                            textDecoration = TextDecoration.Underline,
-                                            fontStyle = FontStyle.Italic,
-                                            color = accent,
-                                        ),
-                                    ),
+    val accent = LocalGameAccent.current
+    GlassAlertDialog(
+        visible = visible,
+        onDismissRequest = { onDismissRequest?.invoke() },
+        icon = icon?.let { { Icon(imageVector = icon, contentDescription = null) } },
+        title = title?.let { { Text(it) } },
+        text = message?.let {
+            {
+                if (useHtmlInMsg) {
+                    Text(
+                        text = AnnotatedString.fromHtml(
+                            htmlString = it,
+                            linkStyles = TextLinkStyles(
+                                style = SpanStyle(
+                                    textDecoration = TextDecoration.Underline,
+                                    fontStyle = FontStyle.Italic,
+                                    color = accent,
                                 ),
-                            )
-                        } else {
-                            Text(it)
-                        }
+                            ),
+                        ),
+                    )
+                } else {
+                    Text(it)
+                }
+            }
+        },
+        dismissButton = onDismissClick?.let {
+            {
+                TextButton(onClick = it) {
+                    Text(dismissBtnText)
+                }
+            }
+        },
+        confirmButton = {
+            Row {
+                if (actionBtnText != null && onActionClick != null) {
+                    TextButton(onClick = onActionClick) {
+                        Text(actionBtnText, color = accent)
                     }
-                },
-                onDismissRequest = { onDismissRequest?.invoke() },
-                dismissButton = onDismissClick?.let {
-                    {
-                        TextButton(onClick = it) {
-                            Text(dismissBtnText)
-                        }
-                    }
-                },
-                confirmButton = {
-                    Row {
-                        // Action button (displayed first if available)
-                        if (actionBtnText != null && onActionClick != null) {
-                            TextButton(onClick = onActionClick) {
-                                Text(actionBtnText, color = accent)
-                            }
-                        }
+                }
 
-                        // Confirm button
-                        onConfirmClick?.let {
-                            TextButton(onClick = it) {
-                                Text(confirmBtnText, color = accent)
-                            }
-                        }
+                onConfirmClick?.let {
+                    TextButton(onClick = it) {
+                        Text(confirmBtnText, color = accent)
                     }
-                },
-            )
-        }
-    }
+                }
+            }
+        },
+    )
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)

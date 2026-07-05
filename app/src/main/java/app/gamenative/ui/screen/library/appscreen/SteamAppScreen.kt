@@ -20,7 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.AlertDialog
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -1236,80 +1236,77 @@ class SteamAppScreen : BaseAppScreen() {
             )
         }
 
-        // Uninstall confirmation dialog
-        if (showUninstallDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    hideUninstallDialog(libraryItem.appId)
-                },
-                title = { Text(stringResource(R.string.steam_uninstall_game_title)) },
-                text = {
-                    Text(
-                        text = stringResource(
-                            R.string.steam_uninstall_confirmation_message,
-                            appInfo?.name ?: libraryItem.name,
-                        ),
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            hideUninstallDialog(libraryItem.appId)
-                            showDeletingDialog = true
+        GlassAlertDialog(
+            visible = showUninstallDialog,
+            onDismissRequest = {
+                hideUninstallDialog(libraryItem.appId)
+            },
+            title = { Text(stringResource(R.string.steam_uninstall_game_title)) },
+            text = {
+                Text(
+                    text = stringResource(
+                        R.string.steam_uninstall_confirmation_message,
+                        appInfo?.name ?: libraryItem.name,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        hideUninstallDialog(libraryItem.appId)
+                        showDeletingDialog = true
 
-                            CoroutineScope(Dispatchers.IO).launch {
-                                try {
-                                    val installedAppInfo = getInstalledApp(libraryItem.gameId)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                val installedAppInfo = getInstalledApp(libraryItem.gameId)
 
-                                    val success = SteamService.deleteApp(gameId)
-                                    DownloadService.invalidateCache()
-                                    withContext(Dispatchers.Main) {
-                                        ContainerUtils.deleteContainer(context, libraryItem.appId)
-                                    }
-                                    withContext(Dispatchers.Main) {
-                                        if (success) {
-                                            PluviaApp.events.emit(AndroidEvent.LibraryInstallStatusChanged(gameId, GameSource.STEAM))
-                                            SnackbarManager.show(
-                                                context.getString(
-                                                    R.string.steam_uninstall_success,
-                                                    appInfo?.name ?: libraryItem.name,
-                                                ),
-                                            )
-                                            PostHog.capture(
-                                                event = "game_uninstalled",
-                                                properties = mapOf("game_name" to (appInfo?.name ?: "")),
-                                            )
-                                        } else {
-                                            SnackbarManager.show(context.getString(R.string.steam_uninstall_failed))
-                                        }
-                                    }
-
-                                    // Back to home screen as the game is imported
-                                    if (success && installedAppInfo?.isImported == true) {
-                                        withContext(Dispatchers.Main) {
-                                            onBack()
-                                        }
-                                    }
-                                } finally {
-                                    withContext(NonCancellable + Dispatchers.Main) {
-                                        showDeletingDialog = false
+                                val success = SteamService.deleteApp(gameId)
+                                DownloadService.invalidateCache()
+                                withContext(Dispatchers.Main) {
+                                    ContainerUtils.deleteContainer(context, libraryItem.appId)
+                                }
+                                withContext(Dispatchers.Main) {
+                                    if (success) {
+                                        PluviaApp.events.emit(AndroidEvent.LibraryInstallStatusChanged(gameId, GameSource.STEAM))
+                                        SnackbarManager.show(
+                                            context.getString(
+                                                R.string.steam_uninstall_success,
+                                                appInfo?.name ?: libraryItem.name,
+                                            ),
+                                        )
+                                        PostHog.capture(
+                                            event = "game_uninstalled",
+                                            properties = mapOf("game_name" to (appInfo?.name ?: "")),
+                                        )
+                                    } else {
+                                        SnackbarManager.show(context.getString(R.string.steam_uninstall_failed))
                                     }
                                 }
+
+                                if (success && installedAppInfo?.isImported == true) {
+                                    withContext(Dispatchers.Main) {
+                                        onBack()
+                                    }
+                                }
+                            } finally {
+                                withContext(NonCancellable + Dispatchers.Main) {
+                                    showDeletingDialog = false
+                                }
                             }
-                        },
-                    ) {
-                        Text(stringResource(R.string.uninstall), color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        hideUninstallDialog(libraryItem.appId)
-                    }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                },
-            )
-        }
+                        }
+                    },
+                ) {
+                    Text(stringResource(R.string.uninstall), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    hideUninstallDialog(libraryItem.appId)
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
 
         if (showMoveDialog) {
             GameMigrationDialog(
@@ -1531,7 +1528,8 @@ private fun SteamChangeBranchDialog(
     var privateBranchPasswordChecking by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    AlertDialog(
+    GlassAlertDialog(
+        visible = true,
         onDismissRequest = onDismissRequest,
         title = { Text(stringResource(R.string.change_branch)) },
         text = {

@@ -5,7 +5,7 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.AlertDialog
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -805,13 +805,11 @@ abstract class BaseAppScreen {
         }
     }
 
-    /**
-     * Common reset confirmation dialog for all game sources.
-     */
     @Composable
     protected fun ResetConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         val context = LocalContext.current
-        AlertDialog(
+        GlassAlertDialog(
+            visible = true,
             onDismissRequest = onDismiss,
             title = { Text(context.getString(R.string.base_app_reset_container_title)) },
             text = {
@@ -1292,43 +1290,42 @@ abstract class BaseAppScreen {
             },
         )
 
-        // missing components dialog — shown when config can't be applied
         val missingState = getMissingComponentsState(appId)
-        if (missingState != null) {
-            AlertDialog(
-                onDismissRequest = {
+        val capturedMissingState = remember(missingState) { missingState }
+        GlassAlertDialog(
+            visible = missingState != null,
+            onDismissRequest = {
+                hideMissingComponentsDialog(appId)
+            },
+            title = { Text(stringResource(R.string.best_config_missing_components_title)) },
+            text = {
+                Text(
+                    text = stringResource(
+                        R.string.best_config_missing_components_message,
+                        capturedMissingState?.components?.joinToString("\n") ?: "",
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
                     hideMissingComponentsDialog(appId)
-                },
-                title = { Text(stringResource(R.string.best_config_missing_components_title)) },
-                text = {
-                    Text(
-                        text = stringResource(
-                            R.string.best_config_missing_components_message,
-                            missingState.components.joinToString("\n"),
-                        ),
-                    )
-                },
-                confirmButton = {
+                }) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            dismissButton = if (capturedMissingState?.onApplyAnyway != null) {
+                {
                     TextButton(onClick = {
                         hideMissingComponentsDialog(appId)
+                        capturedMissingState.onApplyAnyway.invoke()
                     }) {
-                        Text(stringResource(R.string.ok))
+                        Text(stringResource(R.string.best_config_apply_anyway))
                     }
-                },
-                dismissButton = if (missingState.onApplyAnyway != null) {
-                    {
-                        TextButton(onClick = {
-                            hideMissingComponentsDialog(appId)
-                            missingState.onApplyAnyway.invoke()
-                        }) {
-                            Text(stringResource(R.string.best_config_apply_anyway))
-                        }
-                    }
-                } else {
-                    null
-                },
-            )
-        }
+                }
+            } else {
+                null
+            },
+        )
 
         // Render any additional dialogs
         AdditionalDialogs(libraryItem, onDismiss = {}, onEditContainer = onEditContainer, onBack = onBack)

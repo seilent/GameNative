@@ -19,7 +19,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.ui.util.SnackbarManager
@@ -211,7 +210,8 @@ fun ElementEditorDialog(
         }
     }
 
-    Dialog(
+    GlassDialog(
+        visible = true,
         onDismissRequest = {
             if (hasUnsavedChanges) {
                 showExitConfirmation = true
@@ -826,81 +826,69 @@ fun ElementEditorDialog(
         )
     }
 
-    // Show exit confirmation dialog if there are unsaved changes
-    if (showExitConfirmation) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showExitConfirmation = false },
-            title = { Text(stringResource(R.string.unsaved_changes)) },
-            text = { Text(stringResource(R.string.unsaved_changes_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    // Save and close
-                    element.setScale(currentScale)
-                    element.setText(if (currentText.isEmpty()) null else currentText)
-                    // Change type without resetting bindings
-                    if (element.type != types[currentTypeIndex]) {
-                        element.setTypeWithoutReset(types[currentTypeIndex])
-                    }
-                    // Save shooter mode properties
-                    if (types[currentTypeIndex] == ControlElement.Type.SHOOTER_MODE) {
-                        element.shooterMovementType = movementTypeOptions[currentMovementTypeIndex]
-                        element.shooterLookType = lookTypeOptions[currentLookTypeIndex]
-                        element.shooterLookSensitivity = currentLookSensitivity
-                        element.shooterJoystickSize = currentJoystickSize
-                    }
-                    // Save range button properties
-                    if (types[currentTypeIndex] == ControlElement.Type.RANGE_BUTTON) {
-                        element.setRange(rangeTypes[currentRangeTypeIndex])
-                        element.setOrientation(currentOrientation.toByte())
-                        element.setBindingCount(currentVisibleSegments)
-                        element.isScrollLocked = currentScrollLocked
-                    }
-                    // Save button properties
-                    if (types[currentTypeIndex] == ControlElement.Type.BUTTON) {
-                        element.setToggleSwitch(currentToggleSwitch)
-                    }
-                    view.profile?.save()
-                    view.invalidate()
-                    showExitConfirmation = false
-                    onDismiss()
-                }) {
-                    Text(stringResource(R.string.save))
+    GlassAlertDialog(
+        visible = showExitConfirmation,
+        onDismissRequest = { showExitConfirmation = false },
+        title = { Text(stringResource(R.string.unsaved_changes)) },
+        text = { Text(stringResource(R.string.unsaved_changes_message)) },
+        confirmButton = {
+            TextButton(onClick = {
+                element.setScale(currentScale)
+                element.setText(if (currentText.isEmpty()) null else currentText)
+                if (element.type != types[currentTypeIndex]) {
+                    element.setTypeWithoutReset(types[currentTypeIndex])
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    // Discard changes and close
-                    element.setScale(originalScale)
-                    element.setText(originalText)
-                    element.type = originalType
-                    element.shape = originalShape
-                    // Restore original bindings
-                    originalBindings.forEachIndexed { index, binding ->
-                        if (binding != null) {
-                            element.setBindingAt(index, binding)
-                        }
-                    }
-                    // Restore original shooter mode properties
-                    element.shooterMovementType = originalMovementType
-                    element.shooterLookType = originalLookType
-                    element.shooterLookSensitivity = originalLookSensitivity
-                    element.shooterJoystickSize = originalJoystickSize
-                    // Restore original range button properties
-                    element.setRange(originalRange)
-                    element.setOrientation(originalOrientation.toByte())
-                    element.setBindingCount(originalVisibleSegments)
-                    element.isScrollLocked = originalScrollLocked
-                    // Restore original button properties
-                    element.setToggleSwitch(originalToggleSwitch)
-                    view.invalidate()
-                    showExitConfirmation = false
-                    onDismiss()
-                }) {
-                    Text(stringResource(R.string.discard))
+                if (types[currentTypeIndex] == ControlElement.Type.SHOOTER_MODE) {
+                    element.shooterMovementType = movementTypeOptions[currentMovementTypeIndex]
+                    element.shooterLookType = lookTypeOptions[currentLookTypeIndex]
+                    element.shooterLookSensitivity = currentLookSensitivity
+                    element.shooterJoystickSize = currentJoystickSize
                 }
+                if (types[currentTypeIndex] == ControlElement.Type.RANGE_BUTTON) {
+                    element.setRange(rangeTypes[currentRangeTypeIndex])
+                    element.setOrientation(currentOrientation.toByte())
+                    element.setBindingCount(currentVisibleSegments)
+                    element.isScrollLocked = currentScrollLocked
+                }
+                if (types[currentTypeIndex] == ControlElement.Type.BUTTON) {
+                    element.setToggleSwitch(currentToggleSwitch)
+                }
+                view.profile?.save()
+                view.invalidate()
+                showExitConfirmation = false
+                onDismiss()
+            }) {
+                Text(stringResource(R.string.save))
             }
-        )
-    }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                element.setScale(originalScale)
+                element.setText(originalText)
+                element.type = originalType
+                element.shape = originalShape
+                originalBindings.forEachIndexed { index, binding ->
+                    if (binding != null) {
+                        element.setBindingAt(index, binding)
+                    }
+                }
+                element.shooterMovementType = originalMovementType
+                element.shooterLookType = originalLookType
+                element.shooterLookSensitivity = originalLookSensitivity
+                element.shooterJoystickSize = originalJoystickSize
+                element.setRange(originalRange)
+                element.setOrientation(originalOrientation.toByte())
+                element.setBindingCount(originalVisibleSegments)
+                element.isScrollLocked = originalScrollLocked
+                element.setToggleSwitch(originalToggleSwitch)
+                view.invalidate()
+                showExitConfirmation = false
+                onDismiss()
+            }) {
+                Text(stringResource(R.string.discard))
+            }
+        },
+    )
 }
 
 /**

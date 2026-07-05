@@ -1,7 +1,7 @@
 package app.gamenative.ui.screen.library.appscreen
 
 import android.content.Context
-import androidx.compose.material3.AlertDialog
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import app.gamenative.ui.component.dialog.LoadingDialog
@@ -488,75 +488,67 @@ class CustomGameAppScreen : BaseAppScreen() {
         }
 
         // Delete confirmation dialog
-        if (showDeleteDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    hideDeleteDialog(libraryItem.appId)
-                },
-                title = { Text(stringResource(R.string.custom_game_delete_title)) },
-                text = {
-                    Text(text = stringResource(R.string.custom_game_delete_message, libraryItem.name))
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            hideDeleteDialog(libraryItem.appId)
-                            showDeletingDialog = true
+        GlassAlertDialog(
+            visible = showDeleteDialog,
+            onDismissRequest = {
+                hideDeleteDialog(libraryItem.appId)
+            },
+            title = { Text(stringResource(R.string.custom_game_delete_title)) },
+            text = {
+                Text(text = stringResource(R.string.custom_game_delete_message, libraryItem.name))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        hideDeleteDialog(libraryItem.appId)
+                        showDeletingDialog = true
 
-                            // Delete the game folder and container
-                            scope.launch {
-                                try {
-                                    // Delete the container first (needs to be on main thread)
-                                    withContext(Dispatchers.Main) {
-                                        ContainerUtils.deleteContainer(context, libraryItem.appId)
-                                    }
+                        scope.launch {
+                            try {
+                                withContext(Dispatchers.Main) {
+                                    ContainerUtils.deleteContainer(context, libraryItem.appId)
+                                }
 
-                                    // Remove from manual folders list and invalidate cache
-                                    withContext(Dispatchers.IO) {
-                                        val folderPath = CustomGameScanner.getFolderPathFromAppId(libraryItem.appId)
-                                        if (folderPath != null) {
-                                            val manualFolders = PrefManager.customGameManualFolders.toMutableSet()
-                                            manualFolders.remove(folderPath)
-                                            PrefManager.customGameManualFolders = manualFolders
-                                        }
-                                        CustomGameScanner.invalidateCache()
+                                withContext(Dispatchers.IO) {
+                                    val folderPath = CustomGameScanner.getFolderPathFromAppId(libraryItem.appId)
+                                    if (folderPath != null) {
+                                        val manualFolders = PrefManager.customGameManualFolders.toMutableSet()
+                                        manualFolders.remove(folderPath)
+                                        PrefManager.customGameManualFolders = manualFolders
                                     }
+                                    CustomGameScanner.invalidateCache()
+                                }
 
-                                    withContext(Dispatchers.Main) {
-                                        // Navigate back and show notification
-                                        SnackbarManager.show("\"${libraryItem.name}\" has been deleted")
+                                withContext(Dispatchers.Main) {
+                                    SnackbarManager.show("\"${libraryItem.name}\" has been deleted")
 
-                                        // Small delay to ensure file system updates are complete
-                                        // before navigating back (list will auto-refresh when displayed)
-                                        delay(100)
+                                    delay(100)
 
-                                        // Navigate back to game list
-                                        onBack()
-                                    }
-                                } catch (e: Exception) {
-                                    withContext(Dispatchers.Main) {
-                                        SnackbarManager.show("Failed to delete game: ${e.message}")
-                                    }
-                                } finally {
-                                    withContext(NonCancellable + Dispatchers.Main) {
-                                        showDeletingDialog = false
-                                    }
+                                    onBack()
+                                }
+                            } catch (e: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    SnackbarManager.show("Failed to delete game: ${e.message}")
+                                }
+                            } finally {
+                                withContext(NonCancellable + Dispatchers.Main) {
+                                    showDeletingDialog = false
                                 }
                             }
                         }
-                    ) {
-                        Text("Delete", color = androidx.compose.material3.MaterialTheme.colorScheme.error)
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        hideDeleteDialog(libraryItem.appId)
-                    }) {
-                        Text("Cancel")
-                    }
+                ) {
+                    Text("Delete", color = androidx.compose.material3.MaterialTheme.colorScheme.error)
                 }
-            )
-        }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    hideDeleteDialog(libraryItem.appId)
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

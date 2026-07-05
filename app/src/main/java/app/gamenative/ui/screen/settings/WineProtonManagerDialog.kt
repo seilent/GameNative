@@ -17,7 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.service.SteamService
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
@@ -78,8 +78,6 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
-    if (!open) return
-
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -568,9 +566,9 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
         }
     }
 
-    AlertDialog(
+    GlassAlertDialog(
+        visible = open,
         onDismissRequest = onDismiss,
-        containerColor = GlassFillStrong,
         title = { Text(text = stringResource(R.string.wine_proton_manager), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(
@@ -887,9 +885,9 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
         }
     )
 
-    // Untrusted files confirmation
     if (showUntrustedConfirm && pendingProfile != null) {
-        AlertDialog(
+        GlassAlertDialog(
+            visible = true,
             onDismissRequest = { showUntrustedConfirm = false },
             title = { Text(stringResource(R.string.untrusted_files_detected)) },
             text = {
@@ -940,42 +938,46 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
         )
     }
 
-    // Delete confirmation
-    deleteTarget?.let { target ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            title = { Text(stringResource(R.string.wine_proton_remove_title)) },
-            text = {
-                Text(
-                    text = stringResource(R.string.wine_proton_remove_message, target.type, target.verName, target.verCode)
+    val deleteTargetValue = remember(deleteTarget) { deleteTarget }
+    GlassAlertDialog(
+        visible = deleteTarget != null,
+        onDismissRequest = { deleteTarget = null },
+        title = { Text(stringResource(R.string.wine_proton_remove_title)) },
+        text = {
+            Text(
+                text = stringResource(
+                    R.string.wine_proton_remove_message,
+                    deleteTargetValue?.type ?: "",
+                    deleteTargetValue?.verName ?: "",
+                    deleteTargetValue?.verCode ?: 0,
                 )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    scope.launch {
-                        try {
-                            withContext(Dispatchers.IO) {
-                                mgr.removeContent(target)
-                                mgr.syncContents()
-                            }
-                            // Refresh on main thread
-                            withContext(Dispatchers.Main) {
-                                refreshInstalled()
-                                SnackbarManager.show(ctx.getString(R.string.wine_proton_removed_toast, target.verName))
-                            }
-                        } catch (e: Exception) {
-                            Timber.tag("WineProtonManagerDialog").e(e, "Delete failed")
-                            SnackbarManager.show(ctx.getString(R.string.wine_proton_remove_failed, e.message ?: ""))
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val target = deleteTargetValue ?: return@TextButton
+                scope.launch {
+                    try {
+                        withContext(Dispatchers.IO) {
+                            mgr.removeContent(target)
+                            mgr.syncContents()
                         }
-                        deleteTarget = null
+                        withContext(Dispatchers.Main) {
+                            refreshInstalled()
+                            SnackbarManager.show(ctx.getString(R.string.wine_proton_removed_toast, target.verName))
+                        }
+                    } catch (e: Exception) {
+                        Timber.tag("WineProtonManagerDialog").e(e, "Delete failed")
+                        SnackbarManager.show(ctx.getString(R.string.wine_proton_remove_failed, e.message ?: ""))
                     }
-                }) { Text(stringResource(R.string.remove)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.cancel)) }
-            }
-        )
-    }
+                    deleteTarget = null
+                }
+            }) { Text(stringResource(R.string.remove)) }
+        },
+        dismissButton = {
+            TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.cancel)) }
+        }
+    )
 }
 
 @Composable

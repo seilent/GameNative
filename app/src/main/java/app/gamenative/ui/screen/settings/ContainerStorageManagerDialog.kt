@@ -34,7 +34,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,13 +61,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 import app.gamenative.data.GameSource
 import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.component.dialog.GlassAlertDialog
+import app.gamenative.ui.component.dialog.GlassDialog
 import app.gamenative.ui.screen.library.GameMigrationDialog
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.GlassFillStrong
@@ -334,74 +334,79 @@ fun rememberContainerStorageManagerUiState(): ContainerStorageManagerUiState {
 fun ContainerStorageManagerTransientUi(
     state: ContainerStorageManagerUiState,
 ) {
-    state.pendingRemoval?.let { entry ->
-        val entryName = entry.displayName.ifBlank {
-            stringResource(R.string.container_storage_unknown_container)
-        }
-        AlertDialog(
-            onDismissRequest = state::dismissRemove,
-            title = { Text(stringResource(R.string.container_storage_remove_title)) },
-            text = { Text(stringResource(R.string.container_storage_remove_message, entryName)) },
-            confirmButton = {
-                TextButton(onClick = state::confirmRemove) {
-                    Text(
-                        text = stringResource(R.string.container_storage_remove_button),
-                        color = PluviaTheme.colors.accentDanger,
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = state::dismissRemove) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+    val pendingRemovalEntry = remember(state.pendingRemoval) { state.pendingRemoval }
+    GlassAlertDialog(
+        visible = state.pendingRemoval != null,
+        onDismissRequest = state::dismissRemove,
+        title = { Text(stringResource(R.string.container_storage_remove_title)) },
+        text = {
+            Text(
+                stringResource(
+                    R.string.container_storage_remove_message,
+                    pendingRemovalEntry?.displayName?.ifBlank {
+                        stringResource(R.string.container_storage_unknown_container)
+                    } ?: "",
+                ),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = state::confirmRemove) {
+                Text(
+                    text = stringResource(R.string.container_storage_remove_button),
+                    color = PluviaTheme.colors.accentDanger,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = state::dismissRemove) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
 
-    state.pendingUninstall?.let { entry ->
-        val entryName = entry.displayName.ifBlank {
-            stringResource(R.string.container_storage_unknown_container)
-        }
-        AlertDialog(
-            onDismissRequest = state::dismissUninstall,
-            title = {
+    val pendingUninstallEntry = remember(state.pendingUninstall) { state.pendingUninstall }
+    GlassAlertDialog(
+        visible = state.pendingUninstall != null,
+        onDismissRequest = state::dismissUninstall,
+        title = {
+            Text(
+                stringResource(
+                    if (pendingUninstallEntry?.hasContainer == true) {
+                        R.string.container_storage_uninstall_title
+                    } else {
+                        R.string.container_storage_uninstall_game_only_title
+                    },
+                ),
+            )
+        },
+        text = {
+            Text(
+                stringResource(
+                    if (pendingUninstallEntry?.hasContainer == true) {
+                        R.string.container_storage_uninstall_message
+                    } else {
+                        R.string.container_storage_uninstall_game_only_message
+                    },
+                    pendingUninstallEntry?.displayName?.ifBlank {
+                        stringResource(R.string.container_storage_unknown_container)
+                    } ?: "",
+                ),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = state::confirmUninstall) {
                 Text(
-                    stringResource(
-                        if (entry.hasContainer) {
-                            R.string.container_storage_uninstall_title
-                        } else {
-                            R.string.container_storage_uninstall_game_only_title
-                        },
-                    ),
+                    text = stringResource(R.string.container_storage_uninstall_button),
+                    color = PluviaTheme.colors.accentDanger,
                 )
-            },
-            text = {
-                Text(
-                    stringResource(
-                        if (entry.hasContainer) {
-                            R.string.container_storage_uninstall_message
-                        } else {
-                            R.string.container_storage_uninstall_game_only_message
-                        },
-                        entryName,
-                    ),
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = state::confirmUninstall) {
-                    Text(
-                        text = stringResource(R.string.container_storage_uninstall_button),
-                        color = PluviaTheme.colors.accentDanger,
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = state::dismissUninstall) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = state::dismissUninstall) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
 
     if (state.isMoving) {
         GameMigrationDialog(
@@ -545,11 +550,10 @@ fun ContainerStorageManagerDialog(
     onDismissRequest: () -> Unit,
     state: ContainerStorageManagerUiState = rememberContainerStorageManagerUiState(),
 ) {
-    if (!visible) return
-
     ContainerStorageManagerTransientUi(state)
 
-    Dialog(
+    GlassDialog(
+        visible = visible,
         onDismissRequest = {
             if (!state.isMoving) {
                 onDismissRequest()

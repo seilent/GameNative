@@ -45,7 +45,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.ui.component.NoExtractOutlinedTextField
@@ -71,8 +70,6 @@ fun FEXCorePresetsDialog(
     visible: Boolean = true,
     onDismissRequest: () -> Unit,
 ) {
-    if (!visible) return
-
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val defaultValues = remember {
@@ -81,13 +78,14 @@ fun FEXCorePresetsDialog(
         }
     }
 
-    Dialog(
+    GlassDialog(
+        visible = visible,
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
             dismissOnClickOutside = false,
         ),
-        content = {
+    ) {
             Scaffold(
                 topBar = {
                     CenterAlignedTopAppBar(
@@ -328,8 +326,7 @@ fun FEXCorePresetsDialog(
                     }
                 }
             }
-        },
-    )
+    }
 }
 
 private fun loadFexcoreEnvDefaults(context: Context): LinkedHashMap<String, String> {

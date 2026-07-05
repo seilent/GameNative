@@ -44,7 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.ui.component.NoExtractOutlinedTextField
@@ -66,18 +65,18 @@ fun Box64PresetsDialog(
     visible: Boolean = true,
     onDismissRequest: () -> Unit,
 ) {
-    if (visible) {
-        val context = LocalContext.current
-        val prefix = "box64"
-        val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val prefix = "box64"
+    val scrollState = rememberScrollState()
 
-        Dialog(
-            onDismissRequest = onDismissRequest,
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                dismissOnClickOutside = false,
-            ),
-            content = {
+    GlassDialog(
+        visible = visible,
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnClickOutside = false,
+        ),
+    ) {
                 Scaffold(
                     topBar = {
                         CenterAlignedTopAppBar(
@@ -299,7 +298,5 @@ fun Box64PresetsDialog(
                         }
                     }
                 }
-            },
-        )
     }
 }

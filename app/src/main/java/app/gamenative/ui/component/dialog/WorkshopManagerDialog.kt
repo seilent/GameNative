@@ -75,7 +75,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.service.SteamService
@@ -107,8 +106,6 @@ fun WorkshopManagerDialog(
     onModPathChanged: (String) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
-    if (!visible) return
-
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val displayInfo = onGetDisplayInfo(context)
@@ -137,7 +134,6 @@ fun WorkshopManagerDialog(
             }
             if (result.succeeded) {
                 workshopItems.addAll(result.items.sortedBy { it.title.lowercase() })
-                // Pre-check items that are currently enabled
                 result.items.forEach { item ->
                     selectedIds[item.publishedFileId] =
                         currentEnabledIds.contains(item.publishedFileId)
@@ -157,13 +153,14 @@ fun WorkshopManagerDialog(
         }
     }
 
-    Dialog(
+    GlassDialog(
+        visible = visible,
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
             dismissOnClickOutside = false,
         ),
-        content = {
+    ) {
             Box(modifier = Modifier.fillMaxSize()) {
             BlurredBackdrop(
                 imageModel = displayInfo.heroImageUrl,
@@ -524,25 +521,23 @@ fun WorkshopManagerDialog(
                 }
             }
             }
-        },
-    )
-
-    if (showFolderPicker) {
-        FolderPickerDialog(
-            currentPath = workshopModPath,
-            gameRootDir = gameRootDir,
-            winePrefix = winePrefix,
-            onSelect = { path ->
-                onModPathChanged(path)
-                showFolderPicker = false
-            },
-            onClear = {
-                onModPathChanged("")
-                showFolderPicker = false
-            },
-            onDismiss = { showFolderPicker = false },
-        )
     }
+
+    FolderPickerDialog(
+        visible = showFolderPicker,
+        currentPath = workshopModPath,
+        gameRootDir = gameRootDir,
+        winePrefix = winePrefix,
+        onSelect = { path ->
+            onModPathChanged(path)
+            showFolderPicker = false
+        },
+        onClear = {
+            onModPathChanged("")
+            showFolderPicker = false
+        },
+        onDismiss = { showFolderPicker = false },
+    )
 }
 
 // ── Folder Picker Dialog ──────────────────────────────────────────────────────
@@ -555,6 +550,7 @@ private data class FolderRoot(
 
 @Composable
 private fun FolderPickerDialog(
+    visible: Boolean,
     currentPath: String,
     gameRootDir: File?,
     winePrefix: String,
@@ -631,7 +627,8 @@ private fun FolderPickerDialog(
         if (segments.isEmpty()) currentRootLabel else "$currentRootLabel / ${segments.joinToString(" / ")}"
     }
 
-    Dialog(
+    GlassDialog(
+        visible = visible,
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {

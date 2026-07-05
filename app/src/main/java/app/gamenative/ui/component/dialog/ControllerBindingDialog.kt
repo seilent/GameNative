@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import app.gamenative.ui.theme.GlassFill
@@ -112,10 +111,11 @@ fun ControllerBindingDialog(
         }
     }
 
-    Dialog(
+    GlassDialog(
+        visible = true,
         onDismissRequest = onDismiss,
         properties = DialogProperties(
-            usePlatformDefaultWidth = false,  // Allow custom width beyond platform default
+            usePlatformDefaultWidth = false,
             dismissOnBackPress = true,
             dismissOnClickOutside = false
         )

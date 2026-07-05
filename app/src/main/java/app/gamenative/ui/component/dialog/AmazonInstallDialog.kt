@@ -39,7 +39,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.service.storage.StorageManager
@@ -69,8 +68,6 @@ fun AmazonInstallDialog(
     onInstall: (StorageTarget?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    if (!visible) return
-
     val context = LocalContext.current
     var selectedTarget by remember { mutableStateOf(StorageManager.defaultInstallTarget(context)) }
 
@@ -81,7 +78,8 @@ fun AmazonInstallDialog(
         availableSpace,
     )
 
-    Dialog(
+    GlassDialog(
+        visible = visible,
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,

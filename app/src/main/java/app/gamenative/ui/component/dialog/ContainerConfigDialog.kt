@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.outlined.AddCircleOutline
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -74,7 +73,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.BuildConfig
@@ -1224,13 +1222,14 @@ fun ContainerConfigDialog(
             onConfirmClick = onDismissRequest,
         )
 
-        Dialog(
+        GlassDialog(
+            visible = true,
             onDismissRequest = onDismissCheck,
             properties = DialogProperties(
                 usePlatformDefaultWidth = false,
                 dismissOnClickOutside = false,
             ),
-            content = {
+        ) {
                 val scrollState = rememberScrollState()
                 var selectedTab by rememberSaveable { mutableIntStateOf(0) }
                 val tabs = listOf(
@@ -1378,9 +1377,8 @@ fun ContainerConfigDialog(
                         }
                     }
                 }
-                }
             }
-        )
+        }
     }
 }
 

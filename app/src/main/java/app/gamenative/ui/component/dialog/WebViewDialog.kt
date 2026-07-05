@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.ui.theme.PluviaTheme
 
@@ -38,83 +37,83 @@ fun WebViewDialog(
     url: String,
     onDismissRequest: () -> Unit,
 ) {
-    if (isVisible) {
-        var topBarTitle by rememberSaveable { mutableStateOf("GameNative Web View") }
-        val startingUrl by rememberSaveable(url) { mutableStateOf(url) }
-        var webView: WebView? = remember { null } // WebView class.
-        val webViewState = rememberSaveable { Bundle() } // WebView state for lifecycle events.
+    var topBarTitle by rememberSaveable { mutableStateOf("GameNative Web View") }
+    val startingUrl by rememberSaveable(url) { mutableStateOf(url) }
+    var webView: WebView? = remember { null }
+    val webViewState = rememberSaveable { Bundle() }
 
-        Dialog(
-            onDismissRequest = {
-                if (webView?.canGoBack() == true) {
-                    webView!!.goBack()
-                } else {
-                    webViewState.clear() // Clear the state when we're done.
-                    onDismissRequest()
-                }
-            },
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                dismissOnClickOutside = false,
-            ),
-            content = {
-                Scaffold(
-                    topBar = {
-                        CenterAlignedTopAppBar(
-                            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
-                            title = {
-                                Text(
-                                    text = topBarTitle,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            },
-                            navigationIcon = {
-                                IconButton(
-                                    onClick = {
-                                        webViewState.clear() // Clear the state when we're done.
-                                        onDismissRequest()
-                                    },
-                                    content = { Icon(imageVector = Icons.Default.Close, null) },
-                                )
-                            },
+    GlassDialog(
+        visible = isVisible,
+        onDismissRequest = {
+            if (webView?.canGoBack() == true) {
+                webView!!.goBack()
+            } else {
+                webViewState.clear()
+                onDismissRequest()
+            }
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnClickOutside = false,
+        ),
+    ) {
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent),
+                    title = {
+                        Text(
+                            text = topBarTitle,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     },
-                ) { paddingValues ->
-                    AndroidView(
-                        modifier = Modifier.padding(paddingValues),
-                        factory = {
-                            WebView(it).apply {
-                                layoutParams = ViewGroup.LayoutParams(
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                )
-
-                                webViewClient = WebViewClient()
-                                webChromeClient = object : WebChromeClient() {
-                                    override fun onReceivedTitle(view: WebView?, title: String?) {
-                                        title?.let { pageTitle -> topBarTitle = pageTitle }
-                                    }
-                                }
-
-                                if (webViewState.size() > 0) {
-                                    restoreState(webViewState)
-                                } else {
-                                    loadUrl(startingUrl)
-                                }
-                                webView = this
-                            }
-                        },
-                        update = {
-                            webView = it
-                        },
-                        onRelease = { view ->
-                            view.saveState(webViewState)
-                        },
-                    )
-                }
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                webViewState.clear()
+                                onDismissRequest()
+                            },
+                            content = { Icon(imageVector = Icons.Default.Close, null) },
+                        )
+                    },
+                )
             },
-        )
+        ) { paddingValues ->
+            if (isVisible) {
+                AndroidView(
+                    modifier = Modifier.padding(paddingValues),
+                    factory = {
+                        WebView(it).apply {
+                            layoutParams = ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                            )
+
+                            webViewClient = WebViewClient()
+                            webChromeClient = object : WebChromeClient() {
+                                override fun onReceivedTitle(view: WebView?, title: String?) {
+                                    title?.let { pageTitle -> topBarTitle = pageTitle }
+                                }
+                            }
+
+                            if (webViewState.size() > 0) {
+                                restoreState(webViewState)
+                            } else {
+                                loadUrl(startingUrl)
+                            }
+                            webView = this
+                        }
+                    },
+                    update = {
+                        webView = it
+                    },
+                    onRelease = { view ->
+                        view.saveState(webViewState)
+                    },
+                )
+            }
+        }
     }
 }
 

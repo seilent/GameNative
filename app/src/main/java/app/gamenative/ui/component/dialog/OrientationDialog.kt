@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ScreenRotation
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -22,7 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.ui.enums.Orientation
-import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import java.util.EnumSet
@@ -32,24 +30,18 @@ fun OrientationDialog(
     openDialog: Boolean,
     onDismiss: () -> Unit,
 ) {
-    if (!openDialog) {
-        return
-    }
-
     var currentSettings by remember {
         mutableStateOf(PrefManager.allowedOrientation.toList())
     }
 
-    // Save on close.
     val onClose: () -> Unit = {
         PrefManager.allowedOrientation = EnumSet.copyOf(currentSettings)
         onDismiss()
     }
 
-    AlertDialog(
-        containerColor = GlassFillStrong,
+    GlassAlertDialog(
+        visible = openDialog,
         onDismissRequest = {
-            // Block dismissal unless there is one valid setting checked.
             if (currentSettings.isNotEmpty()) {
                 onClose()
             }

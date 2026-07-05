@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VolunteerActivism
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -82,16 +81,12 @@ fun ProfileDialog(
     onGoOnline: () -> Unit,
     isOffline: Boolean = false,
 ) {
-    if (!openDialog) {
-        return
-    }
-
     var selectedItem by remember(state) { mutableStateOf(state) }
     var showSupporters by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
-    AlertDialog(
-        containerColor = GlassFillStrong,
+    GlassAlertDialog(
+        visible = openDialog,
         onDismissRequest = onDismiss,
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {

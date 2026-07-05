@@ -49,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.data.EpicGame
@@ -169,15 +168,14 @@ fun EpicGameManagerDialog(
         return selectedGameIds.filter { it.value }.isNotEmpty()
     }
 
-    when {
-        visible -> {
-            Dialog(
-                onDismissRequest = onDismissRequest,
-                properties = DialogProperties(
-                    usePlatformDefaultWidth = false,
-                    dismissOnClickOutside = false,
-                ),
-                content = {
+    GlassDialog(
+        visible = visible,
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnClickOutside = false,
+        ),
+    ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                     BlurredBackdrop(
                         imageModel = displayInfo.heroImageUrl,
@@ -382,8 +380,5 @@ fun EpicGameManagerDialog(
                         }
                     }
                     }
-                },
-            )
-        }
     }
 }

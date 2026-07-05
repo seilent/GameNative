@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.AddCircleOutline
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -116,72 +115,71 @@ fun DrivesTabContent(state: ContainerConfigState) {
     }
     }
 
-    if (state.showAddDriveDialog.value) {
-        AlertDialog(
-            onDismissRequest = { state.showAddDriveDialog.value = false },
-            title = { Text(text = stringResource(R.string.add_drive)) },
-            text = {
-                Column {
-                    NoExtractOutlinedTextField(
-                        value = state.selectedDriveLetter.value,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(text = stringResource(R.string.drive_letter)) },
-                        trailingIcon = {
-                            IconButton(
-                                onClick = { state.driveLetterMenuExpanded.value = true },
-                                content = {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Outlined.ViewList,
-                                        contentDescription = null,
-                                    )
-                                },
-                            )
-                        },
-                    )
-                    DropdownMenu(
-                        expanded = state.driveLetterMenuExpanded.value,
-                        onDismissRequest = { state.driveLetterMenuExpanded.value = false },
-                        containerColor = GlassFillStrong,
-                        shape = RoundedCornerShape(12.dp),
-                        tonalElevation = 0.dp,
-                        shadowElevation = 0.dp,
-                        border = BorderStroke(1.dp, GlassBorder),
-                    ) {
-                        state.availableDriveLetters.forEach { letter ->
-                            DropdownMenuItem(
-                                text = { Text(text = letter) },
-                                onClick = {
-                                    state.selectedDriveLetter.value = letter
-                                    state.driveLetterMenuExpanded.value = false
-                                },
-                            )
-                        }
-                    }
-                    if (state.availableDriveLetters.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_available_drive_letters),
-                            color = MaterialTheme.colorScheme.error,
-                            style = TextStyle(fontSize = 14.sp),
-                            modifier = Modifier.padding(top = 8.dp),
+    GlassAlertDialog(
+        visible = state.showAddDriveDialog.value,
+        onDismissRequest = { state.showAddDriveDialog.value = false },
+        title = { Text(text = stringResource(R.string.add_drive)) },
+        text = {
+            Column {
+                NoExtractOutlinedTextField(
+                    value = state.selectedDriveLetter.value,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text(text = stringResource(R.string.drive_letter)) },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { state.driveLetterMenuExpanded.value = true },
+                            content = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.ViewList,
+                                    contentDescription = null,
+                                )
+                            },
+                        )
+                    },
+                )
+                DropdownMenu(
+                    expanded = state.driveLetterMenuExpanded.value,
+                    onDismissRequest = { state.driveLetterMenuExpanded.value = false },
+                    containerColor = GlassFillStrong,
+                    shape = RoundedCornerShape(12.dp),
+                    tonalElevation = 0.dp,
+                    shadowElevation = 0.dp,
+                    border = BorderStroke(1.dp, GlassBorder),
+                ) {
+                    state.availableDriveLetters.forEach { letter ->
+                        DropdownMenuItem(
+                            text = { Text(text = letter) },
+                            onClick = {
+                                state.selectedDriveLetter.value = letter
+                                state.driveLetterMenuExpanded.value = false
+                            },
                         )
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = state.selectedDriveLetter.value.isNotBlank() &&
-                        state.availableDriveLetters.contains(state.selectedDriveLetter.value),
-                    onClick = { state.launchFolderPicker() },
-                    content = { Text(text = stringResource(R.string.ok)) },
-                )
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { state.showAddDriveDialog.value = false },
-                    content = { Text(text = stringResource(R.string.cancel)) },
-                )
-            },
-        )
-    }
+                if (state.availableDriveLetters.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.no_available_drive_letters),
+                        color = MaterialTheme.colorScheme.error,
+                        style = TextStyle(fontSize = 14.sp),
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = state.selectedDriveLetter.value.isNotBlank() &&
+                    state.availableDriveLetters.contains(state.selectedDriveLetter.value),
+                onClick = { state.launchFolderPicker() },
+                content = { Text(text = stringResource(R.string.ok)) },
+            )
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { state.showAddDriveDialog.value = false },
+                content = { Text(text = stringResource(R.string.cancel)) },
+            )
+        },
+    )
 }

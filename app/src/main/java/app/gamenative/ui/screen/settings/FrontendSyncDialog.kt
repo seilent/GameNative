@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,8 +27,8 @@ import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.data.GameSource
 import app.gamenative.sync.FrontendSyncManager
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import app.gamenative.ui.components.rememberCustomGameFolderPicker
-import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.PluviaTheme
 
 /**
@@ -48,9 +47,9 @@ fun FrontendSyncDialog(onDismiss: () -> Unit) {
     // Buffered changes: source → (newPath, deleteOldFiles). Applied only on OK.
     val pendingChanges = remember { mutableStateMapOf<GameSource, Pair<String, Boolean>>() }
 
-    AlertDialog(
+    GlassAlertDialog(
+        visible = true,
         onDismissRequest = onDismiss,
-        containerColor = GlassFillStrong,
         title = { Text(stringResource(R.string.frontend_sync_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -154,36 +153,35 @@ private fun FrontendSyncSourceRow(
         }
     }
 
-    if (showConfirm) {
-        AlertDialog(
-            onDismissRequest = { showConfirm = false },
-            title = { Text(stringResource(R.string.frontend_sync_clear_confirm_title)) },
-            text = {
-                Text(
-                    stringResource(
-                        R.string.frontend_sync_clear_confirm_message,
-                        FrontendSyncManager.extensionFor(source).trimStart('.'),
-                    )
+    GlassAlertDialog(
+        visible = showConfirm,
+        onDismissRequest = { showConfirm = false },
+        title = { Text(stringResource(R.string.frontend_sync_clear_confirm_title)) },
+        text = {
+            Text(
+                stringResource(
+                    R.string.frontend_sync_clear_confirm_message,
+                    FrontendSyncManager.extensionFor(source).trimStart('.'),
                 )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    displayPath = pendingPath
-                    onChangeQueued(pendingPath, true)
-                    showConfirm = false
-                }) {
-                    Text(stringResource(R.string.frontend_sync_confirm_remove))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    displayPath = pendingPath
-                    onChangeQueued(pendingPath, false)
-                    showConfirm = false
-                }) {
-                    Text(stringResource(R.string.frontend_sync_confirm_keep))
-                }
-            },
-        )
-    }
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                displayPath = pendingPath
+                onChangeQueued(pendingPath, true)
+                showConfirm = false
+            }) {
+                Text(stringResource(R.string.frontend_sync_confirm_remove))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                displayPath = pendingPath
+                onChangeQueued(pendingPath, false)
+                showConfirm = false
+            }) {
+                Text(stringResource(R.string.frontend_sync_confirm_keep))
+            }
+        },
+    )
 }

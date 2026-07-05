@@ -35,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.Constants
 import app.gamenative.R
@@ -53,14 +52,14 @@ fun GamesListDialog(
     list: List<OwnedGames>,
     onDismissRequest: () -> Unit,
 ) {
-    if (visible) {
-        Dialog(
-            onDismissRequest = onDismissRequest,
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                dismissOnClickOutside = false,
-            ),
-            content = {
+    GlassDialog(
+        visible = visible,
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnClickOutside = false,
+        ),
+    ) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
@@ -129,8 +128,6 @@ fun GamesListDialog(
                         }
                     }
                 }
-            },
-        )
     }
 }
 

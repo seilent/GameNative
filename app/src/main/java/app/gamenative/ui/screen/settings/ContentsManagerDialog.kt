@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -44,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.service.SteamService
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
@@ -57,8 +57,6 @@ import java.util.concurrent.CountDownLatch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
-    if (!open) return
-
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -71,7 +69,6 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
 
     val mgr = remember(ctx) { ContentsManager(ctx) }
 
-    // Installed list state
     var currentType by remember { mutableStateOf(ContentProfile.ContentType.CONTENT_TYPE_DXVK) }
     val installedProfiles = remember { mutableStateListOf<ContentProfile>() }
     var typeExpanded by remember { mutableStateOf(false) }
@@ -143,7 +140,6 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
             }
 
             pendingProfile = profile
-            // Compute untrusted files and show confirmation if any
             val files = withContext(Dispatchers.IO) { mgr.getUnTrustedContentFiles(profile) }
             untrustedFiles.clear()
             untrustedFiles.addAll(files)
@@ -152,9 +148,7 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 statusMessage = "This content includes files outside the trusted set."
                 isBusy = false
             } else {
-                // Safe to finish install directly
                 performFinishInstall(ctx, mgr, profile) { _ ->
-                    // Hide details and refresh installed list
                     pendingProfile = null
                     currentType = profile.type
                     refreshInstalled()
@@ -166,9 +160,9 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
         }
     }
 
-    AlertDialog(
+    GlassAlertDialog(
+        visible = open,
         onDismissRequest = onDismiss,
-        containerColor = GlassFillStrong,
         title = { Text(text = stringResource(R.string.contents_manager), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(
@@ -334,7 +328,8 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
     )
 
     if (showUntrustedConfirm && pendingProfile != null) {
-        AlertDialog(
+        GlassAlertDialog(
+            visible = true,
             onDismissRequest = { showUntrustedConfirm = false },
             title = { Text(stringResource(R.string.untrusted_files_detected)) },
             text = {
@@ -373,25 +368,25 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
         )
     }
 
-    // Delete confirmation
-    deleteTarget?.let { target ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            title = { Text(stringResource(R.string.remove_content)) },
-            text = { Text(stringResource(R.string.remove_content_confirmation, target.verName, target.verCode)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    scope.launch {
-                        withContext(Dispatchers.IO) { mgr.removeContent(target) }
-                        refreshInstalled()
-                        SnackbarManager.show("Removed ${target.verName}")
-                        deleteTarget = null
-                    }
-                }) { Text(stringResource(R.string.remove)) }
-            },
-            dismissButton = { TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.cancel)) } }
-        )
-    }
+    val deleteTargetValue = remember(deleteTarget) { deleteTarget }
+    GlassAlertDialog(
+        visible = deleteTarget != null,
+        onDismissRequest = { deleteTarget = null },
+        title = { Text(stringResource(R.string.remove_content)) },
+        text = { Text(stringResource(R.string.remove_content_confirmation, deleteTargetValue?.verName ?: "", deleteTargetValue?.verCode ?: 0)) },
+        confirmButton = {
+            TextButton(onClick = {
+                val target = deleteTargetValue ?: return@TextButton
+                scope.launch {
+                    withContext(Dispatchers.IO) { mgr.removeContent(target) }
+                    refreshInstalled()
+                    SnackbarManager.show("Removed ${target.verName}")
+                    deleteTarget = null
+                }
+            }) { Text(stringResource(R.string.remove)) }
+        },
+        dismissButton = { TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.cancel)) } }
+    )
 }
 
 @Composable

@@ -12,7 +12,6 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessMedium
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.PrefManager
 import app.gamenative.R
 import app.gamenative.enums.AppTheme
-import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 
@@ -50,12 +48,8 @@ fun SingleChoiceDialog(
     onSelected: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    if (!openDialog) {
-        return
-    }
-
-    AlertDialog(
-        containerColor = GlassFillStrong,
+    GlassAlertDialog(
+        visible = openDialog,
         onDismissRequest = onDismiss,
         icon = {
             icon?.let {

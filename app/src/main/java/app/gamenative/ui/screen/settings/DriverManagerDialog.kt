@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -59,6 +58,7 @@ import app.gamenative.ui.theme.GlassFillStrong
 import android.content.res.Configuration
 import app.gamenative.ui.util.SnackbarManager
 import app.gamenative.service.SteamService
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import app.gamenative.ui.component.dialog.LoadingDialog
 import app.gamenative.utils.Net
 import kotlinx.serialization.json.Json
@@ -80,7 +80,6 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
-    if (!open) return
     val ctx = LocalContext.current
     var lastMessage by remember { mutableStateOf<String?>(null) }
     var isImporting by remember { mutableStateOf(false) }
@@ -262,9 +261,9 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
         }
     }
 
-    AlertDialog(
+    GlassAlertDialog(
+        visible = open,
         onDismissRequest = onDismiss,
-        containerColor = GlassFillStrong,
         title = { Text(text = stringResource(R.string.driver_manager), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(
@@ -481,38 +480,38 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             }
                         }
                     }
-                    // Confirmation dialog for deletion
-                    driverToDelete?.let { id ->
-                        AlertDialog(
-                            onDismissRequest = { driverToDelete = null },
-                            title = { Text(text = stringResource(R.string.confirm_delete)) },
-                            text = { Text(text = stringResource(R.string.remove_driver_confirmation, id)) },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    try {
-                                        AdrenotoolsManager(ctx).removeDriver(id)
-                                        lastMessage = "Removed driver: $id"
-                                        SnackbarManager.show("Removed driver: $id")
-                                        refreshDriverList()
-                                    } catch (e: Exception) {
-                                        lastMessage = "Error removing $id: ${e.message}"
-                                        SnackbarManager.show("Error removing $id: ${e.message}")
-                                    }
-                                    driverToDelete = null
-                                }) {
-                                    Text(
-                                        text = "Delete",
-                                        color = MaterialTheme.colorScheme.error
-                                    )
+                    val driverToDeleteValue = remember(driverToDelete) { driverToDelete }
+                    GlassAlertDialog(
+                        visible = driverToDelete != null,
+                        onDismissRequest = { driverToDelete = null },
+                        title = { Text(text = stringResource(R.string.confirm_delete)) },
+                        text = { Text(text = stringResource(R.string.remove_driver_confirmation, driverToDeleteValue ?: "")) },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                val id = driverToDeleteValue ?: return@TextButton
+                                try {
+                                    AdrenotoolsManager(ctx).removeDriver(id)
+                                    lastMessage = "Removed driver: $id"
+                                    SnackbarManager.show("Removed driver: $id")
+                                    refreshDriverList()
+                                } catch (e: Exception) {
+                                    lastMessage = "Error removing $id: ${e.message}"
+                                    SnackbarManager.show("Error removing $id: ${e.message}")
                                 }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { driverToDelete = null }) {
-                                    Text(stringResource(R.string.cancel))
-                                }
-                            },
-                        )
-                    }
+                                driverToDelete = null
+                            }) {
+                                Text(
+                                    text = "Delete",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { driverToDelete = null }) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        },
+                    )
                 }
             }
         },

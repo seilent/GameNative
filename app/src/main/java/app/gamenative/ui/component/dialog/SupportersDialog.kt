@@ -35,7 +35,6 @@ import app.gamenative.R
 import app.gamenative.utils.KofiSupporter
 import app.gamenative.utils.fetchKofiSupporters
 import app.gamenative.ui.theme.GlassBorder
-import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.LocalGameAccent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -45,13 +44,12 @@ fun SupportersDialog(
     visible: Boolean,
     onDismiss: () -> Unit,
 ) {
-    if (!visible) return
-
     var supporters by remember { mutableStateOf<List<KofiSupporter>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var hasError by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(visible) {
+        if (!visible) return@LaunchedEffect
         isLoading = true
         hasError = false
         try {
@@ -72,8 +70,8 @@ fun SupportersDialog(
         supporters.filter { it.oneOff != false }.sortedByDescending { it.total ?: 0.0 }
     }
 
-    AlertDialog(
-        containerColor = GlassFillStrong,
+    GlassAlertDialog(
+        visible = visible,
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.close), color = LocalGameAccent.current) }

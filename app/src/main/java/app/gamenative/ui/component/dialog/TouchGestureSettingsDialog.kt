@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.data.TouchGestureConfig
@@ -77,7 +76,8 @@ fun TouchGestureSettingsDialog(
 ) {
     var config by remember { mutableStateOf(gestureConfig) }
 
-    Dialog(
+    GlassDialog(
+        visible = true,
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
@@ -806,53 +806,51 @@ private fun TapHoldActionPicker(
         }
     }
 
-    if (showDialog) {
-        val categories = buildActionCategories()
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            containerColor = PluviaBackground,
-            title = { Text(stringResource(R.string.gesture_action_label)) },
-            text = {
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    categories.forEach { category ->
-                        item {
+    val categories = buildActionCategories()
+    GlassAlertDialog(
+        visible = showDialog,
+        onDismissRequest = { showDialog = false },
+        title = { Text(stringResource(R.string.gesture_action_label)) },
+        text = {
+            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                categories.forEach { category ->
+                    item {
+                        Text(
+                            text = category.header,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = LocalGameAccent.current,
+                            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+                        )
+                    }
+                    items(category.actions) { (actionKey, actionLabel) ->
+                        val isSelected = actionKey == currentAction
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onActionSelected(actionKey)
+                                    showDialog = false
+                                },
+                            color = if (isSelected) LocalGameAccent.current.copy(alpha = 0.18f)
+                            else PluviaSurface,
+                        ) {
                             Text(
-                                text = category.header,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = LocalGameAccent.current,
-                                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+                                text = actionLabel,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             )
-                        }
-                        items(category.actions) { (actionKey, actionLabel) ->
-                            val isSelected = actionKey == currentAction
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        onActionSelected(actionKey)
-                                        showDialog = false
-                                    },
-                                color = if (isSelected) LocalGameAccent.current.copy(alpha = 0.18f)
-                                else PluviaSurface,
-                            ) {
-                                Text(
-                                    text = actionLabel,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                )
-                            }
                         }
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
-    }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { showDialog = false }) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+    )
 }
 
 @Composable
@@ -910,38 +908,36 @@ private fun PanActionPicker(
         }
     }
 
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            containerColor = PluviaBackground,
-            title = { Text(stringResource(R.string.gesture_action_label)) },
-            text = {
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    items(PAN_ACTIONS) { action ->
-                        val isSelected = action == currentAction
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onActionSelected(action)
-                                    showDialog = false
-                                },
-                            color = if (isSelected) LocalGameAccent.current.copy(alpha = 0.18f) else PluviaSurface,
-                        ) {
-                            Text(
-                                text = panActionLabel(action),
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            )
-                        }
+    GlassAlertDialog(
+        visible = showDialog,
+        onDismissRequest = { showDialog = false },
+        title = { Text(stringResource(R.string.gesture_action_label)) },
+        text = {
+            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                items(PAN_ACTIONS) { action ->
+                    val isSelected = action == currentAction
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onActionSelected(action)
+                                showDialog = false
+                            },
+                        color = if (isSelected) LocalGameAccent.current.copy(alpha = 0.18f) else PluviaSurface,
+                    ) {
+                        Text(
+                            text = panActionLabel(action),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        )
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
-    }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { showDialog = false }) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+    )
 }

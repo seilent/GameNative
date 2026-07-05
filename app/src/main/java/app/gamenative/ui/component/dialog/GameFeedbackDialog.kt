@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.ui.component.NoExtractOutlinedTextField
@@ -38,11 +37,11 @@ fun GameFeedbackDialog(
     onDismiss: () -> Unit,
     onDiscordSupport: () -> Unit,
 ) {
-    if (state.visible) {
-        Dialog(
-            onDismissRequest = onDismiss,
-            properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
-        ) {
+    GlassDialog(
+        visible = state.visible,
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true),
+    ) {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -172,7 +171,6 @@ fun GameFeedbackDialog(
                     }
                 }
             }
-        }
     }
 }
 

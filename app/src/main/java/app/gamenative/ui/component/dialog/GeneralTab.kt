@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -67,77 +66,76 @@ fun GeneralTabContent(
         else -> 1
     }
 
-    if (state.showCustomResolutionDialog.value) {
-        AlertDialog(
-            onDismissRequest = { state.showCustomResolutionDialog.value = false },
-            title = { Text(text = stringResource(R.string.container_config_custom_resolution_title)) },
-            text = {
-                val heightFocusRequester = remember { FocusRequester() }
-                Column {
-                    Row {
-                        NoExtractOutlinedTextField(
-                            modifier = Modifier.width(128.dp),
-                            value = state.customScreenWidth.value,
-                            onValueChange = { state.customScreenWidth.value = it },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-                            keyboardActions = KeyboardActions(onNext = { heightFocusRequester.requestFocus() }),
-                            label = { Text(text = stringResource(R.string.width)) },
-                            singleLine = true,
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                            text = stringResource(R.string.container_config_custom_resolution_separator),
-                            style = TextStyle(fontSize = 16.sp),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        NoExtractOutlinedTextField(
-                            modifier = Modifier.width(128.dp).focusRequester(heightFocusRequester),
-                            value = state.customScreenHeight.value,
-                            onValueChange = { state.customScreenHeight.value = it },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(text = stringResource(R.string.height)) },
-                            singleLine = true,
-                        )
-                    }
-                    if (state.customResolutionValidationError.value != null) {
-                        Text(
-                            text = state.customResolutionValidationError.value!!,
-                            color = androidx.compose.material3.MaterialTheme.colorScheme.error,
-                            style = TextStyle(fontSize = 16.sp),
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
+    GlassAlertDialog(
+        visible = state.showCustomResolutionDialog.value,
+        onDismissRequest = { state.showCustomResolutionDialog.value = false },
+        title = { Text(text = stringResource(R.string.container_config_custom_resolution_title)) },
+        text = {
+            val heightFocusRequester = remember { FocusRequester() }
+            Column {
+                Row {
+                    NoExtractOutlinedTextField(
+                        modifier = Modifier.width(128.dp),
+                        value = state.customScreenWidth.value,
+                        onValueChange = { state.customScreenWidth.value = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { heightFocusRequester.requestFocus() }),
+                        label = { Text(text = stringResource(R.string.width)) },
+                        singleLine = true,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        text = stringResource(R.string.container_config_custom_resolution_separator),
+                        style = TextStyle(fontSize = 16.sp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    NoExtractOutlinedTextField(
+                        modifier = Modifier.width(128.dp).focusRequester(heightFocusRequester),
+                        value = state.customScreenHeight.value,
+                        onValueChange = { state.customScreenHeight.value = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        label = { Text(text = stringResource(R.string.height)) },
+                        singleLine = true,
+                    )
                 }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val widthInt = state.customScreenWidth.value.toIntOrNull() ?: 0
-                        val heightInt = state.customScreenHeight.value.toIntOrNull() ?: 0
-                        if (widthInt == 0 || heightInt == 0) {
-                            state.customResolutionValidationError.value = nonzeroResolutionError
-                        } else if (widthInt <= heightInt) {
-                            state.customResolutionValidationError.value = aspectResolutionError
-                        } else {
-                            state.customResolutionValidationError.value = null
-                            state.applyScreenSizeToConfig()
-                            state.showCustomResolutionDialog.value = false
-                        }
-                    },
-                ) {
-                    Text(text = stringResource(R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { state.showCustomResolutionDialog.value = false },
-                ) {
-                    Text(text = stringResource(R.string.cancel))
+                if (state.customResolutionValidationError.value != null) {
+                    Text(
+                        text = state.customResolutionValidationError.value!!,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                        style = TextStyle(fontSize = 16.sp),
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
             }
-        )
-    }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val widthInt = state.customScreenWidth.value.toIntOrNull() ?: 0
+                    val heightInt = state.customScreenHeight.value.toIntOrNull() ?: 0
+                    if (widthInt == 0 || heightInt == 0) {
+                        state.customResolutionValidationError.value = nonzeroResolutionError
+                    } else if (widthInt <= heightInt) {
+                        state.customResolutionValidationError.value = aspectResolutionError
+                    } else {
+                        state.customResolutionValidationError.value = null
+                        state.applyScreenSizeToConfig()
+                        state.showCustomResolutionDialog.value = false
+                    }
+                },
+            ) {
+                Text(text = stringResource(R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { state.showCustomResolutionDialog.value = false },
+            ) {
+                Text(text = stringResource(R.string.cancel))
+            }
+        }
+    )
 
     GlassSurface(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(20.dp)) {
     Column {

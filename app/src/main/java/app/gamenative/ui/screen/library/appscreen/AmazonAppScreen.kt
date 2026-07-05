@@ -2,7 +2,7 @@ package app.gamenative.ui.screen.library.appscreen
 
 import android.content.Context
 import app.gamenative.ui.util.SnackbarManager
-import androidx.compose.material3.AlertDialog
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import app.gamenative.ui.component.dialog.LoadingDialog
@@ -504,94 +504,89 @@ override fun isInstalled(context: Context, libraryItem: LibraryItem): Boolean =
         var verifyResult by remember { mutableStateOf<String?>(null) }
         var isVerifying by remember { mutableStateOf(false) }
 
-        // Confirmation dialog before verifying
-        if (showDialog && !isVerifying && verifyResult == null) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text(stringResource(R.string.amazon_verify_files_title)) },
-                text = { Text(stringResource(R.string.amazon_verify_files_message)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            isVerifying = true
-                            val productId = productIdOf(libraryItem)
-                            CoroutineScope(Dispatchers.IO).launch {
-                                AmazonService.getInstallPath(productId)?.let { installPath ->
-                                    MarkerUtils.clearInstalledPrerequisiteMarkers(installPath)
-                                }
-                                val result = AmazonService.verifyGame(context, productId)
-                                withContext(Dispatchers.Main) {
-                                    isVerifying = false
-                                    verifyResult = if (result.isSuccess) {
-                                        val v = result.getOrNull()!!
-                                        if (v.isValid) {
-                                            context.getString(
-                                                R.string.amazon_verify_success,
-                                                v.verifiedOk,
-                                                v.totalFiles,
-                                            )
-                                        } else {
-                                            context.getString(
-                                                R.string.amazon_verify_failed_detail,
-                                                v.verifiedOk,
-                                                v.totalFiles,
-                                                v.missingFiles,
-                                                v.sizeMismatch,
-                                                v.hashMismatch,
-                                            )
-                                        }
+        GlassAlertDialog(
+            visible = showDialog && !isVerifying && verifyResult == null,
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(R.string.amazon_verify_files_title)) },
+            text = { Text(stringResource(R.string.amazon_verify_files_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        isVerifying = true
+                        val productId = productIdOf(libraryItem)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            AmazonService.getInstallPath(productId)?.let { installPath ->
+                                MarkerUtils.clearInstalledPrerequisiteMarkers(installPath)
+                            }
+                            val result = AmazonService.verifyGame(context, productId)
+                            withContext(Dispatchers.Main) {
+                                isVerifying = false
+                                verifyResult = if (result.isSuccess) {
+                                    val v = result.getOrNull()!!
+                                    if (v.isValid) {
+                                        context.getString(
+                                            R.string.amazon_verify_success,
+                                            v.verifiedOk,
+                                            v.totalFiles,
+                                        )
                                     } else {
                                         context.getString(
-                                            R.string.amazon_verify_error,
-                                            result.exceptionOrNull()?.message ?: "Unknown error",
+                                            R.string.amazon_verify_failed_detail,
+                                            v.verifiedOk,
+                                            v.totalFiles,
+                                            v.missingFiles,
+                                            v.sizeMismatch,
+                                            v.hashMismatch,
                                         )
                                     }
+                                } else {
+                                    context.getString(
+                                        R.string.amazon_verify_error,
+                                        result.exceptionOrNull()?.message ?: "Unknown error",
+                                    )
                                 }
                             }
-                        },
-                    ) {
-                        Text(stringResource(R.string.amazon_verify_confirm))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                },
-            )
-        }
+                        }
+                    },
+                ) {
+                    Text(stringResource(R.string.amazon_verify_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
 
-        // Progress dialog while verifying
-        if (isVerifying) {
-            AlertDialog(
-                onDismissRequest = { /* non-dismissable while verifying */ },
-                title = { Text(stringResource(R.string.amazon_verify_files_title)) },
-                text = { Text(stringResource(R.string.amazon_verify_in_progress)) },
-                confirmButton = {},
-            )
-        }
+        GlassAlertDialog(
+            visible = isVerifying,
+            onDismissRequest = {},
+            title = { Text(stringResource(R.string.amazon_verify_files_title)) },
+            text = { Text(stringResource(R.string.amazon_verify_in_progress)) },
+            confirmButton = {},
+        )
 
-        // Result dialog
-        if (verifyResult != null) {
-            AlertDialog(
-                onDismissRequest = {
-                    verifyResult = null
-                    showDialog = false
-                },
-                title = { Text(stringResource(R.string.amazon_verify_files_title)) },
-                text = { Text(verifyResult!!) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            verifyResult = null
-                            showDialog = false
-                        },
-                    ) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-            )
-        }
+        val capturedVerifyResult = remember(verifyResult) { verifyResult ?: "" }
+        GlassAlertDialog(
+            visible = verifyResult != null,
+            onDismissRequest = {
+                verifyResult = null
+                showDialog = false
+            },
+            title = { Text(stringResource(R.string.amazon_verify_files_title)) },
+            text = { Text(capturedVerifyResult) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        verifyResult = null
+                        showDialog = false
+                    },
+                ) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+        )
 
         return AppMenuOption(
             optionType = AppOptionMenuType.VerifyFiles,
@@ -733,41 +728,40 @@ override fun isInstalled(context: Context, libraryItem: LibraryItem): Boolean =
                 }
         }
 
-        if (showUninstallDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    hideUninstallDialog(libraryItem.appId)
-                },
-                title = { Text(stringResource(R.string.amazon_uninstall_game_title)) },
-                text = {
-                    Text(
-                        text = stringResource(
-                            R.string.amazon_uninstall_confirmation_message,
-                            libraryItem.name,
-                        ),
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            hideUninstallDialog(libraryItem.appId)
-                            performUninstall(context, libraryItem)
-                        },
-                    ) {
-                        Text(stringResource(R.string.uninstall))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = {
-                            hideUninstallDialog(libraryItem.appId)
-                        },
-                    ) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                },
-            )
-        }
+        GlassAlertDialog(
+            visible = showUninstallDialog,
+            onDismissRequest = {
+                hideUninstallDialog(libraryItem.appId)
+            },
+            title = { Text(stringResource(R.string.amazon_uninstall_game_title)) },
+            text = {
+                Text(
+                    text = stringResource(
+                        R.string.amazon_uninstall_confirmation_message,
+                        libraryItem.name,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        hideUninstallDialog(libraryItem.appId)
+                        performUninstall(context, libraryItem)
+                    },
+                ) {
+                    Text(stringResource(R.string.uninstall))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        hideUninstallDialog(libraryItem.appId)
+                    },
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 
     override fun loadContainerData(context: Context, libraryItem: LibraryItem): ContainerData {

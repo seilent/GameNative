@@ -1,7 +1,7 @@
 package app.gamenative.ui.screen.library.appscreen
 
 import android.content.Context
-import androidx.compose.material3.AlertDialog
+import app.gamenative.ui.component.dialog.GlassAlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import app.gamenative.ui.component.dialog.LoadingDialog
@@ -770,40 +770,39 @@ class GOGAppScreen : BaseAppScreen() {
         }
 
         // Show uninstall confirmation dialog
-        if (showUninstallDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    hideUninstallDialog(libraryItem.appId)
-                },
-                title = { Text(stringResource(R.string.gog_uninstall_game_title)) },
-                text = {
-                    Text(
-                        text = stringResource(
-                            R.string.gog_uninstall_confirmation_message,
-                            libraryItem.name,
-                        ),
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            hideUninstallDialog(libraryItem.appId)
-                            performUninstall(context, libraryItem)
-                        },
-                    ) {
-                        Text(stringResource(R.string.uninstall))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = {
-                            hideUninstallDialog(libraryItem.appId)
-                        },
-                    ) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                },
-            )
-        }
+        GlassAlertDialog(
+            visible = showUninstallDialog,
+            onDismissRequest = {
+                hideUninstallDialog(libraryItem.appId)
+            },
+            title = { Text(stringResource(R.string.gog_uninstall_game_title)) },
+            text = {
+                Text(
+                    text = stringResource(
+                        R.string.gog_uninstall_confirmation_message,
+                        libraryItem.name,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        hideUninstallDialog(libraryItem.appId)
+                        performUninstall(context, libraryItem)
+                    },
+                ) {
+                    Text(stringResource(R.string.uninstall))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        hideUninstallDialog(libraryItem.appId)
+                    },
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 }

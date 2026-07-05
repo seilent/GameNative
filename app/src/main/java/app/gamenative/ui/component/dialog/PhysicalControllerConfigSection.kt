@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.gamenative.R
 import app.gamenative.ui.theme.GlassFill
@@ -193,9 +192,9 @@ internal fun PhysicalControllerConfigSection(
         )
     }
 
-    Dialog(
+    GlassDialog(
+        visible = true,
         onDismissRequest = {
-            // Cancel: Restore original bindings
             controller?.let { ctrl ->
                 val existingBindings = ctrl.getControllerBindings().toList()
                 for (binding in existingBindings) {
