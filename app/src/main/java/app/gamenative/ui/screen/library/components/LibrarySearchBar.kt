@@ -6,8 +6,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -60,6 +59,7 @@ import app.gamenative.R
 import app.gamenative.ui.data.LibraryState
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import kotlinx.coroutines.launch
 
@@ -76,19 +76,13 @@ fun LibrarySearchBar(
     AnimatedVisibility(
         visible = isVisible,
         enter = expandVertically(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMedium,
-            ),
+            animationSpec = tween(Motion.DurationBase, easing = Motion.EaseGlass),
             expandFrom = Alignment.Top,
-        ) + fadeIn(),
+        ) + fadeIn(animationSpec = tween(Motion.DurationBase, easing = Motion.EaseGlass)),
         exit = shrinkVertically(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessHigh,
-            ),
+            animationSpec = tween(Motion.DurationFast, easing = Motion.EaseStandard),
             shrinkTowards = Alignment.Top,
-        ) + fadeOut(),
+        ) + fadeOut(animationSpec = tween(Motion.DurationFast, easing = Motion.EaseStandard)),
         modifier = modifier,
     ) {
         Box(

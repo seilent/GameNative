@@ -7,10 +7,10 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import app.gamenative.R
 import app.gamenative.ui.enums.ConnectionState
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 
 // shared with SteamUtils.awaitSteamLogin so banner UI and intent-launch await fall back to offline together.
@@ -65,8 +66,14 @@ fun ConnectionStatusBanner(
 
     AnimatedVisibility(
         visible = isVisible,
-        enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
-        exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+        enter = slideInVertically(
+            animationSpec = tween(Motion.DurationBase, easing = Motion.EaseGlass),
+            initialOffsetY = { -it },
+        ) + fadeIn(animationSpec = tween(Motion.DurationBase, easing = Motion.EaseGlass)),
+        exit = slideOutVertically(
+            animationSpec = tween(Motion.DurationFast, easing = Motion.EaseStandard),
+            targetOffsetY = { -it },
+        ) + fadeOut(animationSpec = tween(Motion.DurationFast, easing = Motion.EaseStandard)),
         modifier = modifier
     ) {
         Surface(

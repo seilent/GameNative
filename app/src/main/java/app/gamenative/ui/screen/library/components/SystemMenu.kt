@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -71,6 +72,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -343,17 +345,14 @@ fun SystemMenu(
             )
         }
 
-        // Menu panel - slides from right
+        val panelOffsetPx = with(LocalDensity.current) { 32.dp.roundToPx() }
+
         AnimatedVisibility(
             visible = isOpen,
-            enter = slideInHorizontally(
-                initialOffsetX = { fullWidth -> fullWidth },
-                animationSpec = Motion.PanelSlide,
-            ),
-            exit = slideOutHorizontally(
-                targetOffsetX = { fullWidth -> fullWidth },
-                animationSpec = Motion.PanelSlide,
-            ),
+            enter = fadeIn(tween(Motion.DurationBase, easing = Motion.EaseGlass)) +
+                slideInHorizontally(tween(Motion.DurationBase, easing = Motion.EaseGlass)) { panelOffsetPx },
+            exit = fadeOut(tween(Motion.DurationFast, easing = Motion.EaseStandard)) +
+                slideOutHorizontally(tween(Motion.DurationFast, easing = Motion.EaseStandard)) { panelOffsetPx },
             modifier = Modifier.align(Alignment.CenterEnd),
         ) {
             val panelShape = RoundedCornerShape(topStart = 32.dp, bottomStart = 32.dp)

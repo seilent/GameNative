@@ -3,6 +3,7 @@ package app.gamenative.ui.component
 import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -59,6 +60,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -1000,16 +1002,14 @@ fun ScreenEffectsPanel(
             )
         }
 
+        val panelOffsetPx = with(LocalDensity.current) { 32.dp.roundToPx() }
+
         AnimatedVisibility(
             visible = isVisible,
-            enter = slideInHorizontally(
-                initialOffsetX = { fullWidth -> fullWidth },
-                animationSpec = Motion.PanelSlide,
-            ) + fadeIn(animationSpec = Motion.Fade),
-            exit = slideOutHorizontally(
-                targetOffsetX = { fullWidth -> fullWidth },
-                animationSpec = Motion.PanelSlide,
-            ) + fadeOut(animationSpec = Motion.Fade),
+            enter = fadeIn(tween(Motion.DurationBase, easing = Motion.EaseGlass)) +
+                slideInHorizontally(tween(Motion.DurationBase, easing = Motion.EaseGlass)) { panelOffsetPx },
+            exit = fadeOut(tween(Motion.DurationFast, easing = Motion.EaseStandard)) +
+                slideOutHorizontally(tween(Motion.DurationFast, easing = Motion.EaseStandard)) { panelOffsetPx },
             modifier = Modifier.fillMaxHeight(),
         ) {
             GlassSurface(

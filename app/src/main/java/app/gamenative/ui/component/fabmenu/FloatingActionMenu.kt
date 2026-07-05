@@ -1,6 +1,7 @@
 package app.gamenative.ui.component.fabmenu
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -36,6 +37,7 @@ import app.gamenative.ui.component.fabmenu.state.FloatingActionMenuState
 import app.gamenative.ui.component.fabmenu.state.FloatingActionMenuValue
 import app.gamenative.ui.component.fabmenu.state.rememberFloatingActionMenuState
 import app.gamenative.ui.theme.LocalGameAccent
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.PluviaTheme
 import kotlinx.coroutines.launch
 
@@ -61,8 +63,14 @@ fun FloatingActionMenu(
     ) {
         AnimatedVisibility(
             visible = state.isOpen,
-            enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
-            exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
+            enter = fadeIn(animationSpec = tween(Motion.DurationBase, easing = Motion.EaseGlass)) + expandVertically(
+                animationSpec = tween(Motion.DurationBase, easing = Motion.EaseGlass),
+                expandFrom = Alignment.Bottom,
+            ),
+            exit = fadeOut(animationSpec = tween(Motion.DurationFast, easing = Motion.EaseStandard)) + shrinkVertically(
+                animationSpec = tween(Motion.DurationFast, easing = Motion.EaseStandard),
+                shrinkTowards = Alignment.Bottom,
+            ),
         ) {
             Column(
                 modifier = Modifier.offset(x = (-4).dp).padding(start = 4.dp),

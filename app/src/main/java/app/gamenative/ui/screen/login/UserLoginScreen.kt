@@ -108,6 +108,8 @@ import app.gamenative.ui.component.GlassSurface
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFill
 import app.gamenative.ui.theme.LocalGameAccent
+import androidx.compose.animation.Crossfade
+import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.theme.LocalOnAccent
 import app.gamenative.ui.theme.PluviaTheme
 
@@ -427,52 +429,84 @@ private fun UserLoginScreenContent(
                                     .verticalScroll(scrollState),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
-                                if (userLoginState.loginScreen == LoginScreen.TWO_FACTOR) {
-                                    TwoFactorAuthScreenContent(
-                                        userLoginState = userLoginState,
-                                        message = when {
-                                            userLoginState.previousCodeIncorrect ->
-                                                stringResource(R.string.steam_2fa_incorrect)
+                                Crossfade(
+                                    targetState = userLoginState.loginScreen,
+                                    animationSpec = Motion.Fade,
+                                    label = "loginStep",
+                                ) { screen ->
+                                    if (screen == LoginScreen.TWO_FACTOR) {
+                                        TwoFactorAuthScreenContent(
+                                            userLoginState = userLoginState,
+                                            message = when {
+                                                userLoginState.previousCodeIncorrect ->
+                                                    stringResource(R.string.steam_2fa_incorrect)
 
-                                            userLoginState.loginResult == LoginResult.DeviceAuth ->
-                                                stringResource(R.string.steam_2fa_device)
+                                                userLoginState.loginResult == LoginResult.DeviceAuth ->
+                                                    stringResource(R.string.steam_2fa_device)
 
-                                            userLoginState.loginResult == LoginResult.DeviceConfirm ->
-                                                stringResource(R.string.steam_2fa_confirmation)
+                                                userLoginState.loginResult == LoginResult.DeviceConfirm ->
+                                                    stringResource(R.string.steam_2fa_confirmation)
 
-                                            userLoginState.loginResult == LoginResult.EmailAuth ->
-                                                stringResource(
-                                                    R.string.steam_2fa_email,
-                                                    userLoginState.email ?: "...",
-                                                )
+                                                userLoginState.loginResult == LoginResult.EmailAuth ->
+                                                    stringResource(
+                                                        R.string.steam_2fa_email,
+                                                        userLoginState.email ?: "...",
+                                                    )
 
-                                            else -> ""
-                                        },
-                                        onSetTwoFactor = onSetTwoFactor,
-                                        onUseGuardTotp = onUseGuardTotp,
-                                        onLogin = onTwoFactorLogin,
-                                    )
-                                } else {
-                                    if (isLandscape) {
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                        ) {
-                                            QRCodeLogin(
+                                                else -> ""
+                                            },
+                                            onSetTwoFactor = onSetTwoFactor,
+                                            onUseGuardTotp = onUseGuardTotp,
+                                            onLogin = onTwoFactorLogin,
+                                        )
+                                    } else {
+                                        if (isLandscape) {
+                                            Row(
                                                 modifier = Modifier
-                                                    .weight(1f)
-                                                    .fillMaxHeight(),
-                                                isQrFailed = userLoginState.isQrFailed,
-                                                qrCode = userLoginState.qrCode,
-                                                onQrRetry = onQrRetry,
-                                                availableHeight = cardContentMaxHeight,
-                                            )
-                                            Box(
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .fillMaxHeight(),
+                                                    .fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(16.dp),
                                             ) {
+                                                QRCodeLogin(
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .fillMaxHeight(),
+                                                    isQrFailed = userLoginState.isQrFailed,
+                                                    qrCode = userLoginState.qrCode,
+                                                    onQrRetry = onQrRetry,
+                                                    availableHeight = cardContentMaxHeight,
+                                                )
+                                                Box(
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .fillMaxHeight(),
+                                                ) {
+                                                    CredentialsForm(
+                                                        connectionState = connectionState,
+                                                        username = userLoginState.username,
+                                                        onUsername = onUsername,
+                                                        password = userLoginState.password,
+                                                        onPassword = onPassword,
+                                                        rememberSession = userLoginState.rememberSession,
+                                                        onRememberSession = onRememberSession,
+                                                        onLoginBtnClick = onCredentialLogin,
+                                                        onRetryConnection = onRetryConnection,
+                                                        onContinueOffline = onContinueOffline,
+                                                    )
+                                                }
+                                            }
+                                        } else {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth(),
+                                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                            ) {
+                                                QRCodeLogin(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth(),
+                                                    isQrFailed = userLoginState.isQrFailed,
+                                                    qrCode = userLoginState.qrCode,
+                                                    onQrRetry = onQrRetry,
+                                                )
                                                 CredentialsForm(
                                                     connectionState = connectionState,
                                                     username = userLoginState.username,
@@ -486,32 +520,6 @@ private fun UserLoginScreenContent(
                                                     onContinueOffline = onContinueOffline,
                                                 )
                                             }
-                                        }
-                                    } else {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth(),
-                                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                                        ) {
-                                            QRCodeLogin(
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                isQrFailed = userLoginState.isQrFailed,
-                                                qrCode = userLoginState.qrCode,
-                                                onQrRetry = onQrRetry,
-                                            )
-                                            CredentialsForm(
-                                                connectionState = connectionState,
-                                                username = userLoginState.username,
-                                                onUsername = onUsername,
-                                                password = userLoginState.password,
-                                                onPassword = onPassword,
-                                                rememberSession = userLoginState.rememberSession,
-                                                onRememberSession = onRememberSession,
-                                                onLoginBtnClick = onCredentialLogin,
-                                                onRetryConnection = onRetryConnection,
-                                                onContinueOffline = onContinueOffline,
-                                            )
                                         }
                                     }
                                 }

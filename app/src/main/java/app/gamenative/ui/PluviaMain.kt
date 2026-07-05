@@ -102,6 +102,11 @@ import app.gamenative.ui.theme.GlassFillStrong
 import app.gamenative.ui.theme.Motion
 import app.gamenative.ui.util.SnackbarManager
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -1310,6 +1315,10 @@ fun PluviaMain(
             NavHost(
                 navController = navController,
                 startDestination = startDestination,
+                enterTransition = { fadeIn(tween(Motion.DurationBase, easing = Motion.EaseGlass)) + slideInHorizontally(tween(Motion.DurationBase, easing = Motion.EaseGlass)) { it / 6 } },
+                exitTransition = { fadeOut(tween(Motion.DurationFast, easing = Motion.EaseStandard)) + slideOutHorizontally(tween(Motion.DurationFast, easing = Motion.EaseStandard)) { -it / 12 } },
+                popEnterTransition = { fadeIn(tween(Motion.DurationBase, easing = Motion.EaseGlass)) + slideInHorizontally(tween(Motion.DurationBase, easing = Motion.EaseGlass)) { -it / 6 } },
+                popExitTransition = { fadeOut(tween(Motion.DurationFast, easing = Motion.EaseStandard)) + slideOutHorizontally(tween(Motion.DurationFast, easing = Motion.EaseStandard)) { it / 12 } },
             ) {
                 /** Login **/
                 composable(route = PluviaScreen.LoginUser.route) {
@@ -1474,7 +1483,13 @@ fun PluviaMain(
                 } */
 
                 /** Game Screen **/
-                composable(route = PluviaScreen.XServer.route) {
+                composable(
+                    route = PluviaScreen.XServer.route,
+                    enterTransition = { fadeIn(tween(Motion.DurationFast, easing = Motion.EaseStandard)) },
+                    exitTransition = { fadeOut(tween(Motion.DurationFast)) },
+                    popEnterTransition = { fadeIn(tween(Motion.DurationFast, easing = Motion.EaseStandard)) },
+                    popExitTransition = { fadeOut(tween(Motion.DurationFast)) },
+                ) {
                     val xServerIsOffline by viewModel.isOffline.collectAsStateWithLifecycle()
                     XServerScreen(
                         appId = state.launchedAppId,

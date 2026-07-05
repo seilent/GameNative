@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -17,7 +16,6 @@ import app.gamenative.ui.theme.DarkGlassBorder
 import app.gamenative.ui.theme.DarkGlassFill
 import app.gamenative.ui.theme.GlassBorder
 import app.gamenative.ui.theme.GlassFill
-import app.gamenative.ui.theme.GlassSheen
 import app.gamenative.ui.theme.LocalGameAccent
 
 @Composable
@@ -46,10 +44,7 @@ fun GlassSurface(
             .then(
                 if (sheen) {
                     Modifier.background(
-                        brush = Brush.verticalGradient(
-                            0.0f to GlassSheen,
-                            0.55f to Color.Transparent,
-                        ),
+                        color = Color.White.copy(alpha = 0.05f),
                         shape = shape,
                     )
                 } else {

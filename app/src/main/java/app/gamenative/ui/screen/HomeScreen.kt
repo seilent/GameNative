@@ -2,6 +2,10 @@ package app.gamenative.ui.screen
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +19,7 @@ import app.gamenative.ui.model.HomeViewModel
 import app.gamenative.ui.screen.downloads.HomeDownloadsScreen
 import app.gamenative.ui.screen.library.HomeLibraryScreen
 import app.gamenative.ui.theme.PluviaTheme
+import app.gamenative.ui.theme.Motion
 
 @Composable
 fun HomeScreen(
@@ -40,22 +45,28 @@ fun HomeScreen(
         }
     }
 
-    when (homeState.currentDestination) {
-        HomeDestination.Library -> HomeLibraryScreen(
-            onClickPlay = onClickPlay,
-            onTestGraphics = onTestGraphics,
-            onNavigateRoute = onNavigateRoute,
-            onLogout = onLogout,
-            onGoOnline = onGoOnline,
-            onDownloadsClick = { viewModel.onDestination(HomeDestination.Downloads) },
-            onGameBackdrop = onGameBackdrop,
-            isOffline = isOffline,
-        )
-        HomeDestination.Downloads -> HomeDownloadsScreen(
-            onBack = { viewModel.onDestination(HomeDestination.Library) },
-            onClickPlay = onClickPlay,
-            onTestGraphics = onTestGraphics,
-        )
+    AnimatedContent(
+        targetState = homeState.currentDestination,
+        transitionSpec = { fadeIn(Motion.Fade).togetherWith(fadeOut(Motion.Fade)) },
+        label = "homeDestinationSwap",
+    ) { destination ->
+        when (destination) {
+            HomeDestination.Library -> HomeLibraryScreen(
+                onClickPlay = onClickPlay,
+                onTestGraphics = onTestGraphics,
+                onNavigateRoute = onNavigateRoute,
+                onLogout = onLogout,
+                onGoOnline = onGoOnline,
+                onDownloadsClick = { viewModel.onDestination(HomeDestination.Downloads) },
+                onGameBackdrop = onGameBackdrop,
+                isOffline = isOffline,
+            )
+            HomeDestination.Downloads -> HomeDownloadsScreen(
+                onBack = { viewModel.onDestination(HomeDestination.Library) },
+                onClickPlay = onClickPlay,
+                onTestGraphics = onTestGraphics,
+            )
+        }
     }
 }
 

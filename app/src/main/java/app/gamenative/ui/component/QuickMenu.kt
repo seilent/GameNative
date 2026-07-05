@@ -4,6 +4,7 @@ import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -76,6 +77,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -411,16 +413,14 @@ fun QuickMenu(
             )
         }
 
+        val panelOffsetPx = with(LocalDensity.current) { 32.dp.roundToPx() }
+
         AnimatedVisibility(
             visibleState = visibleState,
-            enter = slideInHorizontally(
-                initialOffsetX = { fullWidth -> -fullWidth },
-                animationSpec = Motion.PanelSlide,
-            ),
-            exit = slideOutHorizontally(
-                targetOffsetX = { fullWidth -> -fullWidth },
-                animationSpec = Motion.PanelSlide,
-            ),
+            enter = fadeIn(tween(Motion.DurationBase, easing = Motion.EaseGlass)) +
+                slideInHorizontally(tween(Motion.DurationBase, easing = Motion.EaseGlass)) { -panelOffsetPx },
+            exit = fadeOut(tween(Motion.DurationFast, easing = Motion.EaseStandard)) +
+                slideOutHorizontally(tween(Motion.DurationFast, easing = Motion.EaseStandard)) { -panelOffsetPx },
             modifier = Modifier.align(Alignment.CenterStart),
         ) {
             GlassSurface(

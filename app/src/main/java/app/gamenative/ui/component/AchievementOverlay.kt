@@ -1,10 +1,12 @@
 package app.gamenative.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import app.gamenative.ui.theme.Motion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -84,8 +86,14 @@ fun BoxScope.AchievementOverlay() {
                 }
             )
             .padding(16.dp),
-        enter = slideInHorizontally(initialOffsetX = { if (isLeftAligned) -it else it }) + fadeIn(), // Slide in from left if left aligned, otherwise from right
-        exit = slideOutHorizontally(targetOffsetX = { if (isLeftAligned) -it else it }) + fadeOut(),
+        enter = slideInHorizontally(
+            animationSpec = tween(Motion.DurationBase, easing = Motion.EaseGlass),
+            initialOffsetX = { if (isLeftAligned) -it else it },
+        ) + fadeIn(animationSpec = tween(Motion.DurationBase, easing = Motion.EaseGlass)),
+        exit = slideOutHorizontally(
+            animationSpec = tween(Motion.DurationFast, easing = Motion.EaseStandard),
+            targetOffsetX = { if (isLeftAligned) -it else it },
+        ) + fadeOut(animationSpec = tween(Motion.DurationFast, easing = Motion.EaseStandard)),
     ) {
         current?.let { notification ->
             AchievementNotificationContent(notification)

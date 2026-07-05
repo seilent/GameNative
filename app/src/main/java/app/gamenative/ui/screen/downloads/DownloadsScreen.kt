@@ -3,7 +3,11 @@ package app.gamenative.ui.screen.downloads
 import android.content.res.Configuration
 import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -228,49 +232,55 @@ fun HomeDownloadsScreen(
                         .fillMaxHeight(),
                     shape = RoundedCornerShape(24.dp),
                 ) {
-                    when (selectedSection) {
-                        DownloadsSection.Downloads -> DownloadsContent(
-                            state = state,
-                            onResumeDownload = viewModel::onResumeDownload,
-                            onPauseDownload = viewModel::onPauseDownload,
-                            onCancelDownload = viewModel::onCancelDownload,
-                            onPauseAll = viewModel::onPauseAll,
-                            onResumeAll = viewModel::onResumeAll,
-                            onCancelAll = viewModel::onCancelAll,
-                            onClearFinished = viewModel::onClearFinished,
-                            onOpenGame = { item ->
-                                openGame(item.gameSource, item.appId, item.gameName, item.iconUrl)
-                            },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(20.dp),
-                        )
-
-                        DownloadsSection.Storage -> Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(20.dp),
-                        ) {
-                            val context = LocalContext.current
-                            var selectedStorageTargetId by rememberSaveable {
-                                mutableStateOf(StorageManager.defaultInstallTarget(context).id)
-                            }
-
-                            StorageTargetTabs(
-                                selectedTargetId = selectedStorageTargetId,
-                                onSelectTarget = { selectedStorageTargetId = it.id },
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            ContainerStorageManagerContent(
-                                state = storageManagerState,
-                                onOpenGame = { gameSource, appId, name, iconUrl ->
-                                    openGame(gameSource, appId.removePrefix("${gameSource.name}_"), name, iconUrl)
+                    AnimatedContent(
+                        targetState = selectedSection,
+                        transitionSpec = { fadeIn(Motion.Fade).togetherWith(fadeOut(Motion.Fade)) },
+                        label = "downloadsSection",
+                    ) { section ->
+                        when (section) {
+                            DownloadsSection.Downloads -> DownloadsContent(
+                                state = state,
+                                onResumeDownload = viewModel::onResumeDownload,
+                                onPauseDownload = viewModel::onPauseDownload,
+                                onCancelDownload = viewModel::onCancelDownload,
+                                onPauseAll = viewModel::onPauseAll,
+                                onResumeAll = viewModel::onResumeAll,
+                                onCancelAll = viewModel::onCancelAll,
+                                onClearFinished = viewModel::onClearFinished,
+                                onOpenGame = { item ->
+                                    openGame(item.gameSource, item.appId, item.gameName, item.iconUrl)
                                 },
-                                targetFilter = StorageManager.targetById(context, selectedStorageTargetId),
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
+                                    .fillMaxSize()
+                                    .padding(20.dp),
                             )
+
+                            DownloadsSection.Storage -> Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(20.dp),
+                            ) {
+                                val context = LocalContext.current
+                                var selectedStorageTargetId by rememberSaveable {
+                                    mutableStateOf(StorageManager.defaultInstallTarget(context).id)
+                                }
+
+                                StorageTargetTabs(
+                                    selectedTargetId = selectedStorageTargetId,
+                                    onSelectTarget = { selectedStorageTargetId = it.id },
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                ContainerStorageManagerContent(
+                                    state = storageManagerState,
+                                    onOpenGame = { gameSource, appId, name, iconUrl ->
+                                        openGame(gameSource, appId.removePrefix("${gameSource.name}_"), name, iconUrl)
+                                    },
+                                    targetFilter = StorageManager.targetById(context, selectedStorageTargetId),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                )
+                            }
                         }
                     }
                 }
