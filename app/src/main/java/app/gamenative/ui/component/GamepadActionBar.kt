@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -71,7 +72,7 @@ private fun GamepadButtonHint(
     modifier: Modifier = Modifier,
 ) {
     val clickableModifier = if (action.onClick != null) {
-        modifier.clickable(onClick = action.onClick)
+        modifier.focusProperties { canFocus = false }.clickable(onClick = action.onClick)
     } else {
         modifier
     }
@@ -132,6 +133,7 @@ fun GamepadActionBar(
     ) {
         Box(
             modifier = Modifier
+                .focusProperties { canFocus = false }
                 .fillMaxWidth(),
         ) {
             GlassSurface(
