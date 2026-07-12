@@ -139,7 +139,12 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     private native void nativeSeifgHostSpike();
     public void seifgHostSpike() { nativeSeifgHostSpike(); }
     private native void nativeSetHostFramegen(boolean enabled, int quality, int multiplier);
-    public void setHostFramegen(boolean enabled, int quality, int multiplier) { nativeSetHostFramegen(enabled, quality, multiplier); }
+    public void setHostFramegen(boolean enabled, int quality, int multiplier) {
+        cachedFramegenEnabled = enabled;
+        cachedFramegenQuality = quality;
+        cachedFramegenMultiplier = multiplier;
+        nativeSetHostFramegen(enabled, quality, multiplier);
+    }
     private native void nativeSetFlowDownscale(int level);
     public void setFlowDownscale(int level) { nativeSetFlowDownscale(level); }
     private native void nativeSetHostEffect(int effectId, float sharpness, int effectMask, float brightness, float contrast, float gamma);
@@ -255,7 +260,14 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
                 surfaceInitialized = false;
                 nativeDestroy();
             } else {
+                nativeSetSfCallbackTarget(this);
+                nativeInitScanout();
+                nativeSetScanoutPacing(cachedPacingIntervalNs);
+                if (cachedFramegenEnabled) {
+                    nativeSetHostFramegen(true, cachedFramegenQuality, cachedFramegenMultiplier);
+                }
                 updateScene();
+                resubmitAllBuffers();
                 return;
             }
         }
@@ -264,9 +276,13 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
             nativeSetSfCallbackTarget(this);
             updateTransform();
             nativeInitScanout();
+            nativeSetScanoutPacing(cachedPacingIntervalNs);
+            if (cachedFramegenEnabled) {
+                nativeSetHostFramegen(true, cachedFramegenQuality, cachedFramegenMultiplier);
+            }
             sendCursorToNative(lastCursor);
-            updateScene(); // creates WindowSurface SCs
-            resubmitAllBuffers(); // pushes buffers into the freshly created SCs
+            updateScene();
+            resubmitAllBuffers();
         }
     }
 
@@ -666,7 +682,15 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     @Override
     public void setFrameRating(FrameRating fr) { hudRef = fr; }
 
-    public void setScanoutPacing(long intervalNs) { nativeSetScanoutPacing(intervalNs); }
+    private long cachedPacingIntervalNs = 0;
+    private boolean cachedFramegenEnabled = false;
+    private int cachedFramegenQuality = 0;
+    private int cachedFramegenMultiplier = 2;
+
+    public void setScanoutPacing(long intervalNs) {
+        cachedPacingIntervalNs = intervalNs;
+        nativeSetScanoutPacing(intervalNs);
+    }
     @Override
     public String getForceFullscreenWMClass() { return forceFullscreenWMClass; }
     @Override

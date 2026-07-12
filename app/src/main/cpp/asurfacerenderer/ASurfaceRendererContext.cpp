@@ -152,6 +152,7 @@ bool ASurfaceRendererContext::loadScanoutApi() {
 void ASurfaceRendererContext::initScanout() {
     if (scanoutActive.load()) return;
     if (!window || !loadScanoutApi()) return;
+    scanoutNextPresentNs = 0;
     scanoutCursorSC = SC_CREATE(window, "(x11_cursor)");
     if (!scanoutCursorSC) {
         return;
