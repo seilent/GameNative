@@ -1,4 +1,4 @@
-name: Create tagged prerelease
+name: Create tagged release
 
 on:
   push:
@@ -163,7 +163,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          prerelease: true
+          prerelease: false
           body_path: release-notes/${{ github.ref_name }}.md
           files: |
             gamenative-${{ github.ref_name }}.apk
