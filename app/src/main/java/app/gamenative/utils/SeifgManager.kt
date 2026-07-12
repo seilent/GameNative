@@ -48,12 +48,12 @@ object SeifgManager {
     }
 
     fun quality(container: Container): Int {
-        val raw = container.getExtra(EXTRA_QUALITY, "2").toIntOrNull() ?: 2
+        val raw = container.getExtra(EXTRA_QUALITY, "0").toIntOrNull() ?: 0
         return raw.coerceIn(0, 2)
     }
 
     fun flowQuality(container: Container): Int {
-        val raw = container.getExtra(EXTRA_FLOW_QUALITY, "1").toIntOrNull() ?: 1
+        val raw = container.getExtra(EXTRA_FLOW_QUALITY, "3").toIntOrNull() ?: 3
         return raw.coerceIn(1, 3)
     }
 

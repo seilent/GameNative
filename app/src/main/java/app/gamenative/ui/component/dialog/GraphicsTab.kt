@@ -355,8 +355,6 @@ fun GraphicsTabContent(state: ContainerConfigState, default: Boolean = false, pa
             }
         }
 
-        if (!default) SeifgSection(state, panelRefreshHz)
-
         SettingsSwitchWithAction(
             colors = settingsTileColorsAlt(),
             title = { Text(text = stringResource(R.string.use_dri3)) },
@@ -601,133 +599,142 @@ internal fun SettingsAdjustmentRow(
 }
 
 @Composable
-private fun SeifgSection(state: ContainerConfigState, panelRefreshHz: Int = 120) {
+internal fun FrameGenTabContent(state: ContainerConfigState, default: Boolean, panelRefreshHz: Int = 120) {
     val config = state.config.value
     val seifgSupported = config.containerVariant.equals(Container.BIONIC, ignoreCase = true)
     if (!seifgSupported) return
 
     val isSurfaceFlinger = config.displayRenderer.equals(Container.DEFAULT_DISPLAY_RENDERER, ignoreCase = true)
-
     val multiplierSelectable = panelRefreshHz > 60
-    LaunchedEffect(multiplierSelectable) {
-        if (!multiplierSelectable && state.config.value.seifgMultiplier != 2) {
-            state.config.value = state.config.value.copy(seifgMultiplier = 2)
+
+    if (!default) {
+        LaunchedEffect(multiplierSelectable) {
+            if (!multiplierSelectable && state.config.value.seifgMultiplier != 2) {
+                state.config.value = state.config.value.copy(seifgMultiplier = 2)
+            }
         }
     }
 
-    SettingsGroup {
-        SettingsSwitchWithAction(
-            colors = settingsTileColorsAlt(),
-            title = { Text(text = stringResource(R.string.seifg_enable)) },
-            subtitle = { Text(text = stringResource(R.string.seifg_description)) },
-            state = config.seifgEnabled,
-            enabled = isSurfaceFlinger,
-            onCheckedChange = {
-                state.config.value = config.copy(seifgEnabled = it)
-            },
-        )
-        if (!isSurfaceFlinger) {
+    GlassSurface(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), shape = RoundedCornerShape(20.dp)) {
+    Column {
+    if (default) {
+        SettingsGroup {
             Text(
-                text = stringResource(R.string.seifg_requires_surfaceflinger),
+                text = stringResource(R.string.seifg_default_hint),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = PluviaTheme.colors.textMuted,
             )
         }
-        if (config.seifgEnabled && isSurfaceFlinger) {
-            if (multiplierSelectable) {
+    } else {
+        SettingsGroup {
+            SettingsSwitchWithAction(
+                colors = settingsTileColorsAlt(),
+                title = { Text(text = stringResource(R.string.seifg_enable)) },
+                subtitle = { Text(text = stringResource(R.string.seifg_description)) },
+                state = config.seifgEnabled,
+                enabled = isSurfaceFlinger,
+                onCheckedChange = {
+                    state.config.value = config.copy(seifgEnabled = it)
+                },
+            )
+            if (!isSurfaceFlinger) {
+                Text(
+                    text = stringResource(R.string.seifg_requires_surfaceflinger),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = PluviaTheme.colors.textMuted,
+                )
+            }
+            if (config.seifgEnabled && isSurfaceFlinger) {
+                if (multiplierSelectable) {
+                    SettingsAdjustmentRow(
+                        title = stringResource(R.string.seifg_multiplier),
+                        valueText = "${config.seifgMultiplier}x",
+                        value = config.seifgMultiplier.toFloat(),
+                        valueRange = 2f..3f,
+                        steps = 0,
+                        onValueChange = { newValue ->
+                            val clamped = newValue.roundToInt().coerceIn(2, 3)
+                            state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                        },
+                        onDecrease = {
+                            val clamped = (config.seifgMultiplier - 1).coerceIn(2, 3)
+                            state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                        },
+                        onIncrease = {
+                            val clamped = (config.seifgMultiplier + 1).coerceIn(2, 3)
+                            state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                        },
+                    )
+                }
+                val maxFps = (panelRefreshHz.coerceAtLeast(35) / 5) * 5
+                val displayTarget = config.seifgTargetFps.coerceIn(30, maxFps)
                 SettingsAdjustmentRow(
-                    title = stringResource(R.string.seifg_multiplier),
-                    valueText = "${config.seifgMultiplier}x",
-                    value = config.seifgMultiplier.toFloat(),
-                    valueRange = 2f..3f,
-                    steps = 0,
+                    title = stringResource(R.string.seifg_target_fps),
+                    valueText = "$displayTarget fps",
+                    value = displayTarget.toFloat(),
+                    valueRange = 30f..maxFps.toFloat(),
+                    steps = ((maxFps - 30) / 5 - 1).coerceAtLeast(0),
                     onValueChange = { newValue ->
-                        val clamped = newValue.roundToInt().coerceIn(2, 3)
-                        state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                        val clamped = newValue.roundToInt().coerceIn(30, maxFps)
+                        state.config.value = state.config.value.copy(seifgTargetFps = clamped)
                     },
                     onDecrease = {
-                        val clamped = (config.seifgMultiplier - 1).coerceIn(2, 3)
-                        state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                        val clamped = (config.seifgTargetFps - 5).coerceIn(30, maxFps)
+                        state.config.value = state.config.value.copy(seifgTargetFps = clamped)
                     },
                     onIncrease = {
-                        val clamped = (config.seifgMultiplier + 1).coerceIn(2, 3)
-                        state.config.value = state.config.value.copy(seifgMultiplier = clamped)
+                        val clamped = (config.seifgTargetFps + 5).coerceIn(30, maxFps)
+                        state.config.value = state.config.value.copy(seifgTargetFps = clamped)
                     },
                 )
-            }
-            val maxFps = (panelRefreshHz.coerceAtLeast(35) / 5) * 5
-            val displayTarget = config.seifgTargetFps.coerceIn(30, maxFps)
-            SettingsAdjustmentRow(
-                title = stringResource(R.string.seifg_target_fps),
-                valueText = "$displayTarget fps",
-                value = displayTarget.toFloat(),
-                valueRange = 30f..maxFps.toFloat(),
-                steps = ((maxFps - 30) / 5 - 1).coerceAtLeast(0),
-                onValueChange = { newValue ->
-                    val clamped = newValue.roundToInt().coerceIn(30, maxFps)
-                    state.config.value = state.config.value.copy(seifgTargetFps = clamped)
-                },
-                onDecrease = {
-                    val clamped = (config.seifgTargetFps - 5).coerceIn(30, maxFps)
-                    state.config.value = state.config.value.copy(seifgTargetFps = clamped)
-                },
-                onIncrease = {
-                    val clamped = (config.seifgTargetFps + 5).coerceIn(30, maxFps)
-                    state.config.value = state.config.value.copy(seifgTargetFps = clamped)
-                },
-            )
-            Text(
-                text = stringResource(
-                    R.string.seifg_target_fps_desc,
-                    config.seifgTargetFps / config.seifgMultiplier.coerceAtLeast(2),
-                ),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.6f),
-            )
-            run {
-                val qualityNames = listOf("Performance", "Balanced", "Quality")
-                SettingsAdjustmentRow(
-                    title = stringResource(R.string.seifg_quality),
-                    valueText = qualityNames[config.seifgQuality.coerceIn(0, 2)],
-                    value = config.seifgQuality.toFloat(),
-                    valueRange = 0f..2f,
-                    steps = 1,
-                    onValueChange = { newVal ->
-                        state.config.value = state.config.value.copy(seifgQuality = newVal.toInt().coerceIn(0, 2))
-                    },
-                    onDecrease = {
-                        val clamped = (config.seifgQuality - 1).coerceIn(0, 2)
-                        state.config.value = state.config.value.copy(seifgQuality = clamped)
-                    },
-                    onIncrease = {
-                        val clamped = (config.seifgQuality + 1).coerceIn(0, 2)
-                        state.config.value = state.config.value.copy(seifgQuality = clamped)
-                    },
+                Text(
+                    text = stringResource(
+                        R.string.seifg_target_fps_desc,
+                        config.seifgTargetFps / config.seifgMultiplier.coerceAtLeast(2),
+                    ),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.6f),
                 )
-            }
-            run {
-                val flowNames = listOf("Full", "Half", "Quarter")
-                SettingsAdjustmentRow(
-                    title = stringResource(R.string.seifg_flow_quality),
-                    valueText = flowNames[(config.seifgFlowQuality - 1).coerceIn(0, 2)],
-                    value = config.seifgFlowQuality.toFloat(),
-                    valueRange = 1f..3f,
-                    steps = 1,
-                    onValueChange = { newVal ->
-                        state.config.value = state.config.value.copy(seifgFlowQuality = newVal.toInt().coerceIn(1, 3))
-                    },
-                    onDecrease = {
-                        val clamped = (config.seifgFlowQuality - 1).coerceIn(1, 3)
-                        state.config.value = state.config.value.copy(seifgFlowQuality = clamped)
-                    },
-                    onIncrease = {
-                        val clamped = (config.seifgFlowQuality + 1).coerceIn(1, 3)
-                        state.config.value = state.config.value.copy(seifgFlowQuality = clamped)
-                    },
-                )
+                run {
+                    val qualityNames = listOf("Performance", "Balanced", "Quality")
+                    SettingsAdjustmentRow(
+                        title = stringResource(R.string.seifg_quality),
+                        valueText = qualityNames[config.seifgQuality.coerceIn(0, 2)],
+                        value = config.seifgQuality.toFloat(),
+                        valueRange = 0f..2f,
+                        steps = 1,
+                        onValueChange = { newVal ->
+                            state.config.value = state.config.value.copy(seifgQuality = newVal.toInt().coerceIn(0, 2))
+                        },
+                        onDecrease = {
+                            val clamped = (config.seifgQuality - 1).coerceIn(0, 2)
+                            state.config.value = state.config.value.copy(seifgQuality = clamped)
+                        },
+                        onIncrease = {
+                            val clamped = (config.seifgQuality + 1).coerceIn(0, 2)
+                            state.config.value = state.config.value.copy(seifgQuality = clamped)
+                        },
+                    )
+                }
+                run {
+                    val flowNames = listOf("Full", "Half", "Quarter")
+                    SettingsAdjustmentRow(
+                        title = stringResource(R.string.seifg_flow_quality),
+                        valueText = flowNames[(config.seifgFlowQuality - 1).coerceIn(0, 2)],
+                        value = (4 - config.seifgFlowQuality).toFloat(),
+                        valueRange = 1f..3f,
+                        steps = 1,
+                        onValueChange = { newVal -> state.config.value = state.config.value.copy(seifgFlowQuality = (4 - newVal.toInt()).coerceIn(1, 3)) },
+                        onDecrease = { val clamped = (config.seifgFlowQuality + 1).coerceIn(1, 3); state.config.value = state.config.value.copy(seifgFlowQuality = clamped) },
+                        onIncrease = { val clamped = (config.seifgFlowQuality - 1).coerceIn(1, 3); state.config.value = state.config.value.copy(seifgFlowQuality = clamped) },
+                    )
+                }
             }
         }
+    }
+    }
     }
 }

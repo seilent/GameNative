@@ -103,8 +103,8 @@ data class ContainerData(
     val seifgEnabled: Boolean = false,
     val seifgTargetFps: Int = 60,
     val seifgMultiplier: Int = 2,
-    val seifgQuality: Int = 2,
-    val seifgFlowQuality: Int = 1,
+    val seifgQuality: Int = 0,
+    val seifgFlowQuality: Int = 3,
     val stickAntiDeadzone: Float = 0f,
 ) {
     companion object {
