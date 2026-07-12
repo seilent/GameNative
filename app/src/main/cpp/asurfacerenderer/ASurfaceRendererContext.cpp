@@ -366,6 +366,13 @@ void ASurfaceRendererContext::setHostFramegen(bool enabled, int quality, int mul
     SCANOUT_LOG("setHostFramegen enabled=%d quality=%d mult=%d", (int)on, quality, multiplier);
 }
 
+void ASurfaceRendererContext::setFlowDownscale(int level) {
+    if (level < 1) level = 1;
+    if (level > 3) level = 3;
+    std::lock_guard<std::mutex> lk(hostFgMutex);
+    hostFgFlowDownscale = level;
+}
+
 void ASurfaceRendererContext::setHostEffect(int effectId, float sharpness, int effectMask,
                                             float brightness, float contrast, float gamma) {
     hostEffectId.store(effectId, std::memory_order_relaxed);
@@ -418,10 +425,10 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
     AHardwareBuffer_describe(ahb, &incDesc);
 
     if (!hostFg.ok()) {
-        int q; int mult;
-        { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; }
+        int q; int mult; int fd;
+        { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; fd = hostFgFlowDownscale; }
         SCANOUT_LOG("hostFg incoming AHB fmt=%u %ux%u", incDesc.format, incDesc.width, incDesc.height);
-        if (!hostFg.init(incDesc.width, incDesc.height, incDesc.format, (uint32_t)q, (uint32_t)mult)) {
+        if (!hostFg.init(incDesc.width, incDesc.height, incDesc.format, (uint32_t)q, (uint32_t)mult, (uint32_t)fd)) {
             hostFgEnabled.store(false, std::memory_order_relaxed);
             presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
             return;

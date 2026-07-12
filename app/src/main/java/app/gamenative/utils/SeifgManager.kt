@@ -11,6 +11,7 @@ object SeifgManager {
     const val EXTRA_ARMED = "seifgEnabled"
     const val EXTRA_MULTIPLIER = "seifgMultiplier"
     const val EXTRA_QUALITY = "seifgQuality"
+    const val EXTRA_FLOW_QUALITY = "seifgFlowQuality"
     const val EXTRA_BASE_FPS_CAP = "seifgBaseFpsCap"
     const val EXTRA_TARGET_FPS = "seifgTargetFps"
 
@@ -47,14 +48,13 @@ object SeifgManager {
     }
 
     fun quality(container: Container): Int {
-        val raw = container.getExtra(EXTRA_QUALITY, "1").toIntOrNull() ?: 1
-        val remapped = when (raw) {
-            0, 1 -> 0
-            2 -> 1
-            3, 4 -> 2
-            else -> 1
-        }
-        return remapped.coerceIn(0, 2)
+        val raw = container.getExtra(EXTRA_QUALITY, "2").toIntOrNull() ?: 2
+        return raw.coerceIn(0, 2)
+    }
+
+    fun flowQuality(container: Container): Int {
+        val raw = container.getExtra(EXTRA_FLOW_QUALITY, "1").toIntOrNull() ?: 1
+        return raw.coerceIn(1, 3)
     }
 
     fun targetFps(container: Container): Int =

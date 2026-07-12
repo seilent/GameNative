@@ -686,6 +686,48 @@ private fun SeifgSection(state: ContainerConfigState, panelRefreshHz: Int = 120)
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.6f),
             )
+            run {
+                val qualityNames = listOf("Performance", "Balanced", "Quality")
+                SettingsAdjustmentRow(
+                    title = stringResource(R.string.seifg_quality),
+                    valueText = qualityNames[config.seifgQuality.coerceIn(0, 2)],
+                    value = config.seifgQuality.toFloat(),
+                    valueRange = 0f..2f,
+                    steps = 1,
+                    onValueChange = { newVal ->
+                        state.config.value = state.config.value.copy(seifgQuality = newVal.toInt().coerceIn(0, 2))
+                    },
+                    onDecrease = {
+                        val clamped = (config.seifgQuality - 1).coerceIn(0, 2)
+                        state.config.value = state.config.value.copy(seifgQuality = clamped)
+                    },
+                    onIncrease = {
+                        val clamped = (config.seifgQuality + 1).coerceIn(0, 2)
+                        state.config.value = state.config.value.copy(seifgQuality = clamped)
+                    },
+                )
+            }
+            run {
+                val flowNames = listOf("Full", "Half", "Quarter")
+                SettingsAdjustmentRow(
+                    title = stringResource(R.string.seifg_flow_quality),
+                    valueText = flowNames[(config.seifgFlowQuality - 1).coerceIn(0, 2)],
+                    value = config.seifgFlowQuality.toFloat(),
+                    valueRange = 1f..3f,
+                    steps = 1,
+                    onValueChange = { newVal ->
+                        state.config.value = state.config.value.copy(seifgFlowQuality = newVal.toInt().coerceIn(1, 3))
+                    },
+                    onDecrease = {
+                        val clamped = (config.seifgFlowQuality - 1).coerceIn(1, 3)
+                        state.config.value = state.config.value.copy(seifgFlowQuality = clamped)
+                    },
+                    onIncrease = {
+                        val clamped = (config.seifgFlowQuality + 1).coerceIn(1, 3)
+                        state.config.value = state.config.value.copy(seifgFlowQuality = clamped)
+                    },
+                )
+            }
         }
     }
 }

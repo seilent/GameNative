@@ -59,7 +59,7 @@ AHardwareBuffer* allocAhb(uint32_t w, uint32_t h, uint32_t format) {
 
 }
 
-bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uint32_t quality_, uint32_t multiplier) {
+bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uint32_t quality_, uint32_t multiplier, uint32_t flowDownscale) {
     w = width; h = height; ahbFmt = ahbFormat; vkFmt = ahbToVk(ahbFormat);
     quality = quality_ > 4 ? 4 : quality_;
     if (multiplier < 2) multiplier = 2;
@@ -80,6 +80,7 @@ bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uin
         outs[i] = outAhb[i];
     }
     seifg::initialize(uuid, false, quality, (uint64_t)multiplier, {});
+    if (flowDownscale > 1) seifg::setFlowDownscale(flowDownscale);
     ctxId = seifg::createContextFromAHB(in0, in1, outs, VkExtent2D{w, h}, static_cast<VkFormat>(vkFmt));
     if (ctxId < 0) { FERR("createContext failed"); return false; }
     ready = true;

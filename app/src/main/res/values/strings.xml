@@ -1287,6 +1287,7 @@
     <string name="library_layout_capsule">Capsule</string>
     <string name="library_layout_hero">Hero</string>
     <string name="library_layout_carousel">Carousel</string>
+    <string name="library_layout_deck">Deck</string>
     <string name="library_search_placeholder">Search your games…</string>
     <string name="library_search_description">Search</string>
     <string name="library_search_clear">Clear search</string>
@@ -1568,6 +1569,7 @@
     <string name="seifg_flow_scale">Flow scale</string>
     <string name="seifg_flow_scale_desc">Lower is more stable; higher is smoother but can artifact.</string>
     <string name="seifg_quality">Quality</string>
+    <string name="seifg_flow_quality">Flow resolution</string>
     <string name="seifg_performance_mode">Performance mode</string>
     <string name="seifg_not_supported">Frame generation requires a Bionic container</string>
     <string name="seifg_requires_surfaceflinger">Requires the SurfaceFlinger renderer.</string>

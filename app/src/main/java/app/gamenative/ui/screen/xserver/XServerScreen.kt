@@ -553,6 +553,7 @@ fun XServerScreen(
         if (SeifgManager.HOST_SIDE_FRAMEGEN && isSeifgAvailable) {
             xServerView?.setHostFramegen(
                 true, SeifgManager.quality(container), SeifgManager.multiplier(container))
+            xServerView?.setFlowDownscale(SeifgManager.flowQuality(container))
         }
     }
 

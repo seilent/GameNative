@@ -58,6 +58,12 @@ public class XServerView extends SurfaceView implements SurfaceHolder.Callback, 
         }
     }
 
+    public void setFlowDownscale(int level) {
+        if (renderer instanceof ASurfaceRenderer scRenderer) {
+            scRenderer.setFlowDownscale(level);
+        }
+    }
+
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
         if (renderer instanceof VulkanRenderer vkRenderer) {

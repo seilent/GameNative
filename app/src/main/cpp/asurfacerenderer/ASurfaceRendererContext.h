@@ -57,6 +57,7 @@ public:
                          int64_t windowId = 0, int64_t serial = 0);
     void setScanoutPacing(int64_t intervalNs);
     void setHostFramegen(bool enabled, int quality, int multiplier);
+    void setFlowDownscale(int level);
     void setHostEffect(int effectId, float sharpness, int effectMask,
                        float brightness, float contrast, float gamma);
 
@@ -91,6 +92,7 @@ private:
     std::mutex hostFgMutex;
     int hostFgQuality = 2;
     int hostFgMult = 2;
+    int hostFgFlowDownscale = 1;
 
     HostEffects hostEffects;
     std::atomic<int> hostEffectId{0};

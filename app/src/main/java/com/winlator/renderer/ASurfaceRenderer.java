@@ -140,6 +140,8 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     public void seifgHostSpike() { nativeSeifgHostSpike(); }
     private native void nativeSetHostFramegen(boolean enabled, int quality, int multiplier);
     public void setHostFramegen(boolean enabled, int quality, int multiplier) { nativeSetHostFramegen(enabled, quality, multiplier); }
+    private native void nativeSetFlowDownscale(int level);
+    public void setFlowDownscale(int level) { nativeSetFlowDownscale(level); }
     private native void nativeSetHostEffect(int effectId, float sharpness, int effectMask, float brightness, float contrast, float gamma);
     public void setHostEffect(int effectId, float sharpness, int effectMask, float brightness, float contrast, float gamma) {
         nativeSetHostEffect(effectId, sharpness, effectMask, brightness, contrast, gamma);
