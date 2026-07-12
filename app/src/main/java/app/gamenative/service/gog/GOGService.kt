@@ -14,6 +14,7 @@ import app.gamenative.data.LaunchInfo
 import app.gamenative.data.LibraryItem
 import app.gamenative.events.AndroidEvent
 import app.gamenative.PluviaApp
+import app.gamenative.PrefManager
 import app.gamenative.ui.util.SnackbarManager
 import app.gamenative.service.NotificationHelper
 import app.gamenative.utils.ContainerUtils
@@ -337,6 +338,10 @@ class GOGService : Service() {
 
         fun downloadGame(context: Context, gameId: String, installPath: String, containerLanguage: String, target: StorageTarget? = null): Result<DownloadInfo?> {
             val instance = getInstance() ?: return Result.failure(Exception("Service not available"))
+
+            val absPath = File(installPath).absolutePath
+            PrefManager.removePendingPath(absPath)
+            PrefManager.removeSuppressedPaths(listOf(absPath))
 
             // Create DownloadInfo for progress tracking
             val downloadInfo = DownloadInfo(jobCount = 1, gameId = 0, downloadingAppIds = CopyOnWriteArrayList<Int>())

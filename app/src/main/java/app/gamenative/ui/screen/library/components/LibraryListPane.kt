@@ -256,6 +256,7 @@ internal fun LibraryListPane(
                         ) {
                             val appInfoList = state.appInfoList
                             val compatibilityMap = decorations.compatibilityMap
+                            val deletingAppIds = decorations.deletingAppIds
                             val imageRefreshCounter = state.imageRefreshCounter
                             val totalAppsInFilter = state.totalAppsInFilter
                             items(
@@ -285,6 +286,7 @@ internal fun LibraryListPane(
                                         paneType = currentLayout,
                                         onFocus = { targetOfScroll = item.index; onFocusedIndexChanged(item.index) },
                                         imageRefreshCounter = imageRefreshCounter,
+                                        isDeleting = item.gameId in deletingAppIds,
                                         compatibilityStatus = compatibilityMap[item.name],
                                         gameStats = decorations.statsFor(item),
                                         enableFocusScale = false,

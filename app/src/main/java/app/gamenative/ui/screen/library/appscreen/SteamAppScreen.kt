@@ -1266,8 +1266,8 @@ class SteamAppScreen : BaseAppScreen() {
                                     ContainerUtils.deleteContainer(context, libraryItem.appId)
                                 }
                                 withContext(Dispatchers.Main) {
+                                    PluviaApp.events.emit(AndroidEvent.LibraryInstallStatusChanged(gameId, GameSource.STEAM))
                                     if (success) {
-                                        PluviaApp.events.emit(AndroidEvent.LibraryInstallStatusChanged(gameId, GameSource.STEAM))
                                         SnackbarManager.show(
                                             context.getString(
                                                 R.string.steam_uninstall_success,

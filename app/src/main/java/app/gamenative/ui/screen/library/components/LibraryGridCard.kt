@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Face4
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -92,6 +93,7 @@ internal fun GridViewCard(
     hideText: Boolean,
     imageAlpha: Float,
     onImageLoadFailed: () -> Unit,
+    isDeleting: Boolean,
     compatibilityStatus: GameCompatibilityStatus?,
     gameStats: GameCardStats?,
     showFocusGlow: Boolean,
@@ -290,7 +292,13 @@ internal fun GridViewCard(
                                 alignmentBoxSize = 14,
                             )
                         }
-                        if (appInfo.isInstalled) {
+                        if (isDeleting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                color = accentColor,
+                                strokeWidth = 1.5.dp,
+                            )
+                        } else if (appInfo.isInstalled) {
                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 contentDescription = stringResource(R.string.library_installed),

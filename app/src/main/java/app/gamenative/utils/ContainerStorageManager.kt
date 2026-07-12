@@ -408,12 +408,17 @@ object ContainerStorageManager {
         try {
             val result = when (gameSource) {
                 GameSource.STEAM -> {
-                    val deleted = SteamService.deleteApp(gameId)
-                    if (!deleted) {
-                        Result.failure(Exception("Failed to uninstall Steam game"))
+                    val installPath = entry.installPath
+                    if (installPath.isNullOrBlank()) {
+                        Result.failure(Exception("No install path for Steam game"))
                     } else {
-                        if (entry.hasContainer) {
-                            removeContainer(context, entry.containerId)
+                        SteamService.deleteAppCopy(gameId, installPath)
+                        DownloadService.invalidateCache()
+                        if (!SteamService.isAppInstalled(gameId)) {
+                            SteamService.deleteAppData(gameId)
+                            if (entry.hasContainer) {
+                                removeContainer(context, entry.containerId)
+                            }
                         }
                         PluviaApp.events.emitJava(AndroidEvent.LibraryInstallStatusChanged(gameId, GameSource.STEAM))
                         Result.success(Unit)

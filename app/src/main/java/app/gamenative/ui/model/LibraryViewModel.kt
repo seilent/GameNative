@@ -90,8 +90,9 @@ class LibraryViewModel @Inject constructor(
 
     private val onInstallStatusChanged: (AndroidEvent.LibraryInstallStatusChanged) -> Unit = {
         viewModelScope.launch(Dispatchers.IO) {
-            steamAppDao.syncInstalledFlags(DownloadService.getDownloadDirectoryApps() + SteamService.getImportedAppDirs())
+            steamAppDao.syncInstalledFlags(DownloadService.getCompletedDirectoryApps() + SteamService.getImportedAppDirs())
             CustomGameScanner.invalidateOrphanCache()
+            _decorations.update { d -> d.copy(deletingAppIds = PrefManager.pendingDeleteAppIds()) }
             onFilterApps(paginationCurrentPage)
         }
     }
@@ -178,6 +179,7 @@ class LibraryViewModel @Inject constructor(
                 it.copy(
                     deviceGameStats = DeviceGameStatsCache.getAll(),
                     gpuGameStats = GpuGameStatsCache.getAll(),
+                    deletingAppIds = PrefManager.pendingDeleteAppIds(),
                 )
             }
             // Re-run filtering/sorting now that stats are available, if anything depends on them.

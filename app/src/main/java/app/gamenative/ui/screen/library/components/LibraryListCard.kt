@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face4
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -68,6 +69,7 @@ internal fun ListViewCard(
     isFocused: Boolean,
     onFocusChanged: (Boolean) -> Unit,
     isRefreshing: Boolean,
+    isDeleting: Boolean,
     compatibilityStatus: GameCompatibilityStatus?,
     gameStats: GameCardStats?,
     context: Context,
@@ -159,7 +161,7 @@ internal fun ListViewCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    InstallStatusBadge(appInfo = appInfo, isRefreshing = isRefreshing)
+                    InstallStatusBadge(appInfo = appInfo, isRefreshing = isRefreshing, isDeleting = isDeleting)
 
                     // Family share indicator
                     if (appInfo.isShared) {
@@ -210,6 +212,7 @@ internal fun ListViewCard(
 private fun InstallStatusBadge(
     appInfo: LibraryItem,
     isRefreshing: Boolean,
+    isDeleting: Boolean,
 ) {
     val isSteam = appInfo.gameSource == GameSource.STEAM
     val downloadInfo = remember(appInfo.appId) {
@@ -224,7 +227,7 @@ private fun InstallStatusBadge(
             if (isSteam) {
                 SteamService.isAppInstalled(appInfo.gameId)
             } else {
-                true // Custom Games always installed
+                true
             },
         )
     }
@@ -241,7 +244,10 @@ private fun InstallStatusBadge(
         onDispose { downloadInfo?.removeProgressListener(onProgress) }
     }
 
+    val accent = LocalGameAccent.current
     val (text, color) = when {
+        isDeleting -> stringResource(R.string.library_status_deleting) to accent
+
         !isSteam -> stringResource(R.string.library_status_ready) to PluviaTheme.colors.statusInstalled
 
         isDownloading -> "${(downloadProgress * 100).toInt()}%" to PluviaTheme.colors.statusDownloading
@@ -257,11 +263,19 @@ private fun InstallStatusBadge(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(6.dp)
-                .background(color, CircleShape),
-        )
+        if (isDeleting) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(8.dp),
+                color = accent,
+                strokeWidth = 1.5.dp,
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(color, CircleShape),
+            )
+        }
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,

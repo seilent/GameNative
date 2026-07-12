@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import app.gamenative.PluviaApp
+import app.gamenative.PrefManager
 import app.gamenative.service.DownloadGate
 import app.gamenative.service.storage.StorageTarget
 import app.gamenative.R
@@ -427,6 +428,10 @@ class AmazonService : Service() {
         ): Result<DownloadInfo> {
             val instance = getInstance()
                 ?: return Result.failure(Exception("Amazon service is not running"))
+
+            val absPath = File(installPath).absolutePath
+            PrefManager.removePendingPath(absPath)
+            PrefManager.removeSuppressedPaths(listOf(absPath))
 
             // Already downloading?
             instance.activeDownloads[productId]?.let { existing ->

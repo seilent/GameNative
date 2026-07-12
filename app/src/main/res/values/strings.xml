@@ -1242,6 +1242,7 @@
     <string name="library_open">Open</string>
     <string name="library_installed">Installed</string>
     <string name="library_installing">Installing</string>
+    <string name="library_status_deleting">Deleting</string>
     <string name="library_not_installed">Not installed</string>
     <string name="library_family_shared">Family Shared</string>
     <string name="library_shared_short">Shared</string>

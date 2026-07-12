@@ -90,7 +90,8 @@ class PluviaApp : SplitCompatApplication() {
         DownloadService.populateDownloadService(this)
 
         appScope.launch {
-            val dirs = DownloadService.getDownloadDirectoryApps() + SteamService.getImportedAppDirs()
+            SteamService.resumeInterruptedDeletes()
+            val dirs = DownloadService.getCompletedDirectoryApps() + SteamService.getImportedAppDirs()
             steamAppDao.syncInstalledFlags(dirs)
             events.emitJava(AndroidEvent.LibraryInstallStatusChanged(-1, GameSource.STEAM))
         }
@@ -99,7 +100,7 @@ class PluviaApp : SplitCompatApplication() {
 
         StorageManager.registerVolumeCallback(this) {
             appScope.launch {
-                val dirs = DownloadService.getDownloadDirectoryApps() + SteamService.getImportedAppDirs()
+                val dirs = DownloadService.getCompletedDirectoryApps() + SteamService.getImportedAppDirs()
                 steamAppDao.syncInstalledFlags(dirs)
             }
             events.emitJava(AndroidEvent.LibraryInstallStatusChanged(-1, GameSource.STEAM))

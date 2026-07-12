@@ -1290,6 +1290,129 @@ object PrefManager {
             setPref(CUSTOM_GAME_MANUAL_FOLDERS, Json.encodeToString(value))
         }
 
+    @kotlinx.serialization.Serializable
+    data class PendingDelete(val paths: List<String>, val attempts: Int = 0)
+
+    private val pendingDeleteLock = Any()
+
+    private val PENDING_DELETE_APPS = stringPreferencesKey("pending_delete_apps")
+    private var pendingDeleteAppsRaw: Map<Int, PendingDelete>
+        get() {
+            val value = getPref(PENDING_DELETE_APPS, "{}")
+            return try {
+                val raw = Json.decodeFromString<Map<String, PendingDelete>>(value)
+                raw.mapKeys { it.key.toInt() }
+            } catch (e: Exception) {
+                try {
+                    val legacy = Json.decodeFromString<Map<String, List<String>>>(value)
+                    legacy.mapKeys { it.key.toInt() }.mapValues { PendingDelete(it.value, 0) }
+                } catch (_: Exception) {
+                    emptyMap()
+                }
+            }
+        }
+        set(value) {
+            val raw = value.mapKeys { it.key.toString() }
+            setPref(PENDING_DELETE_APPS, Json.encodeToString(raw))
+        }
+
+    private val SUPPRESSED_GAME_PATHS = stringPreferencesKey("suppressed_game_paths")
+    var suppressedGamePaths: Set<String>
+        get() {
+            val value = getPref(SUPPRESSED_GAME_PATHS, "[]")
+            return try {
+                Json.decodeFromString<Set<String>>(value)
+            } catch (e: Exception) {
+                emptySet()
+            }
+        }
+        private set(value) {
+            setPref(SUPPRESSED_GAME_PATHS, Json.encodeToString(value))
+        }
+
+    fun addPendingDelete(appId: Int, paths: List<String>, attempts: Int = 0) {
+        synchronized(pendingDeleteLock) {
+            val map = pendingDeleteAppsRaw.toMutableMap()
+            val existing = map[appId]
+            val existingPaths = existing?.paths.orEmpty().toMutableSet()
+            paths.forEach { existingPaths.add(java.io.File(it).absolutePath) }
+            map[appId] = PendingDelete(existingPaths.toList(), existing?.attempts ?: attempts)
+            pendingDeleteAppsRaw = map
+        }
+    }
+
+    fun updatePendingDelete(appId: Int, paths: List<String>, attempts: Int) {
+        synchronized(pendingDeleteLock) {
+            val map = pendingDeleteAppsRaw.toMutableMap()
+            if (paths.isEmpty()) {
+                map.remove(appId)
+            } else {
+                map[appId] = PendingDelete(paths, attempts)
+            }
+            pendingDeleteAppsRaw = map
+        }
+    }
+
+    fun removePendingDelete(appId: Int) {
+        synchronized(pendingDeleteLock) {
+            val map = pendingDeleteAppsRaw.toMutableMap()
+            map.remove(appId)
+            pendingDeleteAppsRaw = map
+        }
+    }
+
+    fun removePendingPath(absPath: String) {
+        synchronized(pendingDeleteLock) {
+            val map = pendingDeleteAppsRaw.toMutableMap()
+            val toRemove = mutableListOf<Int>()
+            for ((id, pd) in map) {
+                val filtered = pd.paths.filter { it != absPath }
+                if (filtered.isEmpty()) {
+                    toRemove.add(id)
+                } else if (filtered.size != pd.paths.size) {
+                    map[id] = pd.copy(paths = filtered)
+                }
+            }
+            toRemove.forEach { map.remove(it) }
+            pendingDeleteAppsRaw = map
+        }
+    }
+
+    fun addSuppressedPaths(paths: List<String>) {
+        synchronized(pendingDeleteLock) {
+            val current = suppressedGamePaths.toMutableSet()
+            paths.forEach { current.add(java.io.File(it).absolutePath) }
+            suppressedGamePaths = current
+        }
+    }
+
+    fun removeSuppressedPaths(paths: Collection<String>) {
+        synchronized(pendingDeleteLock) {
+            val current = suppressedGamePaths.toMutableSet()
+            current.removeAll(paths.toSet())
+            suppressedGamePaths = current
+        }
+    }
+
+    fun pruneSuppressedPaths() {
+        synchronized(pendingDeleteLock) {
+            val current = suppressedGamePaths
+            val pruned = current.filter { java.io.File(it).exists() }.toSet()
+            if (pruned.size != current.size) {
+                suppressedGamePaths = pruned
+            }
+        }
+    }
+
+    fun pendingDeletePaths(): Set<String> =
+        pendingDeleteAppsRaw.values.flatMap { it.paths }.toSet()
+
+    fun pendingDeleteAppIds(): Set<Int> =
+        pendingDeleteAppsRaw.keys
+
+    fun pendingDeleteMap(): Map<Int, PendingDelete> =
+        pendingDeleteAppsRaw
+
     // Add new setting for Wine debug logging
     private val ENABLE_WINE_DEBUG = booleanPreferencesKey("enable_wine_debug")
     var enableWineDebug: Boolean

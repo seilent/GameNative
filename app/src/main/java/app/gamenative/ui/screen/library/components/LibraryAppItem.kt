@@ -67,6 +67,7 @@ internal fun AppItem(
     paneType: PaneType = PaneType.LIST,
     onFocus: () -> Unit = {},
     isRefreshing: Boolean = false,
+    isDeleting: Boolean = false,
     imageRefreshCounter: Long = 0L,
     compatibilityStatus: GameCompatibilityStatus? = null,
     gameStats: GameCardStats? = null,
@@ -119,6 +120,7 @@ internal fun AppItem(
             isFocused = isFocused,
             onFocusChanged = { isFocused = it },
             isRefreshing = isRefreshing,
+            isDeleting = isDeleting,
             compatibilityStatus = compatibilityStatus,
             gameStats = gameStats,
             context = context,
@@ -140,6 +142,7 @@ internal fun AppItem(
                 hideText = false
                 alpha = 0.1f
             },
+            isDeleting = isDeleting,
             compatibilityStatus = compatibilityStatus,
             gameStats = gameStats,
             showFocusGlow = showFocusGlow,

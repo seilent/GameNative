@@ -556,6 +556,8 @@ object CustomGameScanner {
 
         try {
             val existing = PrefManager.customGameManualFolders
+            val pendingPaths = PrefManager.pendingDeletePaths() + PrefManager.suppressedGamePaths
+            PrefManager.pruneSuppressedPaths()
             val allOrphans = mutableSetOf<String>()
             val toAdd = mutableSetOf<String>()
             for (basePath in SteamService.allInstallPaths) {
@@ -564,6 +566,7 @@ object CustomGameScanner {
                 val subDirs = base.listFiles { f -> f.isDirectory } ?: continue
                 for (dir in subDirs) {
                     val path = dir.absolutePath
+                    if (path in pendingPaths) continue
                     val matches = SteamService.findSteamAppWithInstallDir(dir.name)
                     val ownedMatch = matches?.any { SteamService.isAppLicensed(it.packageId) } == true
                     if (ownedMatch) {
@@ -695,6 +698,11 @@ object CustomGameScanner {
         val folder = File(folderPath)
         if (!folder.exists() || !folder.isDirectory) {
             Timber.tag("CustomGameScanner").w("Folder does not exist or is not a directory: $folderPath")
+            return null
+        }
+
+        if (folder.absolutePath in PrefManager.pendingDeletePaths() ||
+            folder.absolutePath in PrefManager.suppressedGamePaths) {
             return null
         }
 

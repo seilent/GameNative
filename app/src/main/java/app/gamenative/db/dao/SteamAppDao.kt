@@ -205,6 +205,9 @@ interface SteamAppDao {
     @Query("UPDATE steam_app SET is_installed = 0")
     suspend fun clearAllInstalled()
 
+    @Query("UPDATE steam_app SET is_installed = 0 WHERE id = :appId")
+    suspend fun markUninstalled(appId: Int)
+
     @Query(
         "UPDATE steam_app SET is_installed = 1 WHERE " +
             "config LIKE '%\"installDir\":\"' || :dir || '\"%' " +

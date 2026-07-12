@@ -74,6 +74,7 @@ data class LibraryDecorations(
     val compatibilityMap: Map<String, GameCompatibilityStatus> = emptyMap(),
     val deviceGameStats: Map<GameSource, Map<String, DeviceGameStats>> = emptyMap(),
     val gpuGameStats: Map<GameSource, Map<String, DeviceGameStats>> = emptyMap(),
+    val deletingAppIds: Set<Int> = emptySet(),
 )
 
 /**

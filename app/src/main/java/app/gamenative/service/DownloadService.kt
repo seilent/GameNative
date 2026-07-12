@@ -2,6 +2,8 @@ package app.gamenative.service
 
 import android.content.Context
 import android.os.Environment
+import app.gamenative.enums.Marker
+import app.gamenative.utils.MarkerUtils
 import app.gamenative.utils.StorageUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -68,6 +70,19 @@ object DownloadService {
         }
 
         return downloadDirectoryApps ?: mutableListOf()
+    }
+
+    fun getCompletedDirectoryApps(): List<String> {
+        val result = mutableSetOf<String>()
+        for (installPath in SteamService.allInstallPaths) {
+            val subDirs = File(installPath).listFiles { f -> f.isDirectory } ?: continue
+            for (dir in subDirs) {
+                if (MarkerUtils.hasMarker(dir.absolutePath, Marker.DOWNLOAD_COMPLETE_MARKER)) {
+                    result.add(dir.name)
+                }
+            }
+        }
+        return result.toList()
     }
 
     private fun getSubdirectories (path: String): MutableList<String> {

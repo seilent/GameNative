@@ -1337,34 +1337,62 @@ class SteamService : Service(), IChallengeUrlChanged {
             return container.executablePath.ifEmpty { getInstalledExe(gameId) }
         }
 
-        suspend fun deleteApp(appId: Int): Boolean = withContext(Dispatchers.IO) {
-            // snapshot path before marker removal (removing the marker changes resolution)
-            val appInfo = getInstalledApp(appId)
-            val result = if (appInfo?.isImported == true) {
-                // For imported game, do cleanup
-                // Remove from manual folders list and invalidate cache
-                val folderPath = appInfo.customInstallPath
-                val manualFolders = PrefManager.customGameManualFolders.toMutableSet()
-                manualFolders.remove(folderPath)
-                PrefManager.customGameManualFolders = manualFolders
-                CustomGameScanner.invalidateCache()
-
-                MarkerUtils.removeMarker(folderPath, Marker.DOWNLOAD_COMPLETE_MARKER)
-
-                true
-            } else {
-                val appDirPath = getAppDirPath(appId)
-                val appDir = File(appDirPath)
-
-                if (appDir.exists()) {
-                    MarkerUtils.removeMarker(appDirPath, Marker.DOWNLOAD_COMPLETE_MARKER)
+        private fun deleteTreeBestEffort(dir: File): Boolean {
+            if (!dir.exists()) return true
+            try {
+                dir.walkBottomUp().forEach { f ->
+                    try { f.delete() } catch (_: Exception) {}
                 }
-
-                File(appDirPath).deleteRecursively()
+            } catch (_: Exception) {}
+            if (dir.exists()) {
+                try {
+                    dir.walkBottomUp().forEach { f ->
+                        try { f.delete() } catch (_: Exception) {}
+                    }
+                } catch (_: Exception) {}
             }
+            return !dir.exists()
+        }
 
-            // Remove from DB
+        fun existingAppCopies(appId: Int): List<String> {
+            val appInfo = getInstalledApp(appId)
+            if (appInfo?.isImported == true) {
+                val path = appInfo.customInstallPath
+                return if (path.isNotBlank() && File(path).exists()) listOf(path) else emptyList()
+            }
+            val info = getAppInfoOf(appId)
+            val appName = getAppDirName(info)
+            val oldName = info?.name.orEmpty()
+            val names = if (oldName.isNotEmpty() && oldName != appName) listOf(appName, oldName) else listOf(appName)
+            val result = mutableListOf<String>()
+            for (basePath in allInstallPaths) {
+                for (name in names) {
+                    if (name.isEmpty()) continue
+                    val path = Paths.get(basePath, name).pathString
+                    if (File(path).isDirectory) {
+                        result.add(path)
+                    }
+                }
+            }
+            return result.distinct()
+        }
+
+        suspend fun deleteAppCopy(appId: Int, installPath: String): Boolean = withContext(Dispatchers.IO) {
+            val absPath = File(installPath).absolutePath
+            PrefManager.addPendingDelete(appId, listOf(absPath), attempts = 0)
+            PrefManager.addSuppressedPaths(listOf(absPath))
+            MarkerUtils.removeMarker(installPath, Marker.DOWNLOAD_COMPLETE_MARKER)
+            val result = deleteTreeBestEffort(File(installPath))
+            if (!File(installPath).exists()) {
+                PrefManager.removePendingDelete(appId)
+                PrefManager.removeSuppressedPaths(listOf(absPath))
+            }
+            result
+        }
+
+        suspend fun deleteAppData(appId: Int) {
             workshopPausedApps.remove(appId)
+            val dlcAppIds = getDownloadableDlcAppsOf(appId).orEmpty().map { it.id }
             with(instance!!) {
                 db.withTransaction {
                     appInfoDao.deleteApp(appId)
@@ -1373,18 +1401,77 @@ class SteamService : Service(), IChallengeUrlChanged {
                     steamFileHashCacheDao.deleteByAppId(appId)
                     downloadingAppInfoDao.deleteApp(appId)
                     appDao.clearWorkshopState(appId)
-
-                    val indirectDlcAppIds = getDownloadableDlcAppsOf(appId).orEmpty().map { it.id }
-                    indirectDlcAppIds.forEach { dlcAppId ->
+                    appDao.markUninstalled(appId)
+                    dlcAppIds.forEach { dlcAppId ->
                         appInfoDao.deleteApp(dlcAppId)
                         changeNumbersDao.deleteByAppId(dlcAppId)
                         fileChangeListsDao.deleteByAppId(dlcAppId)
                         steamFileHashCacheDao.deleteByAppId(dlcAppId)
+                        appDao.markUninstalled(dlcAppId)
                     }
                 }
             }
+        }
 
-            return@withContext result
+        suspend fun deleteApp(appId: Int): Boolean = withContext(Dispatchers.IO) {
+            val appInfo = getInstalledApp(appId)
+            val copies = existingAppCopies(appId)
+
+            if (appInfo?.isImported == true) {
+                val folderPath = appInfo.customInstallPath
+                val manualFolders = PrefManager.customGameManualFolders.toMutableSet()
+                manualFolders.remove(folderPath)
+                PrefManager.customGameManualFolders = manualFolders
+                CustomGameScanner.invalidateCache()
+            }
+
+            PrefManager.addPendingDelete(appId, copies, attempts = 0)
+            PrefManager.addSuppressedPaths(copies)
+            PluviaApp.events.emitJava(AndroidEvent.LibraryInstallStatusChanged(appId, GameSource.STEAM))
+
+            deleteAppData(appId)
+
+            copies.forEach { path ->
+                MarkerUtils.removeMarker(path, Marker.DOWNLOAD_COMPLETE_MARKER)
+                deleteTreeBestEffort(File(path))
+            }
+
+            val leftover = copies.filter { File(it).exists() }
+            if (leftover.isEmpty()) {
+                PrefManager.removePendingDelete(appId)
+                PrefManager.removeSuppressedPaths(copies)
+            } else {
+                PrefManager.updatePendingDelete(appId, leftover, 0)
+            }
+            PluviaApp.events.emitJava(AndroidEvent.LibraryInstallStatusChanged(appId, GameSource.STEAM))
+
+            return@withContext leftover.isEmpty()
+        }
+
+        suspend fun resumeInterruptedDeletes() = withContext(Dispatchers.IO) {
+            val pending = PrefManager.pendingDeleteMap()
+            if (pending.isEmpty()) return@withContext
+            for ((appId, pd) in pending) {
+                for (path in pd.paths) {
+                    MarkerUtils.removeMarker(path, Marker.DOWNLOAD_COMPLETE_MARKER)
+                    deleteTreeBestEffort(File(path))
+                }
+                val leftover = pd.paths.filter { File(it).exists() }
+                if (leftover.isEmpty()) {
+                    PrefManager.removePendingDelete(appId)
+                    PrefManager.removeSuppressedPaths(pd.paths)
+                    deleteAppData(appId)
+                } else {
+                    val nextAttempts = pd.attempts + 1
+                    if (nextAttempts >= 3) {
+                        PrefManager.removePendingDelete(appId)
+                        Timber.w("Giving up delete for appId=$appId after $nextAttempts attempts, paths remain suppressed")
+                    } else {
+                        PrefManager.updatePendingDelete(appId, leftover, nextAttempts)
+                    }
+                }
+            }
+            PluviaApp.events.emitJava(AndroidEvent.LibraryInstallStatusChanged(-1, GameSource.STEAM))
         }
 
         fun downloadApp(appId: Int): DownloadInfo? {
@@ -1738,6 +1825,10 @@ class SteamService : Service(), IChallengeUrlChanged {
             target: StorageTarget? = null,
         ): DownloadInfo? {
             val appDirPath = getAppDirPath(appId, target)
+
+            PrefManager.removePendingDelete(appId)
+            PrefManager.removePendingPath(File(appDirPath).absolutePath)
+            PrefManager.removeSuppressedPaths(listOf(File(appDirPath).absolutePath))
 
             if (!checkWifiOrNotify()) return null
             if (downloadJobs.contains(appId)) return getAppDownloadInfo(appId)
