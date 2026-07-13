@@ -1390,6 +1390,16 @@ class SteamService : Service(), IChallengeUrlChanged {
             result
         }
 
+        suspend fun deleteGameFolder(installPath: String): Boolean = withContext(Dispatchers.IO) {
+            if (installPath.isBlank()) return@withContext true
+            val absPath = File(installPath).absolutePath
+            PrefManager.addSuppressedPaths(listOf(absPath))
+            MarkerUtils.removeMarker(installPath, Marker.DOWNLOAD_COMPLETE_MARKER)
+            val gone = deleteTreeBestEffort(File(installPath))
+            if (gone) PrefManager.removeSuppressedPaths(listOf(absPath))
+            gone
+        }
+
         suspend fun deleteAppData(appId: Int) {
             workshopPausedApps.remove(appId)
             val dlcAppIds = getDownloadableDlcAppsOf(appId).orEmpty().map { it.id }

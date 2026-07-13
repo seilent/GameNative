@@ -2,6 +2,7 @@ package app.gamenative.ui.screen.library.appscreen
 
 import android.content.Context
 import app.gamenative.ui.component.dialog.GlassAlertDialog
+import app.gamenative.ui.theme.LocalGameAccent
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import app.gamenative.ui.component.dialog.LoadingDialog
@@ -11,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import app.gamenative.PrefManager
+import app.gamenative.service.SteamService
 import app.gamenative.R
 import app.gamenative.data.LibraryItem
 import app.gamenative.events.AndroidEvent
@@ -512,6 +514,7 @@ class CustomGameAppScreen : BaseAppScreen() {
                                 withContext(Dispatchers.IO) {
                                     val folderPath = CustomGameScanner.getFolderPathFromAppId(libraryItem.appId)
                                     if (folderPath != null) {
+                                        SteamService.deleteGameFolder(folderPath)
                                         val manualFolders = PrefManager.customGameManualFolders.toMutableSet()
                                         manualFolders.remove(folderPath)
                                         PrefManager.customGameManualFolders = manualFolders
@@ -538,7 +541,7 @@ class CustomGameAppScreen : BaseAppScreen() {
                         }
                     }
                 ) {
-                    Text("Delete", color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+                    Text("Delete", color = LocalGameAccent.current)
                 }
             },
             dismissButton = {
