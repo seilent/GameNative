@@ -704,7 +704,9 @@ class SteamService : Service(), IChallengeUrlChanged {
         fun getImportedAppDirs(): List<String> {
             val dirs = mutableSetOf<String>()
             val installedApps = getAllInstalledApps()
-            val importedAppIds = installedApps?.filter { it.isImported }?.map { it.id }
+            val importedAppIds = installedApps
+                ?.filter { it.isImported && it.customInstallPath.isNotBlank() && File(it.customInstallPath).exists() }
+                ?.map { it.id }
             if (importedAppIds != null) {
                 val steamApps = importedAppIds
                     .chunked(900)
