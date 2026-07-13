@@ -612,6 +612,11 @@ internal fun FrameGenTabContent(state: ContainerConfigState, default: Boolean, p
             if (!multiplierSelectable && state.config.value.seifgMultiplier != 2) {
                 state.config.value = state.config.value.copy(seifgMultiplier = 2)
             }
+            val curTarget = state.config.value.seifgTargetFps
+            val snappedTarget = if (multiplierSelectable && curTarget >= 90) 120 else 60
+            if (curTarget != snappedTarget) {
+                state.config.value = state.config.value.copy(seifgTargetFps = snappedTarget)
+            }
         }
     }
 
@@ -668,25 +673,23 @@ internal fun FrameGenTabContent(state: ContainerConfigState, default: Boolean, p
                         },
                     )
                 }
-                val maxFps = (panelRefreshHz.coerceAtLeast(35) / 5) * 5
-                val displayTarget = config.seifgTargetFps.coerceIn(30, maxFps)
+                val displayTarget = if (multiplierSelectable && config.seifgTargetFps >= 90) 120 else 60
                 SettingsAdjustmentRow(
                     title = stringResource(R.string.seifg_target_fps),
                     valueText = "$displayTarget fps",
                     value = displayTarget.toFloat(),
-                    valueRange = 30f..maxFps.toFloat(),
-                    steps = ((maxFps - 30) / 5 - 1).coerceAtLeast(0),
+                    valueRange = 60f..120f,
+                    steps = 0,
                     onValueChange = { newValue ->
-                        val clamped = newValue.roundToInt().coerceIn(30, maxFps)
-                        state.config.value = state.config.value.copy(seifgTargetFps = clamped)
+                        val v = if (multiplierSelectable && newValue >= 90f) 120 else 60
+                        state.config.value = state.config.value.copy(seifgTargetFps = v)
                     },
                     onDecrease = {
-                        val clamped = (config.seifgTargetFps - 5).coerceIn(30, maxFps)
-                        state.config.value = state.config.value.copy(seifgTargetFps = clamped)
+                        state.config.value = state.config.value.copy(seifgTargetFps = 60)
                     },
                     onIncrease = {
-                        val clamped = (config.seifgTargetFps + 5).coerceIn(30, maxFps)
-                        state.config.value = state.config.value.copy(seifgTargetFps = clamped)
+                        val v = if (multiplierSelectable) 120 else 60
+                        state.config.value = state.config.value.copy(seifgTargetFps = v)
                     },
                 )
                 Text(
