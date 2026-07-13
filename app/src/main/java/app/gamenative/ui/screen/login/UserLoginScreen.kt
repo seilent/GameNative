@@ -869,7 +869,7 @@ private fun QRCodeLogin(
                 Text(
                     text = stringResource(R.string.login_qr_failed),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.error,
+                    color = LocalGameAccent.current,
                     modifier = Modifier.padding(bottom = 16.dp),
                 )
 

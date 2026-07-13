@@ -344,7 +344,7 @@ fun ControllerBindingDialog(
                                             Log.d("ControllerBindingDialog", "Clearing binding for $buttonName")
                                             onBindingSelected(null)
                                         },
-                                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                                    color = LocalGameAccent.current.copy(alpha = 0.3f),
                                     shape = MaterialTheme.shapes.small
                                 ) {
                                     Row(
@@ -355,14 +355,14 @@ fun ControllerBindingDialog(
                                         Icon(
                                             Icons.Default.Close,
                                             contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.error,
+                                            tint = LocalGameAccent.current,
                                             modifier = Modifier.size(18.dp) // Slightly smaller icon
                                         )
                                         Text(
                                             text = stringResource(app.gamenative.R.string.clear_binding),
                                             style = MaterialTheme.typography.bodyMedium,
                                             fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.error
+                                            color = LocalGameAccent.current
                                         )
                                     }
                                 }

@@ -312,7 +312,7 @@ fun ContentsManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                     Icon(
                                         imageVector = Icons.Filled.Delete,
                                         contentDescription = "Delete",
-                                        tint = MaterialTheme.colorScheme.error
+                                        tint = LocalGameAccent.current
                                     )
                                 }
                             }

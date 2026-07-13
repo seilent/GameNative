@@ -70,7 +70,7 @@ fun DrivesTabContent(state: ContainerConfigState) {
                                     Icon(
                                         Icons.Filled.Delete,
                                         contentDescription = "Delete drive",
-                                        tint = MaterialTheme.colorScheme.error,
+                                        tint = LocalGameAccent.current,
                                     )
                                 },
                             )
@@ -160,7 +160,7 @@ fun DrivesTabContent(state: ContainerConfigState) {
                 if (state.availableDriveLetters.isEmpty()) {
                     Text(
                         text = stringResource(R.string.no_available_drive_letters),
-                        color = MaterialTheme.colorScheme.error,
+                        color = LocalGameAccent.current,
                         style = TextStyle(fontSize = 14.sp),
                         modifier = Modifier.padding(top = 8.dp),
                     )

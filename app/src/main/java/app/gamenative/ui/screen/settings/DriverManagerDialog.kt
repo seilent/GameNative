@@ -299,7 +299,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     Text(
                         text = manifestError ?: "Unknown error",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
+                        color = LocalGameAccent.current,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 } else if (driverManifest.isNotEmpty()) {
@@ -474,7 +474,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                     Icon(
                                         imageVector = Icons.Filled.Delete,
                                         contentDescription = "Delete",
-                                        tint = MaterialTheme.colorScheme.error
+                                        tint = LocalGameAccent.current
                                     )
                                 }
                             }
@@ -502,7 +502,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                             }) {
                                 Text(
                                     text = "Delete",
-                                    color = MaterialTheme.colorScheme.error
+                                    color = LocalGameAccent.current
                                 )
                             }
                         },

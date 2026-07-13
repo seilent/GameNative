@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import app.gamenative.ui.component.dialog.GlassAlertDialog
+import app.gamenative.ui.theme.LocalGameAccent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -819,7 +820,7 @@ abstract class BaseAppScreen {
                 TextButton(onClick = onConfirm) {
                     Text(
                         text = context.getString(R.string.base_app_reset_container_confirm),
-                        color = MaterialTheme.colorScheme.error,
+                        color = LocalGameAccent.current,
                     )
                 }
             },

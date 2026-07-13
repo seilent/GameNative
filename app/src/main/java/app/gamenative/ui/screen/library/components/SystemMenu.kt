@@ -131,8 +131,8 @@ private fun SystemMenuItem(
     }
 
     val contentColor = when {
-        isDestructive && isFocused -> MaterialTheme.colorScheme.error
-        isDestructive -> MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+        isDestructive && isFocused -> LocalGameAccent.current
+        isDestructive -> LocalGameAccent.current.copy(alpha = 0.7f)
         isFocused -> LocalGameAccent.current
         else -> Color.White
     }

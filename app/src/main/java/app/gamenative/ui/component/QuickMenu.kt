@@ -273,7 +273,7 @@ fun QuickMenu(
         id = QuickMenuAction.EXIT_GAME,
         icon = Icons.AutoMirrored.Filled.ExitToApp,
         labelResId = R.string.exit_game,
-        accentColor = PluviaTheme.colors.accentDanger,
+        accentColor = LocalGameAccent.current,
     )
 
     val controllerItems = buildList {
@@ -1263,7 +1263,7 @@ private fun QuickMenuRailActionButton(
     val accentColor = if (item.accentColor != Color.Unspecified) {
         item.accentColor
     } else {
-        MaterialTheme.colorScheme.error
+        LocalGameAccent.current
     }
     val shape = RoundedCornerShape(14.dp)
 

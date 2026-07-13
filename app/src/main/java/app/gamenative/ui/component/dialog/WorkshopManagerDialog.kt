@@ -300,7 +300,7 @@ fun WorkshopManagerDialog(
                             ) {
                                 Text(
                                     text = "Failed to fetch workshop subscriptions. Check your connection and try again.",
-                                    color = MaterialTheme.colorScheme.error
+                                    color = LocalGameAccent.current
                                 )
                             }
                         }
@@ -894,7 +894,7 @@ private fun FolderPickerDialog(
                 ) {
                     if (currentPath.isNotEmpty()) {
                         TextButton(onClick = onClear) {
-                            Text("Clear", color = MaterialTheme.colorScheme.error)
+                            Text("Clear", color = LocalGameAccent.current)
                         }
                     }
                     TextButton(onClick = onDismiss) {

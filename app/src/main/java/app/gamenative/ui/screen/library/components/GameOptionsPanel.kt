@@ -313,7 +313,7 @@ private fun OptionItem(
             imageVector = icon,
             contentDescription = null,
             tint = when {
-                isDestructive -> MaterialTheme.colorScheme.error
+                isDestructive -> LocalGameAccent.current
                 isFocused -> LocalGameAccent.current
                 else -> PluviaTheme.colors.textMuted
             },
@@ -325,7 +325,7 @@ private fun OptionItem(
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (isFocused) FontWeight.Medium else FontWeight.Normal,
             color = when {
-                isDestructive -> MaterialTheme.colorScheme.error
+                isDestructive -> LocalGameAccent.current
                 isFocused -> LocalGameAccent.current
                 else -> Color.White
             },

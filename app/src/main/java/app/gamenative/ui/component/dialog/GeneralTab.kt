@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import app.gamenative.R
 import app.gamenative.ui.component.NoExtractOutlinedTextField
 import app.gamenative.ui.component.GlassSurface
+import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.component.settings.SettingsListDropdown
 import app.gamenative.ui.component.settings.SettingsSwitchWithAction
 import app.gamenative.ui.theme.settingsTileColors
@@ -102,7 +103,7 @@ fun GeneralTabContent(
                 if (state.customResolutionValidationError.value != null) {
                     Text(
                         text = state.customResolutionValidationError.value!!,
-                        color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                        color = LocalGameAccent.current,
                         style = TextStyle(fontSize = 16.sp),
                         modifier = Modifier.padding(top = 8.dp)
                     )

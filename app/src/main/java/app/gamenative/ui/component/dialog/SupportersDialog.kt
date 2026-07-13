@@ -146,7 +146,7 @@ fun SupportersDialog(
                         Text(
                             text = stringResource(R.string.supporters_error),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error,
+                            color = LocalGameAccent.current,
                             modifier = Modifier.padding(vertical = 16.dp),
                         )
                     }

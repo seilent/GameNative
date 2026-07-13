@@ -1296,7 +1296,7 @@ class SteamAppScreen : BaseAppScreen() {
                         }
                     },
                 ) {
-                    Text(stringResource(R.string.uninstall), color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.uninstall), color = LocalGameAccent.current)
                 }
             },
             dismissButton = {

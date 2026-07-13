@@ -353,7 +353,7 @@ fun ContainerStorageManagerTransientUi(
             TextButton(onClick = state::confirmRemove) {
                 Text(
                     text = stringResource(R.string.container_storage_remove_button),
-                    color = PluviaTheme.colors.accentDanger,
+                    color = LocalGameAccent.current,
                 )
             }
         },
@@ -397,7 +397,7 @@ fun ContainerStorageManagerTransientUi(
             TextButton(onClick = state::confirmUninstall) {
                 Text(
                     text = stringResource(R.string.container_storage_uninstall_button),
-                    color = PluviaTheme.colors.accentDanger,
+                    color = LocalGameAccent.current,
                 )
             }
         },
@@ -728,7 +728,7 @@ private fun StorageEntryCard(
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
                             contentDescription = stringResource(R.string.container_storage_uninstall_button),
-                            tint = PluviaTheme.colors.accentDanger,
+                            tint = LocalGameAccent.current,
                         )
                     }
                 }
@@ -751,7 +751,7 @@ private fun StorageEntryCard(
                     Icon(
                         imageVector = Icons.Default.DeleteOutline,
                         contentDescription = stringResource(R.string.container_storage_remove_button),
-                        tint = PluviaTheme.colors.accentDanger,
+                        tint = LocalGameAccent.current,
                     )
                 }
             }

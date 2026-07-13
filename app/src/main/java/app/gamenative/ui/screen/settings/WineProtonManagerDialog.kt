@@ -632,7 +632,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     Text(
                         text = manifestError ?: "Unknown error",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
+                        color = LocalGameAccent.current,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 } else if (wineProtonManifest.isNotEmpty()) {
@@ -781,7 +781,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     Text(
                         text = statusMessage ?: "",
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isStatusSuccess) LocalGameAccent.current else MaterialTheme.colorScheme.error
+                        color = LocalGameAccent.current
                     )
                 }
 
@@ -865,7 +865,7 @@ fun WineProtonManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                     Icon(
                                         imageVector = Icons.Filled.Delete,
                                         contentDescription = stringResource(R.string.wine_proton_delete_content_desc),
-                                        tint = MaterialTheme.colorScheme.error
+                                        tint = LocalGameAccent.current
                                     )
                                 }
                             }
