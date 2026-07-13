@@ -1055,6 +1055,7 @@ fun ContainerConfigDialog(
                     message = context.getString(R.string.container_config_unsaved_changes_message),
                     confirmBtnText = context.getString(R.string.discard),
                     dismissBtnText = context.getString(R.string.cancel),
+                    actionBtnText = context.getString(R.string.save),
                 )
             } else {
                 onDismissRequest()
@@ -1217,9 +1218,15 @@ fun ContainerConfigDialog(
             message = dismissDialogState.message,
             confirmBtnText = dismissDialogState.confirmBtnText,
             dismissBtnText = dismissDialogState.dismissBtnText,
+            actionBtnText = dismissDialogState.actionBtnText,
             onDismissRequest = { dismissDialogState = MessageDialogState(visible = false) },
             onDismissClick = { dismissDialogState = MessageDialogState(visible = false) },
             onConfirmClick = onDismissRequest,
+            onActionClick = {
+                dismissDialogState = MessageDialogState(visible = false)
+                onSave(config)
+                onDismissRequest()
+            },
         )
 
         GlassDialog(
