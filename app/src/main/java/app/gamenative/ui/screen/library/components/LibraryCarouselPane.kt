@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -79,6 +80,7 @@ import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ListItemImage
 import app.gamenative.utils.StorageUtils
+import app.gamenative.utils.SteamGridDB
 import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -404,8 +406,11 @@ private fun CarouselCard(
                 onClick = onClick,
             ),
     ) {
-        val cacheKey = remember(item.appId, imageRefreshCounter) {
-            "${item.appId}:${PaneType.GRID_CAPSULE}:${imageRefreshCounter}"
+        val sgdbScope = rememberCoroutineScope()
+        var sgdbTick by remember(item.appId) { mutableStateOf(0) }
+
+        val cacheKey = remember(item.appId, imageRefreshCounter, sgdbTick) {
+            "${item.appId}:${PaneType.GRID_CAPSULE}:${imageRefreshCounter}:${sgdbTick}"
         }
         var imageUrl by remember(cacheKey) { mutableStateOf("") }
         var imageFailed by remember(cacheKey) { mutableStateOf(false) }
@@ -424,7 +429,22 @@ private fun CarouselCard(
                 contentScale = ContentScale.Crop,
                 size = null,
                 image = { imageUrl },
-                onFailure = { imageFailed = true },
+                onFailure = {
+                    imageFailed = true
+                    if (item.name.isNotBlank() &&
+                        !SteamGridDB.hasTriedSgdb(context, item.appId)
+                    ) {
+                        sgdbScope.launch {
+                            val ok = SteamGridDB.fetchSgdbForApp(
+                                context, item.appId, item.name
+                            )
+                            if (ok) {
+                                imageFailed = false
+                                sgdbTick++
+                            }
+                        }
+                    }
+                },
                 loading = {},
             )
         } else {

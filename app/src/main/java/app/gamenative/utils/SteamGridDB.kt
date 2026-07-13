@@ -2,6 +2,7 @@ package app.gamenative.utils
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.net.Uri
 import app.gamenative.PrefManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -14,6 +15,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.URLEncoder
 import java.util.Properties
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
@@ -547,23 +549,59 @@ object SteamGridDB {
         )
     }
 
-    /**
-     * Data class for search results
-     */
+    private val sgdbInFlight: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    fun sgdbCacheDir(context: Context, appId: String): File =
+        File(context.filesDir, "sgdb_cache/$appId")
+
+    fun cachedSgdbImage(context: Context, appId: String, imageType: String): String? {
+        val dir = sgdbCacheDir(context, appId)
+        if (!dir.isDirectory) return null
+        val file = dir.listFiles()?.firstOrNull { f ->
+            f.name.startsWith("steamgriddb_$imageType") &&
+                (f.name.endsWith(".png", ignoreCase = true) ||
+                    f.name.endsWith(".jpg", ignoreCase = true) ||
+                    f.name.endsWith(".webp", ignoreCase = true))
+        } ?: return null
+        return Uri.fromFile(file).toString()
+    }
+
+    fun hasTriedSgdb(context: Context, appId: String): Boolean =
+        File(sgdbCacheDir(context, appId), ".sgdb_tried").exists()
+
+    suspend fun fetchSgdbForApp(context: Context, appId: String, title: String): Boolean = withContext(Dispatchers.IO) {
+        if (!PrefManager.fetchSteamGridDBImages) return@withContext false
+        if (getApiKey() == null) return@withContext false
+        if (title.isBlank()) return@withContext false
+        if (hasTriedSgdb(context, appId)) return@withContext false
+        if (!sgdbInFlight.add(appId)) return@withContext false
+        try {
+            val dir = sgdbCacheDir(context, appId)
+            dir.mkdirs()
+            fetchGameImages(title, dir.absolutePath)
+            File(dir, ".sgdb_tried").createNewFile()
+            dir.listFiles()?.any { f ->
+                f.name.startsWith("steamgriddb_grid_") &&
+                    (f.name.endsWith(".png", ignoreCase = true) ||
+                        f.name.endsWith(".jpg", ignoreCase = true) ||
+                        f.name.endsWith(".webp", ignoreCase = true))
+            } == true
+        } finally {
+            sgdbInFlight.remove(appId)
+        }
+    }
+
     data class GameSearchResult(
         val gameId: Int,
         val name: String,
         val releaseDate: Long
     )
 
-    /**
-     * Data class for image fetch results
-     */
     data class ImageFetchResult(
-        val gridPath: String?, // Horizontal grid for hero view
-        val heroPath: String?, // Heroes endpoint for header view
+        val gridPath: String?,
+        val heroPath: String?,
         val logoPath: String?,
-        val capsulePath: String? = null, // Vertical grid for capsule view
+        val capsulePath: String? = null,
         val releaseDate: Long? = null
     )
 }

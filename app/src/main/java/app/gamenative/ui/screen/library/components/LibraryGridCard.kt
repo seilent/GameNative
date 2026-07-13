@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,9 +70,11 @@ import app.gamenative.ui.theme.LocalGameAccent
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.ListItemImage
 import app.gamenative.utils.CustomGameScanner
+import app.gamenative.utils.SteamGridDB
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private val gridImageUrlCache = ConcurrentHashMap<String, GridImageUrls>()
@@ -170,8 +173,11 @@ internal fun GridViewCard(
                     .fillMaxSize()
                     .clearAndSetSemantics { contentDescription = appInfo.name },
             ) {
-                val cacheKey = remember(appInfo.appId, paneType, imageRefreshCounter) {
-                    "${appInfo.appId}:${paneType}:${imageRefreshCounter}"
+                val sgdbScope = rememberCoroutineScope()
+                var sgdbTick by remember(appInfo.appId) { mutableStateOf(0) }
+
+                val cacheKey = remember(appInfo.appId, paneType, imageRefreshCounter, sgdbTick) {
+                    "${appInfo.appId}:${paneType}:${imageRefreshCounter}:${sgdbTick}"
                 }
                 val imageUrls by produceState(
                     initialValue = gridImageUrlCache[cacheKey] ?: GridImageUrls("", ""),
@@ -190,6 +196,7 @@ internal fun GridViewCard(
                     imageUrls.fallback,
                     appInfo.appId,
                     imageRefreshCounter,
+                    sgdbTick,
                 ) {
                     mutableStateOf(imageUrls.primary)
                 }
@@ -219,11 +226,25 @@ internal fun GridViewCard(
                             currentImageUrl = imageUrls.fallback
                         } else {
                             onImageLoadFailed()
+                            if (appInfo.name.isNotBlank() &&
+                                !SteamGridDB.hasTriedSgdb(context, appInfo.appId)
+                            ) {
+                                sgdbScope.launch {
+                                    val ok = SteamGridDB.fetchSgdbForApp(
+                                        context, appInfo.appId, appInfo.name
+                                    )
+                                    if (ok) {
+                                        gridImageUrlCache.keys.removeIf { k ->
+                                            k.startsWith("${appInfo.appId}:")
+                                        }
+                                        sgdbTick++
+                                    }
+                                }
+                            }
                         }
                     },
                 )
 
-                // Fallback text when image fails to load (drawn before overlays so badges/icons stay visible)
                 if (!hideText) {
                     Box(
                         modifier = Modifier
@@ -378,9 +399,6 @@ private fun GridStatusIcons(appInfo: LibraryItem) {
     }
 }
 
-/**
- * Primary and optional fallback image URL for grid view (e.g. Steam header -> hero).
- */
 internal data class GridImageUrls(val primary: String, val fallback: String = "")
 
 private fun getGridContentScale(paneType: PaneType): ContentScale {
@@ -390,10 +408,6 @@ private fun getGridContentScale(paneType: PaneType): ContentScale {
     }
 }
 
-/**
- * Gets the appropriate image URL(s) for a game in grid view.
- * Matches master: source-specific URLs, Steam uses headerImageUrl with heroImageUrl fallback.
- */
 internal fun getGridImageUrl(
     context: Context,
     appInfo: LibraryItem,
@@ -418,21 +432,23 @@ internal fun getGridImageUrl(
         return null
     }
 
+    fun cachedSgdb(imageType: String): String? =
+        SteamGridDB.cachedSgdbImage(context, appInfo.appId, imageType)
+
     return when (appInfo.gameSource) {
         GameSource.CUSTOM_GAME -> {
             val primary = when (paneType) {
                 PaneType.GRID_CAPSULE ->
-                    // Capsule (vertical): user "coverv"/"cover" wins over SteamGridDB capsule.
                     CustomGameScanner.findCapsuleCoverForCustomGame(appInfo.appId)
                         ?: findSteamGridDBImage("grid_capsule")
+                        ?: cachedSgdb("grid_capsule")
                         ?: appInfo.capsuleImageUrl
                 PaneType.GRID_HERO ->
-                    // Hero (horizontal): user "coverh"/"cover" wins over SteamGridDB hero.
                     CustomGameScanner.findHeroCoverForCustomGame(appInfo.appId)
                         ?: findSteamGridDBImage("grid_hero")
+                        ?: cachedSgdb("grid_hero")
                         ?: appInfo.headerImageUrl
                 else -> {
-                    // Default/carousel banner is also a horizontal hero view.
                     val heroCover = CustomGameScanner.findHeroCoverForCustomGame(appInfo.appId)
                     val gameFolderPath = CustomGameScanner.getFolderPathFromAppId(appInfo.appId)
                     val heroUrl = gameFolderPath?.let { path ->
@@ -448,20 +464,28 @@ internal fun getGridImageUrl(
                         }
                         heroFile?.let { android.net.Uri.fromFile(it).toString() }
                     }
-                    heroCover ?: heroUrl ?: appInfo.headerImageUrl
+                    heroCover ?: heroUrl ?: cachedSgdb("grid_hero") ?: appInfo.headerImageUrl
                 }
             }
             GridImageUrls(primary = primary)
         }
 
         GameSource.GOG, GameSource.EPIC, GameSource.AMAZON -> {
+            val sgdbType = when (paneType) {
+                PaneType.GRID_CAPSULE -> "grid_capsule"
+                else -> "grid_hero"
+            }
+            val sgdbUrl = cachedSgdb(sgdbType)
             val primary = when (paneType) {
-                PaneType.GRID_CAPSULE -> appInfo.capsuleImageUrl.ifEmpty { appInfo.iconHash }
-                else -> appInfo.headerImageUrl.ifEmpty {
-                    appInfo.heroImageUrl.ifEmpty { appInfo.iconHash }
-                }
+                PaneType.GRID_CAPSULE ->
+                    sgdbUrl ?: appInfo.capsuleImageUrl.ifEmpty { appInfo.iconHash }
+                else ->
+                    sgdbUrl ?: appInfo.headerImageUrl.ifEmpty {
+                        appInfo.heroImageUrl.ifEmpty { appInfo.iconHash }
+                    }
             }
             val fallback = when {
+                sgdbUrl != null -> ""
                 paneType == PaneType.GRID_CAPSULE ->
                     appInfo.iconHash.takeIf { it.isNotEmpty() && it != primary } ?: ""
                 appInfo.heroImageUrl.isNotEmpty() && appInfo.heroImageUrl != primary ->
@@ -473,14 +497,21 @@ internal fun getGridImageUrl(
             GridImageUrls(primary = primary, fallback = fallback)
         }
 
-        GameSource.STEAM -> when (paneType) {
-            PaneType.GRID_CAPSULE ->
-                GridImageUrls(primary = appInfo.capsuleImageUrl)
-            else ->
-                GridImageUrls(
-                    primary = appInfo.headerImageUrl,
-                    fallback = appInfo.heroImageUrl,
-                )
+        GameSource.STEAM -> {
+            val sgdbType = when (paneType) {
+                PaneType.GRID_CAPSULE -> "grid_capsule"
+                else -> "grid_hero"
+            }
+            val sgdbUrl = cachedSgdb(sgdbType)
+            when (paneType) {
+                PaneType.GRID_CAPSULE ->
+                    GridImageUrls(primary = sgdbUrl ?: appInfo.capsuleImageUrl)
+                else ->
+                    GridImageUrls(
+                        primary = sgdbUrl ?: appInfo.headerImageUrl,
+                        fallback = if (sgdbUrl != null) "" else appInfo.heroImageUrl,
+                    )
+            }
         }
     }
 }
