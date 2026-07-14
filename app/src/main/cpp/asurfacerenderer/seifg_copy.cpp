@@ -211,5 +211,11 @@ void HostCopier::destroy() {
     if (pool) t.vkDestroyCommandPool(device, pool, nullptr);
     if (device) t.vkDestroyDevice(device, nullptr);
     if (instance) vkDestroyInstance(instance, nullptr);
+    cmd = VK_NULL_HANDLE;
+    pool = VK_NULL_HANDLE;
+    queue = VK_NULL_HANDLE;
+    device = VK_NULL_HANDLE;
+    phys = VK_NULL_HANDLE;
+    instance = VK_NULL_HANDLE;
     ready = false;
 }

@@ -136,6 +136,8 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     private native void nativeDestroyScanout();
     private native void nativeSetWindowBuffer(long contentId, long ahbPtr, int fenceFd, long windowId, long serial);
     private native void nativeSetScanoutPacing(long intervalNs);
+    private native float nativeGetPresentFps();
+    public float getPresentFps() { return nativeGetPresentFps(); }
     private native void nativeSeifgHostSpike();
     public void seifgHostSpike() { nativeSeifgHostSpike(); }
     private native void nativeSetHostFramegen(boolean enabled, int quality, int multiplier);

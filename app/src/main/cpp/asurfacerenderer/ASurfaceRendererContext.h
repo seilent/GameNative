@@ -56,6 +56,7 @@ public:
     void setWindowBuffer(int64_t contentId, AHardwareBuffer* ahb, int fenceFd,
                          int64_t windowId = 0, int64_t serial = 0);
     void setScanoutPacing(int64_t intervalNs);
+    float getPresentFps();
     void setHostFramegen(bool enabled, int quality, int multiplier);
     void setFlowDownscale(int level);
     void setHostEffect(int effectId, float sharpness, int effectMask,
@@ -168,6 +169,9 @@ private:
     void* fnSTSetBackPressure = nullptr;
     std::atomic<int64_t> scanoutPaceIntervalNs{0};
     int64_t scanoutNextPresentNs = 0;
+    std::atomic<uint32_t> presentCount{0};
+    int64_t presentSampleStartNs = 0;
+    float lastPresentFps = 0.0f;
     VsyncClock vsyncClock;
     void oneShot(std::function<void(void*)> fill);
 

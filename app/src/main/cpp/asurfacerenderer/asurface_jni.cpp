@@ -63,6 +63,13 @@ Java_com_winlator_renderer_ASurfaceRenderer_nativeSetScanoutPacing(JNIEnv*, jobj
     if (auto* r = g_ctx) r->setScanoutPacing((int64_t)intervalNs);
 }
 
+extern "C" JNIEXPORT jfloat JNICALL
+Java_com_winlator_renderer_ASurfaceRenderer_nativeGetPresentFps(JNIEnv*, jobject) {
+    std::shared_lock lk(g_ctxMutex);
+    if (auto* r = g_ctx) return (jfloat)r->getPresentFps();
+    return 0.0f;
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_com_winlator_renderer_ASurfaceRenderer_nativeSetHostFramegen(
         JNIEnv*, jobject, jboolean enabled, jint quality, jint multiplier) {

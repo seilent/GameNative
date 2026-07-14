@@ -335,6 +335,7 @@ void ASurfaceRendererContext::setWindowBuffer(int64_t contentId, AHardwareBuffer
     }
 
     ST_APPLY(tx);
+    presentCount.fetch_add(1, std::memory_order_relaxed);
     ST_DELETE(tx);
 }
 
@@ -343,6 +344,21 @@ void ASurfaceRendererContext::setScanoutPacing(int64_t intervalNs) {
     scanoutPaceIntervalNs.store(v, std::memory_order_relaxed);
     if (v > 0) vsyncClock.start();
     else vsyncClock.stop();
+}
+
+float ASurfaceRendererContext::getPresentFps() {
+    const int64_t now = scanoutNowNs();
+    if (presentSampleStartNs == 0) {
+        presentSampleStartNs = now;
+        return lastPresentFps;
+    }
+    const int64_t dt = now - presentSampleStartNs;
+    if (dt >= 500000000LL) {
+        const uint32_t c = presentCount.exchange(0, std::memory_order_relaxed);
+        lastPresentFps = (float)((double)c * 1e9 / (double)dt);
+        presentSampleStartNs = now;
+    }
+    return lastPresentFps;
 }
 
 void ASurfaceRendererContext::setHostFramegen(bool enabled, int quality, int multiplier) {
@@ -408,6 +424,7 @@ int64_t ASurfaceRendererContext::nextVsyncSlot() {
 
 void ASurfaceRendererContext::presentOne(void* sc, AHardwareBuffer* ahb, int fenceFd,
         int64_t windowId, int64_t serial, int64_t target) {
+    presentCount.fetch_add(1, std::memory_order_relaxed);
     void* tx = ST_CREATE();
     ST_SETBUF(tx, sc, ahb, fenceFd);
     ST_SET_TRANSPARENCY(tx, sc, 2);
@@ -437,6 +454,11 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
     }
 
     if (incDesc.width != hostFg.width() || incDesc.height != hostFg.height()) {
+        int q; int mult; int fd;
+        { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; fd = hostFgFlowDownscale; }
+        hostFg.destroy();
+        if (!hostFg.init(incDesc.width, incDesc.height, incDesc.format, (uint32_t)q, (uint32_t)mult, (uint32_t)fd))
+            hostFgEnabled.store(false, std::memory_order_relaxed);
         presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
         return;
     }

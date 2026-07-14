@@ -60,6 +60,7 @@ AHardwareBuffer* allocAhb(uint32_t w, uint32_t h, uint32_t format) {
 }
 
 bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uint32_t quality_, uint32_t multiplier, uint32_t flowDownscale) {
+    frameIdx = 0;
     w = width; h = height; ahbFmt = ahbFormat; vkFmt = ahbToVk(ahbFormat);
     quality = quality_ > 4 ? 4 : quality_;
     if (multiplier < 2) multiplier = 2;
