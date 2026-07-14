@@ -454,6 +454,8 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
     }
 
     if (incDesc.width != hostFg.width() || incDesc.height != hostFg.height()) {
+        hostEffects.destroy();
+        hostEffectsGeometrySet = false;
         int q; int mult; int fd;
         { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; fd = hostFgFlowDownscale; }
         hostFg.destroy();
