@@ -27,6 +27,8 @@ private:
     AHardwareBuffer* outAhb[MAX_INTERPS] = { nullptr, nullptr, nullptr };
     AHardwareBuffer* presentBuf[MAX_INTERPS][2] = {};
     uint64_t frameIdx = 0;
+    VkSemaphore timelineSem = VK_NULL_HANDLE;
+    uint64_t tv = 0;
     uint32_t w = 0;
     uint32_t h = 0;
     uint32_t ahbFmt = 0;

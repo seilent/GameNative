@@ -61,6 +61,7 @@ AHardwareBuffer* allocAhb(uint32_t w, uint32_t h, uint32_t format) {
 
 bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uint32_t quality_, uint32_t multiplier, uint32_t flowDownscale) {
     frameIdx = 0;
+    tv = 0;
     w = width; h = height; ahbFmt = ahbFormat; vkFmt = ahbToVk(ahbFormat);
     quality = quality_ > 4 ? 4 : quality_;
     if (multiplier < 2) multiplier = 2;
@@ -68,7 +69,17 @@ bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uin
     numInterps = multiplier - 1;
     const uint64_t uuid = enumUuid();
     if (uuid == 0) { FERR("no device uuid"); return false; }
-    if (!copier.init(uuid)) { FERR("copier init failed"); return false; }
+    seifg::initialize(uuid, false, quality, (uint64_t)multiplier, {});
+    if (flowDownscale > 1) seifg::setFlowDownscale(flowDownscale);
+    if (!copier.initShared(seifg::getPhysicalDevice(), seifg::getDevice(), seifg::getQueue(), seifg::getQueueFamily())) { FERR("copier initShared failed"); return false; }
+    VkSemaphoreTypeCreateInfo stci{};
+    stci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+    stci.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+    stci.initialValue = 0;
+    VkSemaphoreCreateInfo sci{};
+    sci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    sci.pNext = &stci;
+    if (vkCreateSemaphore(seifg::getDevice(), &sci, nullptr, &timelineSem) != VK_SUCCESS) { FERR("timeline sem create failed"); return false; }
     in0 = allocAhb(w, h, ahbFmt);
     in1 = allocAhb(w, h, ahbFmt);
     if (!in0 || !in1) { FERR("AHB alloc failed"); return false; }
@@ -80,8 +91,6 @@ bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uin
         if (!outAhb[i] || !presentBuf[i][0] || !presentBuf[i][1]) { FERR("AHB alloc failed"); return false; }
         outs[i] = outAhb[i];
     }
-    seifg::initialize(uuid, false, quality, (uint64_t)multiplier, {});
-    if (flowDownscale > 1) seifg::setFlowDownscale(flowDownscale);
     ctxId = seifg::createContextFromAHB(in0, in1, outs, VkExtent2D{w, h}, static_cast<VkFormat>(vkFmt));
     if (ctxId < 0) { FERR("createContext failed"); return false; }
     ready = true;
@@ -92,23 +101,43 @@ bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uin
 uint32_t HostFramegen::submit(AHardwareBuffer* incoming, AHardwareBuffer** outInterps) {
     if (!ready) return 0;
     const VkFormat fmt = static_cast<VkFormat>(vkFmt);
-    if (frameIdx == 0) { copier.copy(incoming, in1, fmt, w, h); frameIdx++; return 0; }
-    if (!copier.copy(in1, in0, fmt, w, h)) { FERR("shift copy failed"); return 0; }
-    if (!copier.copy(incoming, in1, fmt, w, h)) { FERR("copy failed"); return 0; }
-    const uint64_t idx = frameIdx++;
-    seifg::presentContext(ctxId, -1, {});
-    seifg::waitIdle();
-    for (uint32_t i = 0; i < numInterps; i++) {
-        AHardwareBuffer* pb = presentBuf[i][idx % 2];
-        if (!copier.copy(outAhb[i], pb, fmt, w, h)) pb = outAhb[i];
-        outInterps[i] = pb;
+    if (frameIdx == 0) {
+        const uint64_t v = tv + 1;
+        HostCopier::CopyPair prime{ incoming, in1 };
+        if (copier.submitCopies(&prime, 1, 0, fmt, w, h, timelineSem, 0, v)) {
+            copier.waitTimeline(timelineSem, v);
+            tv = v;
+        }
+        frameIdx++;
+        return 0;
     }
+    const uint64_t inputVal = tv + 1;
+    const uint64_t interpVal = tv + 2;
+    const uint64_t outputVal = tv + 3;
+    HostCopier::CopyPair inPairs[2] = { { in1, in0 }, { incoming, in1 } };
+    if (!copier.submitCopies(inPairs, 2, 0, fmt, w, h, timelineSem, 0, inputVal)) { FERR("input copies failed"); return 0; }
+    const uint64_t idx = frameIdx++;
+    seifg::presentContextTimeline(ctxId, timelineSem, inputVal, interpVal);
+    HostCopier::CopyPair outPairs[MAX_INTERPS];
+    for (uint32_t i = 0; i < numInterps; i++) {
+        outPairs[i].src = outAhb[i];
+        outPairs[i].dst = presentBuf[i][idx % 2];
+    }
+    const bool outOk = copier.submitCopies(outPairs, numInterps, 1, fmt, w, h, timelineSem, interpVal, outputVal);
+    copier.waitTimeline(timelineSem, outOk ? outputVal : interpVal);
+    for (uint32_t i = 0; i < numInterps; i++)
+        outInterps[i] = outOk ? presentBuf[i][idx % 2] : outAhb[i];
+    tv = outOk ? outputVal : interpVal;
     return numInterps;
 }
 
 void HostFramegen::destroy() {
-    if (ctxId >= 0) { seifg::deleteContext(ctxId); seifg::finalize(); ctxId = -1; }
+    seifg::waitIdle();
+    if (timelineSem != VK_NULL_HANDLE && seifg::getDevice() != VK_NULL_HANDLE)
+        vkDestroySemaphore(seifg::getDevice(), timelineSem, nullptr);
+    timelineSem = VK_NULL_HANDLE;
     copier.destroy();
+    if (ctxId >= 0) { seifg::deleteContext(ctxId); seifg::finalize(); ctxId = -1; }
     if (in0) AHardwareBuffer_release(in0);
     if (in1) AHardwareBuffer_release(in1);
     for (uint32_t i = 0; i < MAX_INTERPS; i++) {

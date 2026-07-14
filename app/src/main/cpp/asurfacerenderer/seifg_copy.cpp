@@ -204,18 +204,119 @@ bool HostCopier::copy(AHardwareBuffer* src, AHardwareBuffer* dst,
     return true;
 }
 
+bool HostCopier::initShared(VkPhysicalDevice p, VkDevice dev, VkQueue q, uint32_t qf) {
+    phys = p;
+    device = dev;
+    queue = q;
+    qfam = qf;
+    sharedDevice = true;
+    volkLoadDeviceTable(&t, device);
+    vkGetPhysicalDeviceMemoryProperties(phys, &memProps);
+    VkCommandPoolCreateInfo pci{};
+    pci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    pci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    pci.queueFamilyIndex = qfam;
+    if (t.vkCreateCommandPool(device, &pci, nullptr, &pool) != VK_SUCCESS) { CERR("copier: shared vkCreateCommandPool failed"); return false; }
+    ready = true;
+    CLOG("copier: initShared OK (qfam=%u)", qfam);
+    return true;
+}
+
+bool HostCopier::submitCopies(const CopyPair* pairs, uint32_t count, uint32_t cmdSlot,
+        VkFormat format, uint32_t w, uint32_t h,
+        VkSemaphore sem, uint64_t waitValue, uint64_t signalValue) {
+    if (!ready || cmdSlot >= 2) return false;
+    VkCommandBuffer cb = cmds[cmdSlot];
+    if (cb == VK_NULL_HANDLE) {
+        VkCommandBufferAllocateInfo cba{};
+        cba.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        cba.commandPool = pool;
+        cba.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        cba.commandBufferCount = 1;
+        if (t.vkAllocateCommandBuffers(device, &cba, &cb) != VK_SUCCESS) return false;
+        cmds[cmdSlot] = cb;
+    }
+    t.vkResetCommandBuffer(cb, 0);
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    t.vkBeginCommandBuffer(cb, &bi);
+    for (uint32_t p = 0; p < count; p++) {
+        Img* s = getImg(pairs[p].src, format, w, h);
+        Img* d = getImg(pairs[p].dst, format, w, h);
+        if (!s || !d) { t.vkEndCommandBuffer(cb); return false; }
+        auto barrier = [&](VkImage img, VkImageLayout to, VkAccessFlags dstA) {
+            VkImageMemoryBarrier b{};
+            b.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            b.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED; b.newLayout = to;
+            b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            b.image = img;
+            b.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+            b.srcAccessMask = 0; b.dstAccessMask = dstA;
+            t.vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                0, 0, nullptr, 0, nullptr, 1, &b);
+        };
+        barrier(s->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_ACCESS_TRANSFER_READ_BIT);
+        barrier(d->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT);
+        VkImageCopy region{};
+        region.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+        region.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+        region.extent = { w, h, 1 };
+        t.vkCmdCopyImage(cb, s->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            d->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+    }
+    t.vkEndCommandBuffer(cb);
+
+    const bool doWait = (waitValue > 0);
+    uint64_t waitVals[1] = { waitValue };
+    uint64_t signalVals[1] = { signalValue };
+    VkTimelineSemaphoreSubmitInfo tsi{};
+    tsi.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO;
+    tsi.waitSemaphoreValueCount = doWait ? 1u : 0u;
+    tsi.pWaitSemaphoreValues = doWait ? waitVals : nullptr;
+    tsi.signalSemaphoreValueCount = 1;
+    tsi.pSignalSemaphoreValues = signalVals;
+    VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    VkSubmitInfo si{};
+    si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    si.pNext = &tsi;
+    si.waitSemaphoreCount = doWait ? 1u : 0u;
+    si.pWaitSemaphores = doWait ? &sem : nullptr;
+    si.pWaitDstStageMask = doWait ? &waitStage : nullptr;
+    si.commandBufferCount = 1;
+    si.pCommandBuffers = &cb;
+    si.signalSemaphoreCount = 1;
+    si.pSignalSemaphores = &sem;
+    return t.vkQueueSubmit(queue, 1, &si, VK_NULL_HANDLE) == VK_SUCCESS;
+}
+
+bool HostCopier::waitTimeline(VkSemaphore sem, uint64_t value) {
+    VkSemaphoreWaitInfo wi{};
+    wi.sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO;
+    wi.semaphoreCount = 1;
+    wi.pSemaphores = &sem;
+    wi.pValues = &value;
+    return t.vkWaitSemaphores(device, &wi, UINT64_MAX) == VK_SUCCESS;
+}
+
 void HostCopier::destroy() {
     if (!ready) return;
     for (auto& kv : imgCache) destroyImg(kv.second);
     imgCache.clear();
     if (pool) t.vkDestroyCommandPool(device, pool, nullptr);
-    if (device) t.vkDestroyDevice(device, nullptr);
-    if (instance) vkDestroyInstance(instance, nullptr);
+    if (!sharedDevice) {
+        if (device) t.vkDestroyDevice(device, nullptr);
+        if (instance) vkDestroyInstance(instance, nullptr);
+    }
     cmd = VK_NULL_HANDLE;
+    cmds[0] = VK_NULL_HANDLE;
+    cmds[1] = VK_NULL_HANDLE;
     pool = VK_NULL_HANDLE;
     queue = VK_NULL_HANDLE;
     device = VK_NULL_HANDLE;
     phys = VK_NULL_HANDLE;
     instance = VK_NULL_HANDLE;
+    sharedDevice = false;
     ready = false;
 }

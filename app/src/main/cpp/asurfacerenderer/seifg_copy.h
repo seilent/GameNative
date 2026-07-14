@@ -9,8 +9,14 @@
 class HostCopier {
 public:
     bool init(uint64_t wantUuid);
+    bool initShared(VkPhysicalDevice phys, VkDevice device, VkQueue queue, uint32_t queueFamily);
     bool copy(AHardwareBuffer* src, AHardwareBuffer* dst,
               VkFormat format, uint32_t width, uint32_t height);
+    struct CopyPair { AHardwareBuffer* src; AHardwareBuffer* dst; };
+    bool submitCopies(const CopyPair* pairs, uint32_t count, uint32_t cmdSlot,
+                      VkFormat format, uint32_t width, uint32_t height,
+                      VkSemaphore sem, uint64_t waitValue, uint64_t signalValue);
+    bool waitTimeline(VkSemaphore sem, uint64_t value);
     void destroy();
     bool ok() const { return ready; }
 
@@ -37,6 +43,8 @@ private:
     uint32_t qfam = 0;
     VkCommandPool pool{};
     VkCommandBuffer cmd{};
+    VkCommandBuffer cmds[2]{};
+    bool sharedDevice = false;
     std::unordered_map<AHardwareBuffer*, Img> imgCache;
     VkPhysicalDeviceMemoryProperties memProps{};
     bool ready = false;
