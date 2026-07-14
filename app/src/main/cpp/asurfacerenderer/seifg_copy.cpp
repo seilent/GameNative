@@ -253,8 +253,8 @@ bool HostCopier::submitCopies(const CopyPair* pairs, uint32_t count, uint32_t cm
             b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             b.image = img;
             b.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-            b.srcAccessMask = 0; b.dstAccessMask = dstA;
-            t.vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+            b.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT; b.dstAccessMask = dstA;
+            t.vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                 0, 0, nullptr, 0, nullptr, 1, &b);
         };
         barrier(s->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_ACCESS_TRANSFER_READ_BIT);
