@@ -53,7 +53,7 @@ object SeifgManager {
     }
 
     fun flowQuality(container: Container): Int {
-        val raw = container.getExtra(EXTRA_FLOW_QUALITY, "3").toIntOrNull() ?: 3
+        val raw = container.getExtra(EXTRA_FLOW_QUALITY, "2").toIntOrNull() ?: 2
         return raw.coerceIn(1, 3)
     }
 
