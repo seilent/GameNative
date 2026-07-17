@@ -19,6 +19,7 @@ public interface XServerRendererView {
     default void seifgHostSpike() {}
     default void setHostFramegen(boolean enabled, int quality, int multiplier) {}
     default void setFlowDownscale(int level) {}
+    default void setFlowMode(int mode) {}
     void onResume();
     void onPause();
     XServer getxServer();

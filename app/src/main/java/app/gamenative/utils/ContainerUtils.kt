@@ -349,6 +349,8 @@ object ContainerUtils {
             seifgMultiplier = container.getExtra(SeifgManager.EXTRA_MULTIPLIER, "2").toIntOrNull() ?: 2,
             seifgQuality = container.getExtra(SeifgManager.EXTRA_QUALITY, "2").toIntOrNull() ?: 2,
             seifgFlowQuality = container.getExtra(SeifgManager.EXTRA_FLOW_QUALITY, "1").toIntOrNull() ?: 1,
+            seifgFlowMode = container.getExtra(SeifgManager.EXTRA_FLOW_MODE, "1").toIntOrNull() ?: 1,
+            seifgDisableFrameCap = container.getExtra(SeifgManager.EXTRA_DISABLE_FRAME_CAP, "false").toBoolean(),
             stickAntiDeadzone = container.getExtra("stickAntiDeadzone", "0.0").toFloatOrNull() ?: 0f,
         )
     }
@@ -534,6 +536,8 @@ object ContainerUtils {
         container.putExtra(SeifgManager.EXTRA_MULTIPLIER, containerData.seifgMultiplier.toString())
         container.putExtra(SeifgManager.EXTRA_QUALITY, containerData.seifgQuality.toString())
         container.putExtra(SeifgManager.EXTRA_FLOW_QUALITY, containerData.seifgFlowQuality.toString())
+        container.putExtra(SeifgManager.EXTRA_FLOW_MODE, containerData.seifgFlowMode.toString())
+        container.putExtra(SeifgManager.EXTRA_DISABLE_FRAME_CAP, containerData.seifgDisableFrameCap.toString())
         container.putExtra("stickAntiDeadzone", "%.2f".format(containerData.stickAntiDeadzone))
         try {
             container.language = containerData.language

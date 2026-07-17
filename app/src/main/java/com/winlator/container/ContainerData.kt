@@ -105,6 +105,8 @@ data class ContainerData(
     val seifgMultiplier: Int = 2,
     val seifgQuality: Int = 0,
     val seifgFlowQuality: Int = 2,
+    val seifgFlowMode: Int = 1,
+    val seifgDisableFrameCap: Boolean = false,
     val stickAntiDeadzone: Float = 0f,
 ) {
     companion object {
@@ -179,6 +181,8 @@ data class ContainerData(
                     "seifgMultiplier" to state.seifgMultiplier,
                     "seifgQuality" to state.seifgQuality,
                     "seifgFlowQuality" to state.seifgFlowQuality,
+                    "seifgFlowMode" to state.seifgFlowMode,
+                    "seifgDisableFrameCap" to state.seifgDisableFrameCap,
                     "stickAntiDeadzone" to state.stickAntiDeadzone,
                 )
             },
@@ -252,6 +256,8 @@ data class ContainerData(
                     seifgMultiplier = (savedMap["seifgMultiplier"] as? Int) ?: 2,
                     seifgQuality = (savedMap["seifgQuality"] as? Int) ?: 2,
                     seifgFlowQuality = (savedMap["seifgFlowQuality"] as? Int) ?: 1,
+                    seifgFlowMode = (savedMap["seifgFlowMode"] as? Int) ?: 1,
+                    seifgDisableFrameCap = (savedMap["seifgDisableFrameCap"] as? Boolean) ?: false,
                     stickAntiDeadzone = (savedMap["stickAntiDeadzone"] as? Float) ?: 0f,
                 )
             },

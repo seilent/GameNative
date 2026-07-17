@@ -59,6 +59,7 @@ public:
     float getPresentFps();
     void setHostFramegen(bool enabled, int quality, int multiplier);
     void setFlowDownscale(int level);
+    void setFlowMode(int mode);
     void setHostEffect(int effectId, float sharpness, int effectMask,
                        float brightness, float contrast, float gamma);
 
@@ -94,6 +95,7 @@ private:
     int hostFgQuality = 2;
     int hostFgMult = 2;
     int hostFgFlowDownscale = 1;
+    int hostFgFlowMode = 1;
 
     HostEffects hostEffects;
     std::atomic<int> hostEffectId{0};
@@ -155,6 +157,7 @@ private:
     bool  scanoutApiLoaded   = false;
     void* fnSCCreateFromWin  = nullptr;
     void* fnSCRelease        = nullptr;
+    void* fnSCAcquire        = nullptr;
     void* fnSTCreate         = nullptr;
     void* fnSTDelete         = nullptr;
     void* fnSTApply          = nullptr;

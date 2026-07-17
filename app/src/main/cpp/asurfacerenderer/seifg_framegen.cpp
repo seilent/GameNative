@@ -59,7 +59,7 @@ AHardwareBuffer* allocAhb(uint32_t w, uint32_t h, uint32_t format) {
 
 }
 
-bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uint32_t quality_, uint32_t multiplier, uint32_t flowDownscale) {
+bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uint32_t quality_, uint32_t multiplier, uint32_t flowDownscale, uint32_t flowMode) {
     frameIdx = 0;
     tv = 0;
     w = width; h = height; ahbFmt = ahbFormat; vkFmt = ahbToVk(ahbFormat);
@@ -71,6 +71,7 @@ bool HostFramegen::init(uint32_t width, uint32_t height, uint32_t ahbFormat, uin
     if (uuid == 0) { FERR("no device uuid"); return false; }
     seifg::initialize(uuid, false, quality, (uint64_t)multiplier, {});
     if (flowDownscale > 1) seifg::setFlowDownscale(flowDownscale);
+    seifg::setFlowMode(flowMode);
     if (!copier.initShared(seifg::getPhysicalDevice(), seifg::getDevice(), seifg::getQueue(), seifg::getQueueFamily())) { FERR("copier initShared failed"); return false; }
     VkSemaphoreTypeCreateInfo stci{};
     stci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;

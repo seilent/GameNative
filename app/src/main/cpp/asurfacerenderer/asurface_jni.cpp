@@ -89,6 +89,15 @@ Java_com_winlator_renderer_ASurfaceRenderer_nativeSetFlowDownscale(
 }
 
 extern "C" JNIEXPORT void JNICALL
+Java_com_winlator_renderer_ASurfaceRenderer_nativeSetFlowMode(
+        JNIEnv*, jobject, jint mode) {
+    std::shared_lock lk(g_ctxMutex);
+    if (auto* r = g_ctx) {
+        r->setFlowMode(mode);
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
 Java_com_winlator_renderer_ASurfaceRenderer_nativeSetHostEffect(
         JNIEnv*, jobject, jint effectId, jfloat sharpness, jint effectMask,
         jfloat brightness, jfloat contrast, jfloat gamma) {

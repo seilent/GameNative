@@ -149,6 +149,8 @@ public class ASurfaceRenderer implements WindowManager.OnWindowModificationListe
     }
     private native void nativeSetFlowDownscale(int level);
     public void setFlowDownscale(int level) { nativeSetFlowDownscale(level); }
+    private native void nativeSetFlowMode(int mode);
+    public void setFlowMode(int mode) { nativeSetFlowMode(mode); }
     private native void nativeSetHostEffect(int effectId, float sharpness, int effectMask, float brightness, float contrast, float gamma);
     public void setHostEffect(int effectId, float sharpness, int effectMask, float brightness, float contrast, float gamma) {
         nativeSetHostEffect(effectId, sharpness, effectMask, brightness, contrast, gamma);

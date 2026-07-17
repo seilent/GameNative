@@ -31,6 +31,7 @@ typedef void  (*pfn_STSetBackPressure)(void*, void*, bool);
 
 #define SC_CREATE(win, name)   ((pfn_SCCreateFromWindow)fnSCCreateFromWin)((win),(name))
 #define SC_RELEASE(sc)         ((pfn_SCRelease)fnSCRelease)((sc))
+#define SC_ACQUIRE(sc)         if(fnSCAcquire) ((pfn_SCRelease)fnSCAcquire)((sc))
 #define ST_CREATE()            ((pfn_STCreate)fnSTCreate)()
 #define ST_DELETE(t)           ((pfn_STDelete)fnSTDelete)((t))
 #define ST_APPLY(t)            ((pfn_STApply)fnSTApply)((t))
@@ -123,6 +124,7 @@ bool ASurfaceRendererContext::loadScanoutApi() {
     if (!lib) { SCANOUT_LOG("loadScanoutApi: dlopen failed: %s", dlerror()); return false; }
     fnSCCreateFromWin = dlsym(lib, "ASurfaceControl_createFromWindow");
     fnSCRelease       = dlsym(lib, "ASurfaceControl_release");
+    fnSCAcquire       = dlsym(lib, "ASurfaceControl_acquire");
     fnSTCreate        = dlsym(lib, "ASurfaceTransaction_create");
     fnSTDelete        = dlsym(lib, "ASurfaceTransaction_delete");
     fnSTApply         = dlsym(lib, "ASurfaceTransaction_apply");
@@ -390,6 +392,13 @@ void ASurfaceRendererContext::setFlowDownscale(int level) {
     hostFgFlowDownscale = level;
 }
 
+void ASurfaceRendererContext::setFlowMode(int mode) {
+    if (mode < 0) mode = 0;
+    if (mode > 2) mode = 2;
+    std::lock_guard<std::mutex> lk(hostFgMutex);
+    hostFgFlowMode = mode;
+}
+
 void ASurfaceRendererContext::setHostEffect(int effectId, float sharpness, int effectMask,
                                             float brightness, float contrast, float gamma) {
     hostEffectId.store(effectId, std::memory_order_relaxed);
@@ -443,10 +452,10 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
     AHardwareBuffer_describe(ahb, &incDesc);
 
     if (!hostFg.ok()) {
-        int q; int mult; int fd;
-        { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; fd = hostFgFlowDownscale; }
+        int q; int mult; int fd; int fm;
+        { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; fd = hostFgFlowDownscale; fm = hostFgFlowMode; }
         SCANOUT_LOG("hostFg incoming AHB fmt=%u %ux%u", incDesc.format, incDesc.width, incDesc.height);
-        if (!hostFg.init(incDesc.width, incDesc.height, incDesc.format, (uint32_t)q, (uint32_t)mult, (uint32_t)fd)) {
+        if (!hostFg.init(incDesc.width, incDesc.height, incDesc.format, (uint32_t)q, (uint32_t)mult, (uint32_t)fd, (uint32_t)fm)) {
             hostFgEnabled.store(false, std::memory_order_relaxed);
             presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
             return;
@@ -456,10 +465,10 @@ void ASurfaceRendererContext::hostFramegenPresent(void* sc, AHardwareBuffer* ahb
     if (incDesc.width != hostFg.width() || incDesc.height != hostFg.height()) {
         hostEffects.destroy();
         hostEffectsGeometrySet = false;
-        int q; int mult; int fd;
-        { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; fd = hostFgFlowDownscale; }
+        int q; int mult; int fd; int fm;
+        { std::lock_guard<std::mutex> lk(hostFgMutex); q = hostFgQuality; mult = hostFgMult; fd = hostFgFlowDownscale; fm = hostFgFlowMode; }
         hostFg.destroy();
-        if (!hostFg.init(incDesc.width, incDesc.height, incDesc.format, (uint32_t)q, (uint32_t)mult, (uint32_t)fd))
+        if (!hostFg.init(incDesc.width, incDesc.height, incDesc.format, (uint32_t)q, (uint32_t)mult, (uint32_t)fd, (uint32_t)fm))
             hostFgEnabled.store(false, std::memory_order_relaxed);
         presentOne(sc, ahb, fenceFd, windowId, serial, nextVsyncSlot());
         return;
@@ -608,12 +617,15 @@ void ASurfaceRendererContext::hostFramegenThreadLoop() {
             std::lock_guard<std::mutex> lk(windowScMutex);
             auto it = windowScMap.find(f.contentId);
             if (it != windowScMap.end()) sc = it->second;
+            if (sc) { SC_ACQUIRE(sc); }
         }
 
-        if (sc)
+        if (sc) {
             hostFramegenPresent(sc, f.ahb, f.fenceFd, f.windowId, f.serial);
-        else if (f.fenceFd >= 0)
+            if (fnSCAcquire) SC_RELEASE(sc);
+        } else if (f.fenceFd >= 0) {
             close(f.fenceFd);
+        }
 
         AHardwareBuffer_release(f.ahb);
     }

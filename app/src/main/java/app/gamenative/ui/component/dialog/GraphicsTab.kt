@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -508,6 +509,7 @@ internal fun SettingsAdjustmentRow(
     onIncrease: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    enabled: Boolean = true,
 ) {
     val accent = LocalGameAccent.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -530,7 +532,9 @@ internal fun SettingsAdjustmentRow(
             .clip(shape)
             .background(background, shape)
             .border(borderWidth, borderColor, shape)
+            .alpha(if (enabled) 1f else 0.38f)
             .onPreviewKeyEvent { event ->
+                if (!enabled) return@onPreviewKeyEvent false
                 if (event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
                     when (event.nativeKeyEvent.keyCode) {
                         KeyEvent.KEYCODE_DPAD_LEFT -> {
@@ -550,7 +554,7 @@ internal fun SettingsAdjustmentRow(
                     }
                 }
             }
-            .focusable(interactionSource = interactionSource)
+            .focusable(enabled = enabled, interactionSource = interactionSource)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         Column {
@@ -585,6 +589,7 @@ internal fun SettingsAdjustmentRow(
                 onValueChange = onValueChange,
                 valueRange = valueRange,
                 steps = steps,
+                enabled = enabled,
                 colors = androidx.compose.material3.SliderDefaults.colors(
                     thumbColor = accent,
                     activeTrackColor = accent,
@@ -702,6 +707,27 @@ internal fun FrameGenTabContent(state: ContainerConfigState, default: Boolean, p
                     color = Color.White.copy(alpha = 0.6f),
                 )
                 run {
+                    val flowModeNames = listOf("LK", "Hybrid", "Block")
+                    SettingsAdjustmentRow(
+                        title = stringResource(R.string.seifg_flow_mode),
+                        valueText = flowModeNames[config.seifgFlowMode.coerceIn(0, 2)],
+                        value = config.seifgFlowMode.toFloat(),
+                        valueRange = 0f..2f,
+                        steps = 1,
+                        onValueChange = { newVal ->
+                            state.config.value = state.config.value.copy(seifgFlowMode = newVal.toInt().coerceIn(0, 2))
+                        },
+                        onDecrease = {
+                            val clamped = (config.seifgFlowMode - 1).coerceIn(0, 2)
+                            state.config.value = state.config.value.copy(seifgFlowMode = clamped)
+                        },
+                        onIncrease = {
+                            val clamped = (config.seifgFlowMode + 1).coerceIn(0, 2)
+                            state.config.value = state.config.value.copy(seifgFlowMode = clamped)
+                        },
+                    )
+                }
+                run {
                     val qualityNames = listOf("Performance", "Balanced", "Quality")
                     SettingsAdjustmentRow(
                         title = stringResource(R.string.seifg_quality),
@@ -709,6 +735,7 @@ internal fun FrameGenTabContent(state: ContainerConfigState, default: Boolean, p
                         value = config.seifgQuality.toFloat(),
                         valueRange = 0f..2f,
                         steps = 1,
+                        enabled = config.seifgFlowMode != 2,
                         onValueChange = { newVal ->
                             state.config.value = state.config.value.copy(seifgQuality = newVal.toInt().coerceIn(0, 2))
                         },
@@ -735,6 +762,15 @@ internal fun FrameGenTabContent(state: ContainerConfigState, default: Boolean, p
                         onIncrease = { val clamped = (config.seifgFlowQuality - 1).coerceIn(1, 3); state.config.value = state.config.value.copy(seifgFlowQuality = clamped) },
                     )
                 }
+                SettingsSwitchWithAction(
+                    colors = settingsTileColorsAlt(),
+                    title = { Text(text = stringResource(R.string.seifg_disable_frame_cap)) },
+                    subtitle = { Text(text = stringResource(R.string.seifg_disable_frame_cap_desc)) },
+                    state = config.seifgDisableFrameCap,
+                    onCheckedChange = {
+                        state.config.value = config.copy(seifgDisableFrameCap = it)
+                    },
+                )
             }
         }
     }

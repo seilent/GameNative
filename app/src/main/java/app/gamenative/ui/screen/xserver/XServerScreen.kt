@@ -554,6 +554,7 @@ fun XServerScreen(
             xServerView?.setHostFramegen(
                 true, SeifgManager.quality(container), SeifgManager.multiplier(container))
             xServerView?.setFlowDownscale(SeifgManager.flowQuality(container))
+            xServerView?.setFlowMode(SeifgManager.flowMode(container))
         }
     }
 

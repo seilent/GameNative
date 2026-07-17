@@ -12,6 +12,8 @@ object SeifgManager {
     const val EXTRA_MULTIPLIER = "seifgMultiplier"
     const val EXTRA_QUALITY = "seifgQuality"
     const val EXTRA_FLOW_QUALITY = "seifgFlowQuality"
+    const val EXTRA_FLOW_MODE = "seifgFlowMode"
+    const val EXTRA_DISABLE_FRAME_CAP = "seifgDisableFrameCap"
     const val EXTRA_BASE_FPS_CAP = "seifgBaseFpsCap"
     const val EXTRA_TARGET_FPS = "seifgTargetFps"
 
@@ -57,6 +59,14 @@ object SeifgManager {
         return raw.coerceIn(1, 3)
     }
 
+    fun flowMode(container: Container): Int {
+        val raw = container.getExtra(EXTRA_FLOW_MODE, "1").toIntOrNull() ?: 1
+        return raw.coerceIn(0, 2)
+    }
+
+    fun disableFrameCap(container: Container): Boolean =
+        parseBool(container.getExtra(EXTRA_DISABLE_FRAME_CAP, "false"))
+
     fun targetFps(container: Container): Int =
         container.getExtra(EXTRA_TARGET_FPS, SEIFG_TARGET_FPS.toString())
             .toIntOrNull()?.coerceIn(30, 240) ?: SEIFG_TARGET_FPS
@@ -93,6 +103,7 @@ object SeifgManager {
     fun applyRealFrameCap(container: Container, envVars: EnvVars) {
         val mult = multiplier(container)
         if (mult < 2) return
+        if (disableFrameCap(container)) return
         val cap = baseFpsCap(container)
         if (cap <= 0) return
         envVars.put("DXVK_FRAME_RATE", cap.toString())
